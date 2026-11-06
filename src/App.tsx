@@ -14,7 +14,7 @@ import {
   getEventOutline
 } from './data/initialData';
 import { NavigationRail } from './components/NavigationRail';
-import { TopHeader } from './components/TopHeader';
+import { TopHeader, MobileTopBar } from './components/TopHeader';
 import { Sidebar } from './components/Sidebar';
 import { WeeklyScheduleView } from './components/WeeklyScheduleView';
 import { DailyScheduleView } from './components/DailyScheduleView';
@@ -318,13 +318,32 @@ export default function App() {
         onOpenCreateModal={() => handleOpenCreateModal()}
       />
 
-      {/* Content Area: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
-      <div className={`order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
-        isFullscreen
-          ? 'md:h-full rounded-none border-none'
-          : 'md:h-full rounded-[28px] sm:rounded-[36px] md:rounded-[44px] shadow-xl border border-slate-200/80'
-      }`}>
-        {/* Top Header (Compact with Sidebar & Fullscreen toggles + Date/View controls) */}
+      {/* Content Area Wrapper: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
+      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 md:h-full gap-1.5 md:gap-0">
+        {/* Mobile Top Bar (Outside the green header & white card, transparent background) */}
+        <MobileTopBar
+          user={user}
+          isProfileMenuOpen={isProfileMenuOpen}
+          onOpenProfileMenu={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+          onResetData={handleResetData}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={handleToggleFullscreen}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          viewMode={viewMode}
+          onSelectView={setViewMode}
+          onOpenCreateModal={() => handleOpenCreateModal()}
+        />
+
+        {/* Main Rounded Card Container */}
+        <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
+          isFullscreen
+            ? 'md:h-full rounded-none border-none'
+            : 'md:h-full rounded-[28px] sm:rounded-[36px] md:rounded-[44px] shadow-xl border border-slate-200/80'
+        }`}>
+          {/* Top Header (On Mobile: only Daily/Weekly/Monthly switcher inside green bar; On Desktop: full header) */}
           <TopHeader
             user={user}
             isProfileMenuOpen={isProfileMenuOpen}
@@ -448,6 +467,7 @@ export default function App() {
             )}
           </div>
         </div>
+      </div>
 
       {/* Modals & Drawers */}
       <EventModal
