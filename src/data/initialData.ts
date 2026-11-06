@@ -1,9 +1,24 @@
 import { TaskEvent, FilterState, UserProfile, DepartmentItem, WorkOutline } from '../types';
+import { formatDateToISO } from '../utils/dateUtils';
+
+export const MALE_AVATAR_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+    <rect width="128" height="128" rx="64" fill="#0f766e"/>
+    <circle cx="64" cy="46" r="22" fill="#fed7aa"/>
+    <path d="M42 46c0-14 10-24 22-24s22 10 22 24c0 2-4-2-7-4-4 4-9 4-15 0-6 4-11 4-15 0-4 2-7 6-7 4z" fill="#1e293b"/>
+    <path d="M26 114c0-22 17-38 38-38s38 16 38 38" fill="#0f172a"/>
+    <path d="M52 76l12 14 12-14" fill="#ffffff"/>
+    <path d="M60 84l4 24 4-24" fill="#0284c7"/>
+    <circle cx="56" cy="46" r="2.5" fill="#1e293b"/>
+    <circle cx="72" cy="46" r="2.5" fill="#1e293b"/>
+    <path d="M58 56c4 2.5 8 2.5 12 0" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`
+)}`;
 
 export const CURRENT_USER: UserProfile = {
   name: 'John Doe',
   email: 'john.doe@company.design',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  avatar: MALE_AVATAR_URL,
   timezone: 'GMT+07',
   role: 'Product Lead',
 };
@@ -71,6 +86,7 @@ export const TEAM_MEMBERS = [
   { name: 'Lisa Ray', avatar: getAvatarUrl('Lisa Ray', '#db2777'), role: 'UI Illustrator' },
 ];
 
+
 export const INITIAL_FILTERS: FilterState = {
   'Work': false,
   'Improvement': false,
@@ -82,4 +98,139 @@ export const INITIAL_FILTERS: FilterState = {
   'Product & Design': false,
 };
 
-export const INITIAL_EVENTS: TaskEvent[] = [];
+export function getInitialEvents(): TaskEvent[] {
+  const today = new Date();
+  const todayIso = formatDateToISO(today);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowIso = formatDateToISO(tomorrow);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yesterdayIso = formatDateToISO(yesterday);
+
+  return [
+    {
+      id: 'task-1',
+      title: 'Marketing Strategy',
+      date: todayIso,
+      startTime: '09:00 AM',
+      endTime: '10:30 AM',
+      startHour: 9,
+      durationHours: 1.5,
+      category: 'meetings',
+      colorTheme: 'peach',
+      outline: 'Work',
+      department: 'Marketing & Sales',
+      subtitle: 'Marketing & Sales',
+      status: 'pending',
+      description: 'Review Q3 inbound campaign KPIs and email flows',
+      attendees: [TEAM_MEMBERS[0], TEAM_MEMBERS[1]],
+    },
+    {
+      id: 'task-2',
+      title: 'Standup Meeting',
+      date: todayIso,
+      startTime: '10:30 AM',
+      endTime: '11:30 AM',
+      startHour: 10.5,
+      durationHours: 1,
+      category: 'meetings',
+      colorTheme: 'peach',
+      outline: 'Work',
+      department: 'Operations',
+      subtitle: 'Operations',
+      status: 'completed',
+      description: 'Weekly team sprint alignment and blocker discussions',
+      attendees: [TEAM_MEMBERS[0], TEAM_MEMBERS[2], TEAM_MEMBERS[3]],
+    },
+    {
+      id: 'task-3',
+      title: 'Sprint Retrospective',
+      date: todayIso,
+      startTime: '01:30 PM',
+      endTime: '03:00 PM',
+      startHour: 13.5,
+      durationHours: 1.5,
+      category: 'milestones',
+      colorTheme: 'purple',
+      outline: 'Improvement',
+      department: 'Engineering',
+      subtitle: 'Engineering',
+      status: 'completed',
+      description: 'Sprint 14 retro and action items follow-up',
+      attendees: [TEAM_MEMBERS[2], TEAM_MEMBERS[3], TEAM_MEMBERS[4]],
+    },
+    {
+      id: 'task-4',
+      title: 'Finance Monthly Closing',
+      date: todayIso,
+      startTime: '03:00 PM',
+      endTime: '04:30 PM',
+      startHour: 15,
+      durationHours: 1.5,
+      category: 'deadlines',
+      colorTheme: 'emerald',
+      outline: 'Work',
+      department: 'Finance',
+      subtitle: 'Finance',
+      status: 'pending',
+      description: 'Reconcile month-end invoices and department budget reports',
+      attendees: [TEAM_MEMBERS[0]],
+    },
+    {
+      id: 'task-5',
+      title: 'HR Onboarding Session',
+      date: todayIso,
+      startTime: '04:30 PM',
+      endTime: '05:30 PM',
+      startHour: 16.5,
+      durationHours: 1,
+      category: 'meetings',
+      colorTheme: 'pink',
+      outline: 'Work',
+      department: 'Human Resources',
+      subtitle: 'Human Resources',
+      status: 'pending',
+      description: 'Welcome new team members and workspace setup',
+      attendees: [TEAM_MEMBERS[5]],
+    },
+    {
+      id: 'task-6',
+      title: 'Product Design Audit',
+      date: tomorrowIso,
+      startTime: '10:00 AM',
+      endTime: '12:00 PM',
+      startHour: 10,
+      durationHours: 2,
+      category: 'due_dates',
+      colorTheme: 'cyan',
+      outline: 'Improvement',
+      department: 'Product & Design',
+      subtitle: 'Product & Design',
+      status: 'pending',
+      description: 'Review UI components and mobile responsiveness across screens',
+      attendees: [TEAM_MEMBERS[1], TEAM_MEMBERS[6]],
+    },
+    {
+      id: 'task-7',
+      title: 'System Architecture Review',
+      date: yesterdayIso,
+      startTime: '02:00 PM',
+      endTime: '04:00 PM',
+      startHour: 14,
+      durationHours: 2,
+      category: 'milestones',
+      colorTheme: 'indigo',
+      outline: 'Improvement',
+      department: 'Engineering',
+      subtitle: 'Engineering',
+      status: 'completed',
+      description: 'Database indexing and API endpoint optimization',
+      attendees: [TEAM_MEMBERS[2], TEAM_MEMBERS[3]],
+    },
+  ];
+}
+
+export const INITIAL_EVENTS: TaskEvent[] = getInitialEvents();

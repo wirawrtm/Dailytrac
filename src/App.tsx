@@ -7,11 +7,11 @@ import {
   DepartmentItem
 } from './types';
 import { 
-  INITIAL_EVENTS, 
   INITIAL_FILTERS, 
   CURRENT_USER,
   DEFAULT_DEPARTMENTS,
-  getEventOutline
+  getEventOutline,
+  getInitialEvents
 } from './data/initialData';
 import { NavigationRail } from './components/NavigationRail';
 import { TopHeader, MobileTopBar } from './components/TopHeader';
@@ -36,13 +36,17 @@ export default function App() {
   // Initial State & Persistence
   const [events, setEvents] = useState<TaskEvent[]>(() => {
     try {
-      localStorage.removeItem('tasklio_events_v3');
-      localStorage.removeItem('tasklio_events_v2');
       const stored = localStorage.getItem(STORAGE_KEY_EVENTS);
-      return stored ? JSON.parse(stored) : [];
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
     } catch {
-      return [];
+      // fallback
     }
+    return getInitialEvents();
   });
 
   const [departments, setDepartments] = useState<DepartmentItem[]>(() => {
@@ -270,14 +274,19 @@ export default function App() {
   };
 
   const handleResetData = () => {
-    setEvents(INITIAL_EVENTS);
+    const freshEvents = getInitialEvents();
+    setEvents(freshEvents);
     setFilters(INITIAL_FILTERS);
     setDepartments(DEFAULT_DEPARTMENTS);
     setSelectedDate(new Date());
-    localStorage.removeItem(STORAGE_KEY_EVENTS);
-    localStorage.removeItem(STORAGE_KEY_FILTERS);
-    localStorage.removeItem(STORAGE_KEY_DEPARTMENTS);
-    showToast('Data jadwal & filter berhasil direset!');
+    try {
+      localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(freshEvents));
+      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(INITIAL_FILTERS));
+      localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(DEFAULT_DEPARTMENTS));
+    } catch (e) {
+      console.error('Failed to reset localStorage', e);
+    }
+    showToast('Data tugas & kalender berhasil dipulihkan!');
   };
 
   const handleToggleFullscreen = () => {
@@ -337,11 +346,11 @@ export default function App() {
           onOpenCreateModal={() => handleOpenCreateModal()}
         />
 
-        {/* Main Rounded Card Container */}
+        {/* Main Rounded Card Container (Extra rounded on mobile, classic rounded on desktop) */}
         <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
           isFullscreen
             ? 'md:h-full rounded-none border-none'
-            : 'md:h-full rounded-[28px] sm:rounded-[36px] md:rounded-[44px] shadow-xl border border-slate-200/80'
+            : 'md:h-full rounded-[36px] md:rounded-[28px] shadow-xl border border-slate-200/80'
         }`}>
           {/* Top Header (On Mobile: only Daily/Weekly/Monthly switcher inside green bar; On Desktop: full header) */}
           <TopHeader

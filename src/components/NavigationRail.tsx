@@ -27,7 +27,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
     <aside className={`order-2 md:order-1 w-full h-16 md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 py-2 md:px-0 md:py-6 justify-around md:justify-between select-none transition-all duration-200 z-20 ${
       isFullscreen
         ? 'border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
-        : 'border md:border-y md:border-r md:border-l-0 border-slate-200/80 rounded-[26px] sm:rounded-[30px] md:rounded-l-none md:rounded-r-[34px] shadow-xl'
+        : 'border md:border-y md:border-r md:border-l-0 border-slate-200/80 rounded-[26px] md:rounded-l-none md:rounded-r-[34px] shadow-xl'
     }`}>
       {/* Create New Task Action Button */}
       <div className="contents md:flex md:flex-col items-center md:gap-5">
