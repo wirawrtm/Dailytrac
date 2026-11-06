@@ -1,0 +1,6 @@
+{
+  "name": "Tasklio - Daily Task & Schedule Tracker",
+  "description": "Modern calendar and daily task tracking application for team huddles, sprint syncs, and personal milestones.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
