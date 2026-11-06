@@ -285,11 +285,22 @@ export default function App() {
     showToast(!isFullscreen ? 'Mode Fullscreen Bagian Dalam Aktif' : 'Frame Luar Dikembalikan');
   };
 
+  // Prevent iOS Safari from scrolling the root window and triggering status-bar blur
+  useEffect(() => {
+    const preventWindowScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener('scroll', preventWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', preventWindowScroll);
+  }, []);
+
   return (
-    <div className={`min-h-screen h-[100dvh] w-screen font-sans transition-colors duration-200 overflow-hidden flex flex-col-reverse md:flex-row items-stretch select-none ${
+    <div className={`h-full max-h-full w-full font-sans transition-colors duration-200 overflow-hidden flex flex-col md:flex-row items-stretch select-none ${
       isFullscreen 
         ? 'bg-white p-0 gap-0' 
-        : 'bg-[#dce5df] p-2 sm:p-3 md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 gap-2.5 sm:gap-3 md:gap-3.5'
+        : 'bg-[#dce5df] p-2 sm:p-3 md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 gap-2 sm:gap-3 md:gap-3.5'
     }`}>
       {/* Toast Alert */}
       {toastMessage && (
@@ -298,7 +309,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Navigation Rail (Kotak Merah: Hanya bagian kiri yang menempel tepi, sisi kanan rounded seperti sebelumnya) */}
+      {/* Navigation Rail (Bottom on Mobile with all sides rounded, Left on Desktop) */}
       <NavigationRail
         isFullscreen={isFullscreen}
         currentView={viewMode}
@@ -307,11 +318,11 @@ export default function App() {
         onOpenCreateModal={() => handleOpenCreateModal()}
       />
 
-      {/* Content Area: Mempertahankan bentuk rounded card sebelumnya */}
-      <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 ${
+      {/* Content Area: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
+      <div className={`order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
         isFullscreen
-          ? 'h-full rounded-none border-none'
-          : 'h-full rounded-[28px] sm:rounded-[36px] md:rounded-[44px] shadow-2xl border border-slate-200/80'
+          ? 'md:h-full rounded-none border-none'
+          : 'md:h-full rounded-[28px] sm:rounded-[36px] md:rounded-[44px] shadow-xl border border-slate-200/80'
       }`}>
         {/* Top Header (Compact with Sidebar & Fullscreen toggles + Date/View controls) */}
           <TopHeader

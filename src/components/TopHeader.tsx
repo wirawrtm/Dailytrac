@@ -61,7 +61,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <header className="py-2.5 px-3.5 sm:px-4 md:px-5 border-b border-teal-800/20 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-3 bg-[#00796b] text-white select-none shrink-0 shadow-xs">
+    <header className={`py-2.5 px-3.5 sm:px-4 md:px-5 border-b border-teal-800/20 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-3 bg-[#00796b] text-white select-none shrink-0 relative z-20 transform-gpu ${
+      isFullscreen ? 'rounded-none' : 'rounded-t-[26px] sm:rounded-t-[34px] md:rounded-t-[42px]'
+    }`}>
       {/* Zone 1 (Top-Left on Mobile, Left on Desktop): Sidebar Toggle + Month Navigator */}
       <div className="order-1 flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Toggle Sidebar Button */}
