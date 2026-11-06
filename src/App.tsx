@@ -180,16 +180,66 @@ export default function App() {
   };
 
   const handleAddDepartment = (newDept: DepartmentItem) => {
-    setDepartments((prev) => [...prev, newDept]);
+    setDepartments((prev) => {
+      const updated = [...prev, newDept];
+      try {
+        localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+    setFilters((prev) => {
+      const updated = { ...prev, [newDept.name]: false };
+      try {
+        localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+    showToast(`Departemen "${newDept.name}" berhasil ditambahkan!`);
   };
 
   const handleRemoveDepartment = (deptId: string) => {
-    setDepartments((prev) => prev.filter((d) => d.id !== deptId));
+    const targetDept = departments.find((d) => d.id === deptId || d.name === deptId);
+    const deptName = targetDept ? targetDept.name : deptId;
+
+    const updatedDepts = departments.filter((d) => d.id !== deptId && d.name !== deptId);
+    setDepartments(updatedDepts);
+
     setFilters((prev) => {
       const next = { ...prev };
       delete next[deptId];
+      delete next[deptName];
+      try {
+        localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
       return next;
     });
+
+    // Clean up tasks belonging to the removed department
+    setEvents((prev) => {
+      const updatedEvents = prev.filter(
+        (e) => (e.department || e.subtitle || '').toLowerCase() !== deptName.toLowerCase()
+      );
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
+      } catch (e) {
+        console.error(e);
+      }
+      return updatedEvents;
+    });
+
+    try {
+      localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(updatedDepts));
+    } catch (e) {
+      console.error(e);
+    }
+
+    showToast(`Departemen "${deptName}" dan tugas terkait berhasil dihapus!`);
   };
 
   const handleOpenCreateModal = (defaultDate?: string, defaultHour?: number) => {
@@ -212,10 +262,15 @@ export default function App() {
   const handleSaveEvent = (savedEvent: TaskEvent) => {
     setEvents((prev) => {
       const exists = prev.some((e) => e.id === savedEvent.id);
-      if (exists) {
-        return prev.map((e) => (e.id === savedEvent.id ? savedEvent : e));
+      const updated = exists
+        ? prev.map((e) => (e.id === savedEvent.id ? savedEvent : e))
+        : [...prev, savedEvent];
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
       }
-      return [...prev, savedEvent];
+      return updated;
     });
 
     if (selectedEventDetails?.id === savedEvent.id) {
@@ -226,7 +281,15 @@ export default function App() {
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    setEvents((prev) => {
+      const updated = prev.filter((e) => e.id !== eventId);
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
     if (selectedEventDetails?.id === eventId) {
       setSelectedEventDetails(null);
     }
@@ -234,8 +297,8 @@ export default function App() {
   };
 
   const handleToggleEventStatus = (eventId: string) => {
-    setEvents((prev) =>
-      prev.map((e) => {
+    setEvents((prev) => {
+      const updatedEvents = prev.map((e) => {
         if (e.id === eventId) {
           const nextStatus: TaskEvent['status'] = e.status === 'completed' ? 'pending' : 'completed';
           const updated: TaskEvent = { ...e, status: nextStatus };
@@ -245,19 +308,31 @@ export default function App() {
           return updated;
         }
         return e;
-      })
-    );
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
+      } catch (e) {
+        console.error(e);
+      }
+      return updatedEvents;
+    });
   };
 
   const handleUpdateEventStatus = (eventId: string, newStatus: TaskEvent['status']) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e))
-    );
+    setEvents((prev) => {
+      const updatedEvents = prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e));
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
+      } catch (e) {
+        console.error(e);
+      }
+      return updatedEvents;
+    });
   };
 
   const handleToggleSubtask = (eventId: string, subtaskId: string) => {
-    setEvents((prev) =>
-      prev.map((e) => {
+    setEvents((prev) => {
+      const updatedEvents = prev.map((e) => {
         if (e.id === eventId && e.subtasks) {
           const updatedSubtasks = e.subtasks.map((st) =>
             st.id === subtaskId ? { ...st, completed: !st.completed } : st
@@ -269,8 +344,14 @@ export default function App() {
           return updated;
         }
         return e;
-      })
-    );
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
+      } catch (e) {
+        console.error(e);
+      }
+      return updatedEvents;
+    });
   };
 
   const handleResetData = () => {

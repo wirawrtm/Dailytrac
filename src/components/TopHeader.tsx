@@ -285,34 +285,34 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
       {/* Zone 2 (Full-Width on Mobile inside green bar, Center-Left on Desktop): View Switcher */}
       <div className="order-1 md:order-2 w-full md:w-auto flex items-center justify-between md:justify-start gap-2 md:mr-auto">
-        {/* View Switcher: Daily, Weekly, Monthly */}
-        <div className="flex-1 md:flex-initial grid grid-cols-3 md:flex items-center p-1 bg-black/15 rounded-2xl border border-white/10">
+        {/* View Switcher: Daily, Weekly, Monthly (Only active has white pill background, inactive has NO background) */}
+        <div className="flex-1 md:flex-initial grid grid-cols-3 md:flex items-center gap-1 p-0.5">
           <button
             onClick={() => onSelectView('daily')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
+            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
               viewMode === 'daily'
-                ? 'bg-white text-[#00796b] shadow-2xs font-bold'
-                : 'text-teal-50 hover:text-white hover:bg-white/10'
+                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
+                : 'bg-transparent text-white/85 hover:text-white font-semibold'
             }`}
           >
             Daily
           </button>
           <button
             onClick={() => onSelectView('weekly')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
+            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
               viewMode === 'weekly'
-                ? 'bg-white text-[#00796b] shadow-2xs font-bold'
-                : 'text-teal-50 hover:text-white hover:bg-white/10'
+                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
+                : 'bg-transparent text-white/85 hover:text-white font-semibold'
             }`}
           >
             Weekly
           </button>
           <button
             onClick={() => onSelectView('monthly')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
+            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
               viewMode === 'monthly'
-                ? 'bg-white text-[#00796b] shadow-2xs font-bold'
-                : 'text-teal-50 hover:text-white hover:bg-white/10'
+                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
+                : 'bg-transparent text-white/85 hover:text-white font-semibold'
             }`}
           >
             Monthly
