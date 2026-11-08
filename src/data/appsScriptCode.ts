@@ -3,9 +3,9 @@
  * Shared between AppsScriptHubView and DummyDatabaseView
  */
 
-export const STORAGE_KEY_CODE = 'tasklio_appscript_code_v2';
-export const STORAGE_KEY_NOTES = 'tasklio_appscript_notes_v2';
-export const STORAGE_KEY_TITLE = 'tasklio_appscript_title_v2';
+export const STORAGE_KEY_CODE = 'tasklio_appscript_code_v3';
+export const STORAGE_KEY_NOTES = 'tasklio_appscript_notes_v3';
+export const STORAGE_KEY_TITLE = 'tasklio_appscript_title_v3';
 
 export const DEFAULT_APPSCRIPT_CODE = `/**
  * ============================================================================
@@ -87,12 +87,12 @@ function buatTabelDanIsiDataOtomatis() {
     deptSheet.getRange("A1:E1").setFontWeight("bold").setBackground("#e8eaed");
     
     const sampleDepts = [
-      ["operations", "Operations", "Work", "text-indigo-600 bg-indigo-50", "bg-indigo-500"],
-      ["marketing", "Marketing & Sales", "Work", "text-amber-600 bg-amber-50", "bg-amber-500"],
-      ["finance", "Finance", "Work", "text-teal-600 bg-teal-50", "bg-teal-500"],
-      ["hr", "Human Resources", "Work", "text-rose-600 bg-rose-50", "bg-rose-500"],
-      ["engineering", "Engineering", "Work", "text-cyan-600 bg-cyan-50", "bg-cyan-500"],
-      ["design", "Product & Design", "Improvement", "text-purple-600 bg-purple-50", "bg-purple-500"]
+      ["Operations", "Operations", "Work", "indigo", "bg-indigo-500"],
+      ["Marketing & Sales", "Marketing & Sales", "Work", "peach", "bg-amber-500"],
+      ["Finance", "Finance", "Work", "emerald", "bg-emerald-500"],
+      ["Human Resources", "Human Resources", "Work", "pink", "bg-rose-500"],
+      ["Engineering", "Engineering", "Improvement", "cyan", "bg-teal-500"],
+      ["Product & Design", "Product & Design", "Improvement", "purple", "bg-purple-500"]
     ];
     deptSheet.getRange(2, 1, sampleDepts.length, sampleDepts[0].length).setValues(sampleDepts);
     try { deptSheet.autoResizeColumns(1, 5); } catch (e) {}
@@ -103,7 +103,7 @@ function buatTabelDanIsiDataOtomatis() {
 }
 
 // ============================================================================
-// 2. WEBHOOK GET (Membaca Data Tugas atau Kalender)
+// 2. WEBHOOK GET (Membaca Data Tugas, Departemen, atau Kalender)
 // ============================================================================
 function doGet(e) {
   try {
@@ -111,7 +111,7 @@ function doGet(e) {
     const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME_TASKS) || initTaskSheet(ss);
     
-    // Opsi: Jika diminta data kalender via parameter ?action=calendar
+    // Opsi 1: Ambil data kalender via parameter ?action=calendar
     if (params.action === "calendar") {
       const calendarEvents = syncCalendarEvents();
       return responseJson({
@@ -119,6 +119,46 @@ function doGet(e) {
         count: calendarEvents.length,
         source: "Google Calendar",
         events: calendarEvents
+      });
+    }
+
+    // Opsi 2: Ambil data departemen via parameter ?action=departments
+    if (params.action === "departments" || params.action === "get_departments") {
+      let deptSheet = ss.getSheetByName("Departments") || ss.getSheetByName("departments") || ss.getSheetByName("Department") || ss.getSheetByName("department");
+      if (!deptSheet) {
+        return responseJson({ status: "success", count: 0, departments: [] });
+      }
+      const dRows = deptSheet.getDataRange().getValues();
+      const depts = [];
+      for (let i = 1; i < dRows.length; i++) {
+        const row = dRows[i];
+        const valCol0 = String(row[0] || "").trim();
+        const valCol1 = String(row[1] || "").trim();
+        if (!valCol0 && !valCol1) continue;
+
+        // Mendukung format jika kolom A adalah nama departemen ATAU kolom B adalah nama departemen
+        const deptName = valCol1 || valCol0;
+        const deptId = valCol0 || deptName;
+        const outlineRaw = String(row[2] || "").trim();
+        const isBuy = outlineRaw.toLowerCase().includes("buy") || outlineRaw.toLowerCase().includes("purchas") || deptName.toLowerCase().includes("procure") || deptName.toLowerCase().includes("buy");
+        const isImprovement = outlineRaw.toLowerCase().includes("improve") || 
+                              deptName.toLowerCase().includes("eng") || 
+                              deptName.toLowerCase().includes("design") || 
+                              deptName.toLowerCase().includes("product");
+        const outline = outlineRaw === "Buy" || outlineRaw === "Improvement" || outlineRaw === "Work" ? outlineRaw : (isBuy ? "Buy" : (isImprovement ? "Improvement" : "Work"));
+
+        depts.push({
+          id: deptId,
+          name: deptName,
+          outline: outline,
+          colorTheme: String(row[3] || (outline === "Improvement" ? "purple" : outline === "Buy" ? "peach" : "indigo")),
+          dotColor: String(row[4] || (outline === "Improvement" ? "bg-purple-500" : outline === "Buy" ? "bg-amber-500" : "bg-indigo-500"))
+        });
+      }
+      return responseJson({
+        status: "success",
+        count: depts.length,
+        departments: depts
       });
     }
     
@@ -142,11 +182,43 @@ function doGet(e) {
       });
     }
     
+    // Ambil data departemen juga agar selalu sinkron
+    let departmentsList = [];
+    let deptSheet = ss.getSheetByName("Departments") || ss.getSheetByName("departments") || ss.getSheetByName("Department") || ss.getSheetByName("department");
+    if (deptSheet && deptSheet.getLastRow() > 1) {
+      const dRows = deptSheet.getDataRange().getValues();
+      for (let i = 1; i < dRows.length; i++) {
+        const row = dRows[i];
+        const valCol0 = String(row[0] || "").trim();
+        const valCol1 = String(row[1] || "").trim();
+        if (!valCol0 && !valCol1) continue;
+
+        const deptName = valCol1 || valCol0;
+        const deptId = valCol0 || deptName;
+        const outlineRaw = String(row[2] || "").trim();
+        const isBuy = outlineRaw.toLowerCase().includes("buy") || outlineRaw.toLowerCase().includes("purchas") || deptName.toLowerCase().includes("procure") || deptName.toLowerCase().includes("buy");
+        const isImprovement = outlineRaw.toLowerCase().includes("improve") || 
+                              deptName.toLowerCase().includes("eng") || 
+                              deptName.toLowerCase().includes("design") || 
+                              deptName.toLowerCase().includes("product");
+        const outline = outlineRaw === "Buy" || outlineRaw === "Improvement" || outlineRaw === "Work" ? outlineRaw : (isBuy ? "Buy" : (isImprovement ? "Improvement" : "Work"));
+
+        departmentsList.push({
+          id: deptId,
+          name: deptName,
+          outline: outline,
+          colorTheme: String(row[3] || (outline === "Improvement" ? "purple" : outline === "Buy" ? "peach" : "indigo")),
+          dotColor: String(row[4] || (outline === "Improvement" ? "bg-purple-500" : outline === "Buy" ? "bg-amber-500" : "bg-indigo-500"))
+        });
+      }
+    }
+
     return responseJson({
       status: "success",
       count: tasks.length,
       timestamp: new Date().toISOString(),
-      tasks: tasks
+      tasks: tasks,
+      departments: departmentsList
     });
     
   } catch (err) {
@@ -168,23 +240,44 @@ function doPost(e) {
     const ss = getTargetSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME_TASKS) || initTaskSheet(ss);
     
-    // AKSI 1: Simpan Tugas Baru (appendRow)
+    // AKSI 1: Simpan / Update Tugas (Update jika ID ada, Append jika baru)
     if (action === "save_task") {
       const task = payload.task || {};
-      const newId = task.id || ("task_" + Utilities.getUuid().slice(0, 8));
+      const targetId = String(task.id || "").trim();
       const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
       
-      sheet.appendRow([
-        newId,
-        task.title || "Untitled Task",
-        task.outline || "Work",
-        task.department || "Operations",
-        task.description || "",
-        task.date || todayStr,
-        task.dueDate || "",
-        task.status || "pending",
-        new Date()
-      ]);
+      const data = sheet.getDataRange().getValues();
+      let rowFound = false;
+      let finalId = targetId || ("task_" + Utilities.getUuid().slice(0, 8));
+      
+      for (let i = 1; i < data.length; i++) {
+        if (targetId && String(data[i][0]).trim() === targetId) {
+          sheet.getRange(i + 1, 2).setValue(task.title || "Untitled Task");
+          sheet.getRange(i + 1, 3).setValue(task.outline || "Work");
+          sheet.getRange(i + 1, 4).setValue(task.department || "Operations");
+          sheet.getRange(i + 1, 5).setValue(task.description || "");
+          sheet.getRange(i + 1, 6).setValue(task.date || todayStr);
+          sheet.getRange(i + 1, 7).setValue(task.dueDate || "");
+          sheet.getRange(i + 1, 8).setValue(task.status || "pending");
+          sheet.getRange(i + 1, 9).setValue(new Date());
+          rowFound = true;
+          break;
+        }
+      }
+
+      if (!rowFound) {
+        sheet.appendRow([
+          finalId,
+          task.title || "Untitled Task",
+          task.outline || "Work",
+          task.department || "Operations",
+          task.description || "",
+          task.date || todayStr,
+          task.dueDate || "",
+          task.status || "pending",
+          new Date()
+        ]);
+      }
       
       // Otomatis buat jadwal di Google Calendar (jika syncCalendar tidak dimatikan)
       let calendarCreated = false;
@@ -195,7 +288,7 @@ function doPost(e) {
       return responseJson({
         status: "success",
         message: "Tugas berhasil disimpan ke Google Sheets & Google Calendar",
-        taskId: newId,
+        taskId: finalId,
         calendarSynced: calendarCreated
       });
     }
@@ -226,8 +319,6 @@ function doPost(e) {
         const rowId = String(data[i][0]).trim();
         const rowTitle = String(data[i][1]).trim();
         const matchesId = taskId && rowId === String(taskId).trim();
-        const matchesTitle = taskTitle && rowTitle.toLowerCase() === String(taskTitle).trim().toLowerCase();
-
         if (matchesId || matchesTitle) {
           sheet.deleteRow(i + 1);
           return responseJson({ status: "success", message: "Tugas berhasil dihapus dari Google Sheets" });
@@ -235,8 +326,48 @@ function doPost(e) {
       }
       return responseJson({ status: "not_found", message: "Tugas tidak ditemukan di Google Sheets" });
     }
+
+    // AKSI 4: Hapus Departemen dari Google Sheets (Tab Departments & Tasks)
+    if (action === "delete_department") {
+      const targetId = String(payload.deptId || "").toLowerCase().trim();
+      const targetName = String(payload.deptName || "").toLowerCase().trim();
+      
+      let deptSheet = ss.getSheetByName("Departments") || ss.getSheetByName("departments") || ss.getSheetByName("Department") || ss.getSheetByName("department");
+      let deletedDeptCount = 0;
+
+      if (deptSheet && deptSheet.getLastRow() > 1) {
+        const dData = deptSheet.getDataRange().getValues();
+        // Loop dari bawah ke atas agar indeks baris tidak bergeser saat deleteRow
+        for (let i = dData.length - 1; i >= 1; i--) {
+          const dRowId = String(dData[i][0] || "").toLowerCase().trim();
+          const dRowName = String(dData[i][1] || "").toLowerCase().trim();
+          if (
+            (targetId && (dRowId === targetId || dRowName === targetId)) ||
+            (targetName && (dRowId === targetName || dRowName === targetName))
+          ) {
+            deptSheet.deleteRow(i + 1);
+            deletedDeptCount++;
+          }
+        }
+      }
+
+      // Hapus baris tugas yang menggunakan departemen ini di sheet Tasks
+      const data = sheet.getDataRange().getValues();
+      for (let i = data.length - 1; i >= 1; i--) {
+        const rowDept = String(data[i][3] || "").toLowerCase().trim();
+        if (rowDept === targetId || rowDept === targetName) {
+          sheet.deleteRow(i + 1);
+        }
+      }
+
+      return responseJson({ 
+        status: "success", 
+        message: "Departemen dan tugas terkait berhasil dihapus dari Google Sheets",
+        deletedCount: deletedDeptCount
+      });
+    }
     
-    // AKSI 4: Sinkronisasi Kalender
+    // AKSI 5: Sinkronisasi Kalender
     if (action === "sync_calendar") {
       const events = syncCalendarEvents();
       return responseJson({ status: "success", count: events.length, events: events });
@@ -271,7 +402,55 @@ function doPost(e) {
         count: tasks.length
       });
     }
-    
+
+    // AKSI 6: Simpan / Tambah Departemen Baru
+    if (action === "save_department") {
+      const dept = payload.department || {};
+      let deptSheet = ss.getSheetByName("Departments");
+      if (!deptSheet) {
+        deptSheet = ss.insertSheet("Departments");
+        deptSheet.appendRow(["Dept ID", "Dept Name", "Outline Default", "Color Theme", "Dot Color"]);
+        deptSheet.setFrozenRows(1);
+      }
+      deptSheet.appendRow([
+        String(dept.id || dept.name || ""),
+        String(dept.name || ""),
+        String(dept.outline || "Work"),
+        String(dept.colorTheme || "cyan"),
+        String(dept.dotColor || "bg-teal-500")
+      ]);
+      return responseJson({ status: "success", message: "Departemen berhasil disimpan ke Google Sheets" });
+    }
+
+    // AKSI 7: Sinkronisasi Massal Departemen
+    if (action === "bulk_sync_departments") {
+      const depts = payload.departments || [];
+      let deptSheet = ss.getSheetByName("Departments");
+      if (!deptSheet) {
+        deptSheet = ss.insertSheet("Departments");
+      }
+      const dLastRow = deptSheet.getLastRow();
+      if (dLastRow > 1) {
+        deptSheet.deleteRows(2, dLastRow - 1);
+      } else if (dLastRow === 0) {
+        deptSheet.appendRow(["Dept ID", "Dept Name", "Outline Default", "Color Theme", "Dot Color"]);
+        deptSheet.setFrozenRows(1);
+      }
+      if (depts.length > 0) {
+        const rowsToInsert = depts.map(function(d) {
+          return [
+            String(d.id || d.name || ""),
+            String(d.name || ""),
+            String(d.outline || "Work"),
+            String(d.colorTheme || "cyan"),
+            String(d.dotColor || "bg-teal-500")
+          ];
+        });
+        deptSheet.getRange(2, 1, rowsToInsert.length, rowsToInsert[0].length).setValues(rowsToInsert);
+      }
+      return responseJson({ status: "success", message: "Seluruh departemen berhasil disinkronkan ke Google Sheets" });
+    }
+
     return responseJson({ status: "unknown_action", message: "Aksi tidak dikenali" });
     
   } catch (err) {
@@ -430,17 +609,23 @@ export const getLatestAppsScriptCode = (): string => {
   return DEFAULT_APPSCRIPT_CODE;
 };
 
+export const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwje3fqOGEeKbAOopvyQbz8BA8RkatbtO6D6PTPAtxZoqejg7b2OH9gQ6_pdn4bxMfa/exec';
+
 export const getSavedWebhookUrl = (): string => {
   try {
-    return localStorage.getItem(STORAGE_KEY_WEBHOOK_URL) || '';
+    const stored = localStorage.getItem(STORAGE_KEY_WEBHOOK_URL);
+    if (stored && stored.trim().length > 0) {
+      return stored.trim();
+    }
   } catch {
-    return '';
+    // ignore
   }
+  return DEFAULT_WEBHOOK_URL;
 };
 
 export const saveWebhookUrl = (url: string): void => {
   try {
-    localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, url.trim());
+    localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, url.trim() || DEFAULT_WEBHOOK_URL);
   } catch {
     // ignore
   }

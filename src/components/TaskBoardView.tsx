@@ -35,23 +35,26 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   onDeleteEvent,
 }) => {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [outlineFilter, setOutlineFilter] = useState<'all' | 'Work' | 'Improvement'>('all');
+  const [outlineFilter, setOutlineFilter] = useState<'all' | 'Work' | 'Improvement' | 'Buy'>('all');
   const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState<boolean>(false);
+  const [isOutlineDropdownOpen, setIsOutlineDropdownOpen] = useState<boolean>(false);
   const deptDropdownRef = useRef<HTMLDivElement>(null);
+  const outlineDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (deptDropdownRef.current && !deptDropdownRef.current.contains(event.target as Node)) {
         setIsDeptDropdownOpen(false);
       }
+      if (outlineDropdownRef.current && !outlineDropdownRef.current.contains(event.target as Node)) {
+        setIsOutlineDropdownOpen(false);
+      }
     };
-    if (isDeptDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDeptDropdownOpen]);
+  }, []);
 
   const [expandedColumns, setExpandedColumns] = useState<Record<'pending' | 'completed', boolean>>({
     pending: true,
@@ -82,7 +85,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
     setOutlineFilter('all');
   };
 
-  const handleSelectOutline = (outline: 'Work' | 'Improvement') => {
+  const handleSelectOutline = (outline: 'Work' | 'Improvement' | 'Buy') => {
     if (outlineFilter === outline && selectedDepartments.length > 0) {
       setSelectedDepartments([]);
       setOutlineFilter('all');
@@ -104,7 +107,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
     }
     
     // Outline filter fallback
-    if (outlineFilter === 'Work' || outlineFilter === 'Improvement') {
+    if (outlineFilter === 'Work' || outlineFilter === 'Improvement' || outlineFilter === 'Buy') {
       return getEventOutline(e, departments) === outlineFilter;
     }
     
@@ -117,7 +120,9 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   ];
 
   const renderTaskCard = (event: TaskEvent, colStatus: 'pending' | 'completed') => {
-    const isImprovement = getEventOutline(event, departments) === 'Improvement';
+    const evOutline = getEventOutline(event, departments);
+    const isImprovement = evOutline === 'Improvement';
+    const isBuy = evOutline === 'Buy';
     const completedSubtasks = event.subtasks?.filter((s) => s.completed).length || 0;
     const totalSubtasks = event.subtasks?.length || 0;
 
@@ -126,7 +131,9 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
         key={event.id}
         onClick={() => onSelectEvent(event)}
         className={`p-3.5 sm:p-4 rounded-2xl border ${
-          isImprovement
+          isBuy
+            ? 'border-emerald-300 bg-emerald-50/95 hover:bg-emerald-100/85'
+            : isImprovement
             ? 'border-violet-300 bg-violet-50/95 hover:bg-violet-100/85'
             : 'border-amber-300 bg-amber-50/95 hover:bg-amber-100/85'
         } hover:shadow-md transition-all cursor-pointer flex flex-col gap-2.5 group relative w-full min-w-0 overflow-hidden`}
@@ -136,12 +143,14 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
             <div className="flex items-center flex-wrap gap-1.5 mb-1">
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${
-                  isImprovement
+                  isBuy
+                    ? 'bg-emerald-200/90 text-emerald-900'
+                    : isImprovement
                     ? 'bg-violet-200/90 text-violet-900'
                     : 'bg-amber-200/90 text-amber-900'
                 }`}
               >
-                {isImprovement ? 'Improvement' : 'Work'}
+                {evOutline}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 text-slate-700 border border-black/5 truncate max-w-full">
                 {event.department || event.subtitle || 'Task'}
@@ -152,7 +161,9 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                 </span>
               )}
             </div>
-            <h4 className={`text-xs md:text-sm font-bold break-words ${isImprovement ? 'text-violet-950' : 'text-slate-900'}`}>
+            <h4 className={`text-xs md:text-sm font-bold break-words ${
+              isBuy ? 'text-emerald-950' : isImprovement ? 'text-violet-950' : 'text-slate-900'
+            }`}>
               <span>{event.title}</span>
               {event.status === 'completed' && (
                 <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
@@ -232,45 +243,121 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
         <div className="min-w-0 w-full sm:w-auto">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight break-words">Daily Task Tracker</h2>
           <p className="text-xs text-slate-500 mt-0.5 break-words">
-            Track Pending Tasks and Completed Tasks across Work & Improvement outlines.
+            Track Pending Tasks and Completed Tasks across Work, Improvement, and Buy outlines.
           </p>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto min-w-0">
-          {/* Outline & Multiple Picklist Department Filter with Dropdown */}
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100/90 rounded-xl text-[11px] font-medium relative w-full sm:w-auto min-w-0">
+          {/* Outline Filter Dropdown */}
+          <div className="relative shrink-0" ref={outlineDropdownRef}>
             <button
-              onClick={handleSelectAll}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-                selectedDepartments.length === 0 && outlineFilter === 'all'
-                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
+              type="button"
+              onClick={() => setIsOutlineDropdownOpen((prev) => !prev)}
+              className={`px-3.5 py-2 rounded-xl border transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 text-xs font-bold ${
+                outlineFilter !== 'all' || selectedDepartments.length === 0
+                  ? 'bg-slate-100/90 hover:bg-slate-200/80 text-slate-900 border-slate-200/80 shadow-2xs'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80'
               }`}
             >
-              All Tasks
+              <span>
+                {outlineFilter === 'all' && selectedDepartments.length === 0
+                  ? 'All Tasks'
+                  : outlineFilter === 'Work'
+                  ? 'Work'
+                  : outlineFilter === 'Improvement'
+                  ? 'Improvement'
+                  : outlineFilter === 'Buy'
+                  ? 'Buy'
+                  : 'All Tasks'}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-500 stroke-[2.5] transition-transform duration-200 ${isOutlineDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
-            <button
-              onClick={() => handleSelectOutline('Work')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-                outlineFilter === 'Work'
-                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              1. Work
-            </button>
-            <button
-              onClick={() => handleSelectOutline('Improvement')}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-                outlineFilter === 'Improvement'
-                  ? 'bg-white text-[#00796b] shadow-2xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              2. Improvement
-            </button>
-            
-            <div className="hidden sm:block w-px h-3.5 bg-slate-300 mx-0.5 shrink-0" />
+
+            {isOutlineDropdownOpen && (
+              <div className="absolute left-0 mt-1.5 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectAll();
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                    outlineFilter === 'all' && selectedDepartments.length === 0
+                      ? 'bg-teal-50/80 text-[#00796b] font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>All Tasks</span>
+                  {outlineFilter === 'all' && selectedDepartments.length === 0 && (
+                    <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[3]" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectOutline('Work');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                    outlineFilter === 'Work'
+                      ? 'bg-amber-50/80 text-amber-900 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    <span>Work</span>
+                  </div>
+                  {outlineFilter === 'Work' && (
+                    <Check className="w-3.5 h-3.5 text-amber-700 stroke-[3]" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectOutline('Improvement');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                    outlineFilter === 'Improvement'
+                      ? 'bg-violet-50/80 text-violet-900 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
+                    <span>Improvement</span>
+                  </div>
+                  {outlineFilter === 'Improvement' && (
+                    <Check className="w-3.5 h-3.5 text-violet-700 stroke-[3]" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectOutline('Buy');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                    outlineFilter === 'Buy'
+                      ? 'bg-emerald-50/80 text-emerald-900 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span>Buy</span>
+                  </div>
+                  {outlineFilter === 'Buy' && (
+                    <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
             
             {/* Department Dropdown Button */}
             <div className="static sm:relative" ref={deptDropdownRef}>
@@ -365,8 +452,9 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
 
                   {/* Group 1: Work Outline */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800/80 px-1">
-                      1. Work (Daily & Operations)
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800/80 px-1 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400" />
+                      <span>Work (Daily & Operations)</span>
                     </span>
                     <div className="flex flex-col gap-0.5">
                       {departments.filter((d) => d.outline === 'Work').map((dept) => {
@@ -408,11 +496,56 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
 
                   {/* Group 2: Improvement Outline */}
                   <div className="flex flex-col gap-1 pt-1.5 border-t border-slate-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-violet-800/80 px-1">
-                      2. Improvement (Innovation & Upgrade)
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-violet-800/80 px-1 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-violet-400" />
+                      <span>Improvement (Innovation & Upgrade)</span>
                     </span>
                     <div className="flex flex-col gap-0.5">
                       {departments.filter((d) => d.outline === 'Improvement').map((dept) => {
+                        const isSelected = selectedDepartments.some(
+                          (d) => d.toLowerCase() === dept.name.toLowerCase()
+                        );
+                        const count = events.filter(
+                          (e) => (e.department || e.subtitle || '').toLowerCase() === dept.name.toLowerCase()
+                        ).length;
+
+                        return (
+                          <button
+                            key={dept.id}
+                            type="button"
+                            onClick={() => toggleDepartment(dept.name)}
+                            className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-50 text-emerald-950 font-bold'
+                                : 'hover:bg-slate-50 text-slate-700 font-medium'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
+                              }`}>
+                                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                              </div>
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${dept.dotColor}`} />
+                              <span className="text-xs truncate">{dept.name}</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-2">
+                              {count} task
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Group 3: Buy Outline */}
+                  <div className="flex flex-col gap-1 pt-1.5 border-t border-slate-100">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800/80 px-1 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>Buy (Procurement & Purchasing)</span>
+                    </span>
+                    <div className="flex flex-col gap-0.5">
+                      {departments.filter((d) => d.outline === 'Buy').map((dept) => {
                         const isSelected = selectedDepartments.some(
                           (d) => d.toLowerCase() === dept.name.toLowerCase()
                         );
@@ -465,7 +598,6 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                 </div>
               )}
             </div>
-          </div>
 
           <button
             onClick={onOpenCreateModal}

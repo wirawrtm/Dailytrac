@@ -34,11 +34,13 @@ import {
 interface AppsScriptHubViewProps {
   onShowToast?: (msg: string) => void;
   onBackToCalendar?: () => void;
+  onSyncSpreadsheet?: () => Promise<void>;
 }
 
 export const AppsScriptHubView: React.FC<AppsScriptHubViewProps> = ({
   onShowToast,
   onBackToCalendar,
+  onSyncSpreadsheet,
 }) => {
   const [activeTab, setActiveTab] = useState<'code' | 'notes'>('code');
   const [code, setCode] = useState<string>(() => {
@@ -158,15 +160,13 @@ export const AppsScriptHubView: React.FC<AppsScriptHubViewProps> = ({
   };
 
   const handleResetDefault = () => {
-    if (window.confirm('Kembalikan kode Apps Script ke template standar tunggal?')) {
-      setCode(DEFAULT_APPSCRIPT_CODE);
-      setUpdateNotes(DEFAULT_UPDATE_NOTES);
-      setUpdateTitle('Google Apps Script Sync Engine v2.0 (All-In-One)');
-      localStorage.setItem(STORAGE_KEY_CODE, DEFAULT_APPSCRIPT_CODE);
-      localStorage.setItem(STORAGE_KEY_NOTES, DEFAULT_UPDATE_NOTES);
-      localStorage.setItem(STORAGE_KEY_TITLE, 'Google Apps Script Sync Engine v2.0 (All-In-One)');
-      if (onShowToast) onShowToast('Template standar tunggal telah dipulihkan');
-    }
+    setCode(DEFAULT_APPSCRIPT_CODE);
+    setUpdateNotes(DEFAULT_UPDATE_NOTES);
+    setUpdateTitle('Google Apps Script Sync Engine v2.0 (All-In-One)');
+    localStorage.setItem(STORAGE_KEY_CODE, DEFAULT_APPSCRIPT_CODE);
+    localStorage.setItem(STORAGE_KEY_NOTES, DEFAULT_UPDATE_NOTES);
+    localStorage.setItem(STORAGE_KEY_TITLE, 'Google Apps Script Sync Engine v2.0 (All-In-One)');
+    if (onShowToast) onShowToast('Template standar tunggal telah dipulihkan');
   };
 
   const currentDisplayCode = code;
@@ -315,6 +315,18 @@ export const AppsScriptHubView: React.FC<AppsScriptHubViewProps> = ({
                 <RefreshCw className={`w-3.5 h-3.5 ${isTestingWebhook ? 'animate-spin text-[#00897b]' : 'text-slate-500'}`} />
                 <span>{isTestingWebhook ? 'Menguji...' : 'Tes Ping'}</span>
               </button>
+
+              {onSyncSpreadsheet && (
+                <button
+                  type="button"
+                  onClick={() => onSyncSpreadsheet()}
+                  disabled={!webhookUrl}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Sinkronkan Data Spreadsheet</span>
+                </button>
+              )}
 
               {webhookUrl && (
                 <button

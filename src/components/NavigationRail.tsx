@@ -4,7 +4,8 @@ import {
   CheckSquare, 
   Settings, 
   Plus,
-  Code2
+  Code2,
+  Database
 } from 'lucide-react';
 import { ViewMode } from '../types';
 
@@ -66,6 +67,19 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             }`}
           >
             <CheckSquare className="w-4.5 h-4.5 stroke-[2.2]" />
+          </button>
+
+          {/* Database Mirroring (Spreadsheet Mirror) */}
+          <button
+            onClick={() => onSelectView('database')}
+            title="Database Mirroring (Google Spreadsheet)"
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
+              currentView === 'database'
+                ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Database className="w-4.5 h-4.5 stroke-[2.2]" />
           </button>
 
           {/* Apps Script (Temporary Menu) */}

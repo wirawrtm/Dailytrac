@@ -10,7 +10,8 @@ import {
   Briefcase,
   TrendingUp,
   Layers,
-  Sparkles
+  Sparkles,
+  ShoppingCart
 } from 'lucide-react';
 import { FilterState, DepartmentItem, TaskEvent, WorkOutline } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
@@ -50,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isOutlinesSectionOpen, setIsOutlinesSectionOpen] = useState(true);
   const [isWorkOpen, setIsWorkOpen] = useState(true);
   const [isImprovementOpen, setIsImprovementOpen] = useState(true);
+  const [isBuyOpen, setIsBuyOpen] = useState(true);
 
   // Sync mini calendar view month when selectedDate changes (e.g. Jump to Today)
   React.useEffect(() => {
@@ -71,6 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const workDepartments = departments.filter((d) => d.outline === 'Work');
   const improvementDepartments = departments.filter((d) => d.outline === 'Improvement');
+  const buyDepartments = departments.filter((d) => d.outline === 'Buy');
 
   const totalTasks = events.length;
   const completedTasks = events.filter((e) => e.status === 'completed').length;
@@ -79,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const workEventsCount = events.filter((e) => getEventOutline(e, departments) === 'Work').length;
   const improvementEventsCount = events.filter((e) => getEventOutline(e, departments) === 'Improvement').length;
+  const buyEventsCount = events.filter((e) => getEventOutline(e, departments) === 'Buy').length;
 
   const selectedDayEvents = events.filter((e) => e.date === selectedIso);
   const selectedDayPending = selectedDayEvents.filter((e) => e.status !== 'completed').length;
@@ -129,9 +133,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className={`w-2.5 h-2.5 rounded-full border ${
                       outlineKey === 'Improvement'
                         ? 'bg-violet-200 border-violet-400'
+                        : outlineKey === 'Buy'
+                        ? 'bg-emerald-200 border-emerald-400'
                         : 'bg-amber-200 border-amber-400'
                     }`}
-                    title={outlineKey === 'Improvement' ? 'Violet task card' : 'Amber task card'}
+                    title={
+                      outlineKey === 'Improvement'
+                        ? 'Violet task card'
+                        : outlineKey === 'Buy'
+                        ? 'Emerald task card'
+                        : 'Amber task card'
+                    }
                   />
                 </div>
                 <span className="block text-[10px] text-slate-400 font-medium truncate">
@@ -309,25 +321,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            {/* Row 2: Work & Improvement Outlines Breakdown */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-amber-50/90 border border-amber-300/80 rounded-2xl p-2 px-2.5 flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
-                  <span className="text-xs font-bold text-amber-950 truncate">1. Work</span>
+            {/* Row 2: Work & Improvement & Buy Outlines Breakdown */}
+            <div className="grid grid-cols-3 gap-1.5">
+              <div className="bg-amber-50/90 border border-amber-300/80 rounded-2xl p-2 px-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span className="text-[11px] font-bold text-amber-950 truncate">Work</span>
                 </div>
-                <span className="text-xs font-extrabold font-mono text-amber-900 bg-white/80 px-1.5 py-0.5 rounded-md border border-amber-200">
+                <span className="text-xs font-extrabold font-mono text-amber-900 bg-white/80 px-1 py-0.5 rounded-md border border-amber-200">
                   {workEventsCount}
                 </span>
               </div>
 
-              <div className="bg-violet-50/90 border border-violet-300/80 rounded-2xl p-2 px-2.5 flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
-                  <span className="text-xs font-bold text-violet-950 truncate">2. Improve</span>
+              <div className="bg-violet-50/90 border border-violet-300/80 rounded-2xl p-2 px-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+                  <span className="text-[11px] font-bold text-violet-950 truncate">Improve</span>
                 </div>
-                <span className="text-xs font-extrabold font-mono text-violet-950 bg-white/80 px-1.5 py-0.5 rounded-md border border-violet-200">
+                <span className="text-xs font-extrabold font-mono text-violet-950 bg-white/80 px-1 py-0.5 rounded-md border border-violet-200">
                   {improvementEventsCount}
+                </span>
+              </div>
+
+              <div className="bg-emerald-50/90 border border-emerald-300/80 rounded-2xl p-2 px-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-[11px] font-bold text-emerald-950 truncate">Buy</span>
+                </div>
+                <span className="text-xs font-extrabold font-mono text-emerald-900 bg-white/80 px-1 py-0.5 rounded-md border border-emerald-200">
+                  {buyEventsCount}
                 </span>
               </div>
             </div>
@@ -458,6 +480,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const hasEvents = dayEvents.length > 0;
                   const hasWork = dayEvents.some((e) => getEventOutline(e, departments) === 'Work');
                   const hasImprovement = dayEvents.some((e) => getEventOutline(e, departments) === 'Improvement');
+                  const hasBuy = dayEvents.some((e) => getEventOutline(e, departments) === 'Buy');
 
                   return (
                     <button
@@ -491,7 +514,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               }`} 
                             />
                           )}
-                          {!hasWork && !hasImprovement && (
+                          {hasBuy && (
+                            <span 
+                              className={`w-1 h-1 rounded-full ${
+                                isSelected ? 'bg-emerald-200' : 'bg-emerald-500'
+                              }`} 
+                            />
+                          )}
+                          {!hasWork && !hasImprovement && !hasBuy && (
                             <span 
                               className={`w-1 h-1 rounded-full ${
                                 isSelected ? 'bg-white' : 'bg-[#00897b]'
@@ -588,7 +618,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   >
                     {!hasAnyFilterActive && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                   </div>
-                  <span>All Outlines (Work & Improve)</span>
+                  <span>All Outlines (Work, Improve, Buy)</span>
                 </span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
                   {events.length}
@@ -596,30 +626,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             )}
 
-            {/* Outline 1: WORK */}
+            {/* Outline: WORK */}
             {renderOutlineGroup(
               'Work',
-              '1. Work',
+              'Work',
               'Routine & Daily Operations',
               <Briefcase className="w-3.5 h-3.5" />,
               workDepartments,
               workEventsCount,
               isWorkOpen,
               () => setIsWorkOpen(!isWorkOpen),
-              'text-indigo-600'
+              'text-amber-600'
             )}
 
-            {/* Outline 2: IMPROVEMENT */}
+            {/* Outline: IMPROVEMENT */}
             {renderOutlineGroup(
               'Improvement',
-              '2. Improvement',
+              'Improvement',
               'Continuous Upgrade & Innovation',
               <TrendingUp className="w-3.5 h-3.5" />,
               improvementDepartments,
               improvementEventsCount,
               isImprovementOpen,
               () => setIsImprovementOpen(!isImprovementOpen),
-              'text-[#00897b]'
+              'text-violet-600'
+            )}
+
+            {/* Outline: BUY */}
+            {renderOutlineGroup(
+              'Buy',
+              'Buy',
+              'Procurement & Purchasing',
+              <ShoppingCart className="w-3.5 h-3.5" />,
+              buyDepartments,
+              buyEventsCount,
+              isBuyOpen,
+              () => setIsBuyOpen(!isBuyOpen),
+              'text-emerald-600'
             )}
           </div>
         ) : (

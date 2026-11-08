@@ -82,12 +82,15 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                 {dayEvents.length} {dayEvents.length === 1 ? 'task' : 'tasks'} for today
               </h3>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="px-2.5 sm:px-3 py-1 bg-amber-100/80 text-amber-900 text-[11px] sm:text-xs font-bold rounded-full border border-amber-300">
                 {dayEvents.filter(e => getEventOutline(e, departments) === 'Work').length} Work
               </span>
               <span className="px-2.5 sm:px-3 py-1 bg-violet-100/80 text-violet-900 text-[11px] sm:text-xs font-bold rounded-full border border-violet-300">
                 {dayEvents.filter(e => getEventOutline(e, departments) === 'Improvement').length} Improvement
+              </span>
+              <span className="px-2.5 sm:px-3 py-1 bg-emerald-100/80 text-emerald-900 text-[11px] sm:text-xs font-bold rounded-full border border-emerald-300">
+                {dayEvents.filter(e => getEventOutline(e, departments) === 'Buy').length} Buy
               </span>
             </div>
           </div>
@@ -112,14 +115,18 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
           ) : (
             <div className="flex flex-col gap-3">
               {dayEvents.map((event) => {
-                const isImprovement = getEventOutline(event, departments) === 'Improvement';
+                const evOutline = getEventOutline(event, departments);
+                const isImprovement = evOutline === 'Improvement';
+                const isBuy = evOutline === 'Buy';
 
                 return (
                   <div
                     key={event.id}
                     onClick={() => onSelectEvent(event)}
                     className={`px-5 py-3.5 rounded-2xl border transition-all hover:shadow-xs cursor-pointer flex items-center justify-between gap-4 group ${
-                      isImprovement
+                      isBuy
+                        ? 'bg-emerald-50/95 border-emerald-300 hover:bg-emerald-100/85'
+                        : isImprovement
                         ? 'bg-violet-50/95 border-violet-300 hover:bg-violet-100/85'
                         : 'bg-amber-50/95 border-amber-300 hover:bg-amber-100/85'
                     }`}
@@ -127,7 +134,9 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                     <div className="flex items-center justify-between min-w-0 flex-1 gap-3">
                       <span
                         className={`text-sm sm:text-base font-semibold break-words whitespace-normal flex-1 ${
-                          isImprovement
+                          isBuy
+                            ? 'text-emerald-950'
+                            : isImprovement
                             ? 'text-violet-950'
                             : 'text-slate-900'
                         }`}
@@ -141,12 +150,14 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                       </span>
                       <span
                         className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shrink-0 ${
-                          isImprovement
+                          isBuy
+                            ? 'bg-emerald-200/80 text-emerald-900'
+                            : isImprovement
                             ? 'bg-violet-200/80 text-violet-900'
                             : 'bg-amber-200/80 text-amber-900'
                         }`}
                       >
-                        {isImprovement ? 'Improvement' : 'Work'}
+                        {evOutline}
                       </span>
                     </div>
                   </div>

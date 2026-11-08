@@ -22,21 +22,70 @@ import { MonthlyScheduleView } from './components/MonthlyScheduleView';
 import { TaskBoardView } from './components/TaskBoardView';
 import { SettingsView } from './components/SettingsView';
 import { AppsScriptHubView } from './components/AppsScriptHubView';
+import { DatabaseView } from './components/DatabaseView';
 import { EventModal } from './components/EventModal';
 import { EventDetailDrawer } from './components/EventDetailDrawer';
 import { NotificationModal } from './components/NotificationModal';
 import { SettingsModal } from './components/SettingsModal';
 import { formatDateToISO } from './utils/dateUtils';
+import { 
+  syncDeleteDepartmentToSpreadsheet, 
+  syncDepartmentToSpreadsheet,
+  syncTaskToSpreadsheet,
+  syncTaskDeleteToSpreadsheet,
+  syncTaskStatusToSpreadsheet,
+  fetchTasksFromSpreadsheet,
+  fetchDepartmentsFromSpreadsheet,
+  bulkSyncTasksToSpreadsheet,
+  bulkSyncDepartmentsToSpreadsheet
+} from './services/webhookSyncService';
 
-const STORAGE_KEY_EVENTS = 'tasklio_events_v4_sheet';
-const STORAGE_KEY_FILTERS = 'tasklio_filters_v3';
-const STORAGE_KEY_DEPARTMENTS = 'tasklio_departments_v2';
+const STORAGE_KEY_EVENTS = 'tasklio_events_v200_live_spreadsheet';
+const STORAGE_KEY_FILTERS = 'tasklio_filters_v200_live_spreadsheet';
+const STORAGE_KEY_DEPARTMENTS = 'tasklio_departments_v200_live_spreadsheet';
 
 export default function App() {
-  // Initial State & Persistence
+  // Purge all old legacy storage keys on mount to guarantee zero leftover dummy data
+  useEffect(() => {
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.startsWith('tasklio_') &&
+          key !== STORAGE_KEY_EVENTS &&
+          key !== STORAGE_KEY_FILTERS &&
+          key !== STORAGE_KEY_DEPARTMENTS &&
+          key !== 'tasklio_appscript_webhook_url' &&
+          key !== 'tasklio_appscript_code_v2' &&
+          key !== 'tasklio_appscript_notes_v2' &&
+          key !== 'tasklio_appscript_title_v2'
+        ) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Initial State: 100% clean, empty dummy data, only synced from spreadsheet or local storage
   const [events, setEvents] = useState<TaskEvent[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_EVENTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return [];
+  });
+
+  const [departments, setDepartments] = useState<DepartmentItem[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_DEPARTMENTS);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -46,16 +95,7 @@ export default function App() {
     } catch {
       // fallback
     }
-    return getInitialEvents();
-  });
-
-  const [departments, setDepartments] = useState<DepartmentItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_DEPARTMENTS);
-      return stored ? JSON.parse(stored) : DEFAULT_DEPARTMENTS;
-    } catch {
-      return DEFAULT_DEPARTMENTS;
-    }
+    return DEFAULT_DEPARTMENTS;
   });
 
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -99,6 +139,46 @@ export default function App() {
       setToastMessage((curr) => (curr === msg ? null : curr));
     }, 3000);
   };
+
+  // Auto-fetch tasks & departments from Google Spreadsheet on initial load if Webhook URL exists
+  useEffect(() => {
+    async function initSpreadsheetSync() {
+      try {
+        const [taskRes, deptRes] = await Promise.all([
+          fetchTasksFromSpreadsheet(),
+          fetchDepartmentsFromSpreadsheet()
+        ]);
+
+        const activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
+          ? deptRes.departments
+          : (taskRes.success && taskRes.departments && taskRes.departments.length > 0)
+          ? taskRes.departments
+          : null;
+
+        if (activeDepartments && activeDepartments.length > 0) {
+          setDepartments(activeDepartments);
+          try {
+            localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        if (taskRes.success && Array.isArray(taskRes.tasks)) {
+          setEvents(taskRes.tasks);
+          try {
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(taskRes.tasks));
+          } catch (e) {
+            console.error(e);
+          }
+          console.log(`[Spreadsheet Sync] ${taskRes.tasks.length} tugas & ${activeDepartments?.length || 0} departemen dimuat dari Google Spreadsheet`);
+        }
+      } catch (e) {
+        console.error('Spreadsheet sync error:', e);
+      }
+    }
+    initSpreadsheetSync();
+  }, []);
 
   // Persist to localStorage
   useEffect(() => {
@@ -172,6 +252,7 @@ export default function App() {
     const resetState: FilterState = {
       Work: false,
       Improvement: false,
+      Buy: false,
     };
     departments.forEach((d) => {
       resetState[d.name] = false;
@@ -198,7 +279,10 @@ export default function App() {
       }
       return updated;
     });
-    showToast(`Departemen "${newDept.name}" berhasil ditambahkan!`);
+    syncDepartmentToSpreadsheet(newDept).catch((err) => {
+      console.log('Spreadsheet department add sync:', err);
+    });
+    showToast(`Departemen "${newDept.name}" berhasil ditambahkan ke database & spreadsheet!`);
   };
 
   const handleRemoveDepartment = (deptId: string) => {
@@ -223,7 +307,7 @@ export default function App() {
     // Clean up tasks belonging to the removed department
     setEvents((prev) => {
       const updatedEvents = prev.filter(
-        (e) => (e.department || e.subtitle || '').toLowerCase() !== deptName.toLowerCase()
+        (e) => (e.department || e.subtitle || '').toLowerCase().trim() !== deptName.toLowerCase().trim()
       );
       try {
         localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
@@ -239,7 +323,12 @@ export default function App() {
       console.error(e);
     }
 
-    showToast(`Departemen "${deptName}" dan tugas terkait berhasil dihapus!`);
+    // Trigger Google Apps Script Webhook sync to delete department row from Google Spreadsheet
+    syncDeleteDepartmentToSpreadsheet(deptId, deptName).catch((err) => {
+      console.log('Spreadsheet department delete sync:', err);
+    });
+
+    showToast(`Departemen "${deptName}" dan tugas terkait berhasil dihapus dari database & spreadsheet!`);
   };
 
   const handleOpenCreateModal = (defaultDate?: string, defaultHour?: number) => {
@@ -277,10 +366,16 @@ export default function App() {
       setSelectedEventDetails(savedEvent);
     }
 
+    // Trigger Google Apps Script Webhook sync to save task to Google Spreadsheet
+    syncTaskToSpreadsheet(savedEvent, departments).catch((err) => {
+      console.log('Spreadsheet task save sync:', err);
+    });
+
     showToast(`Tugas "${savedEvent.title}" berhasil disimpan!`);
   };
 
   const handleDeleteEvent = (eventId: string) => {
+    const targetTask = events.find((e) => e.id === eventId);
     setEvents((prev) => {
       const updated = prev.filter((e) => e.id !== eventId);
       try {
@@ -293,14 +388,21 @@ export default function App() {
     if (selectedEventDetails?.id === eventId) {
       setSelectedEventDetails(null);
     }
+
+    // Trigger Google Apps Script Webhook sync to delete task from Google Spreadsheet
+    syncTaskDeleteToSpreadsheet(eventId, targetTask?.title).catch((err) => {
+      console.log('Spreadsheet task delete sync:', err);
+    });
+
     showToast('Tugas berhasil dihapus');
   };
 
   const handleToggleEventStatus = (eventId: string) => {
+    let nextStatus: TaskEvent['status'] = 'pending';
     setEvents((prev) => {
       const updatedEvents = prev.map((e) => {
         if (e.id === eventId) {
-          const nextStatus: TaskEvent['status'] = e.status === 'completed' ? 'pending' : 'completed';
+          nextStatus = e.status === 'completed' ? 'pending' : 'completed';
           const updated: TaskEvent = { ...e, status: nextStatus };
           if (selectedEventDetails?.id === eventId) {
             setSelectedEventDetails(updated);
@@ -316,6 +418,11 @@ export default function App() {
       }
       return updatedEvents;
     });
+
+    // Trigger Google Apps Script Webhook sync for status update
+    syncTaskStatusToSpreadsheet(eventId, nextStatus).catch((err) => {
+      console.log('Spreadsheet task status sync:', err);
+    });
   };
 
   const handleUpdateEventStatus = (eventId: string, newStatus: TaskEvent['status']) => {
@@ -327,6 +434,11 @@ export default function App() {
         console.error(e);
       }
       return updatedEvents;
+    });
+
+    // Trigger Google Apps Script Webhook sync for status update
+    syncTaskStatusToSpreadsheet(eventId, newStatus).catch((err) => {
+      console.log('Spreadsheet task status sync:', err);
     });
   };
 
@@ -352,6 +464,48 @@ export default function App() {
       }
       return updatedEvents;
     });
+  };
+
+  const handleSyncSpreadsheet = async () => {
+    showToast('Menghubungi Google Spreadsheet...');
+    try {
+      const [fetchRes, deptRes] = await Promise.all([
+        fetchTasksFromSpreadsheet(),
+        fetchDepartmentsFromSpreadsheet()
+      ]);
+
+      const activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
+        ? deptRes.departments
+        : (fetchRes.success && fetchRes.departments && fetchRes.departments.length > 0)
+        ? fetchRes.departments
+        : (deptRes.success && deptRes.departments)
+        ? deptRes.departments
+        : null;
+
+      if (activeDepartments) {
+        setDepartments(activeDepartments);
+        try {
+          localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (fetchRes.success && Array.isArray(fetchRes.tasks)) {
+        setEvents(fetchRes.tasks);
+        try {
+          localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(fetchRes.tasks));
+        } catch (e) {
+          console.error(e);
+        }
+        showToast(`Sinkronisasi Berhasil: ${fetchRes.tasks.length} tugas & ${activeDepartments ? activeDepartments.length : departments.length} departemen dimuat langsung dari Google Spreadsheet!`);
+      } else {
+        // If fetch returned error or no webhook, notify user
+        showToast(fetchRes.error || 'Gagal mengambil data dari Google Spreadsheet.');
+      }
+    } catch (err: any) {
+      showToast('Gagal menyinkronkan: ' + (err.message || 'Kesalahan jaringan'));
+    }
   };
 
   const handleResetData = () => {
@@ -553,6 +707,17 @@ export default function App() {
               <AppsScriptHubView
                 onShowToast={showToast}
                 onBackToCalendar={() => setViewMode('weekly')}
+                onSyncSpreadsheet={handleSyncSpreadsheet}
+              />
+            )}
+
+            {viewMode === 'database' && (
+              <DatabaseView
+                events={events}
+                departments={departments}
+                onSyncSpreadsheet={handleSyncSpreadsheet}
+                onShowToast={showToast}
+                onOpenCreateModal={() => handleOpenCreateModal()}
               />
             )}
           </div>

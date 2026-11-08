@@ -11,7 +11,8 @@ import {
   Layout,
   ArrowLeft,
   Briefcase,
-  TrendingUp
+  TrendingUp,
+  ShoppingCart
 } from 'lucide-react';
 import { UserProfile, DepartmentItem, EventColorTheme, TaskEvent, ViewMode, WorkOutline } from '../types';
 import { getAvatarUrl } from '../data/initialData';
@@ -126,6 +127,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const workDepts = departments.filter((d) => d.outline === 'Work');
   const improvementDepts = departments.filter((d) => d.outline === 'Improvement');
+  const buyDepts = departments.filter((d) => d.outline === 'Buy');
 
   const renderDeptGroup = (title: string, subtitle: string, icon: React.ReactNode, list: DepartmentItem[]) => (
     <div className="flex flex-col gap-2">
@@ -390,7 +392,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               <p className="text-xs text-slate-500 leading-relaxed">
-                Departments are grouped into two main outlines: <strong>1. Work</strong> (Daily Operations) and <strong>2. Improvement</strong> (Continuous Innovation).
+                Departments are grouped into three main outlines: <strong>Work</strong> (Daily Operations), <strong>Improvement</strong> (Continuous Innovation), and <strong>Buy</strong> (Procurement & Purchasing).
               </p>
 
               {/* Add New Department Form */}
@@ -399,8 +401,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   + Add New Department
                 </label>
 
-                {/* Select Outline: Work vs Improvement */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
+                {/* Select Outline: Work vs Improvement vs Buy */}
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setNewDeptOutline('Work')}
@@ -411,7 +413,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     }`}
                   >
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>1. Work</span>
+                    <span>Work</span>
                   </button>
                   <button
                     type="button"
@@ -423,7 +425,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     }`}
                   >
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>2. Improvement</span>
+                    <span>Improvement</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewDeptOutline('Buy')}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      newDeptOutline === 'Buy'
+                        ? 'bg-[#00796b] text-white shadow-2xs'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span>Buy</span>
                   </button>
                 </div>
 
@@ -459,10 +473,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </form>
 
-              {/* Two Main Outlines List */}
+              {/* Three Main Outlines List */}
               <div className="flex flex-col gap-4 max-h-[340px] overflow-y-auto pr-1">
                 {renderDeptGroup(
-                  '1. Work',
+                  'Work',
                   'Routine & Daily Operations',
                   <Briefcase className="w-3.5 h-3.5 text-indigo-600" />,
                   workDepts
@@ -470,10 +484,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                 <div className="border-t border-slate-100 pt-3">
                   {renderDeptGroup(
-                    '2. Improvement',
+                    'Improvement',
                     'Continuous Upgrade & Innovation',
                     <TrendingUp className="w-3.5 h-3.5 text-[#00796b]" />,
                     improvementDepts
+                  )}
+                </div>
+
+                <div className="border-t border-slate-100 pt-3">
+                  {renderDeptGroup(
+                    'Buy',
+                    'Procurement & Purchasing',
+                    <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />,
+                    buyDepts
                   )}
                 </div>
               </div>

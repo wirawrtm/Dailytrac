@@ -21,7 +21,7 @@ export interface Subtask {
   completed: boolean;
 }
 
-export type WorkOutline = 'Work' | 'Improvement';
+export type WorkOutline = 'Work' | 'Improvement' | 'Buy';
 
 export interface TaskEvent {
   id: string;
@@ -56,7 +56,7 @@ export interface DepartmentItem {
   dotColor: string;
 }
 
-export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'tasks' | 'settings' | 'appscript';
+export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'tasks' | 'settings' | 'appscript' | 'database';
 
 export interface UserProfile {
   name: string;

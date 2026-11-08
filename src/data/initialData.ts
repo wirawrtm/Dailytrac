@@ -24,27 +24,32 @@ export const CURRENT_USER: UserProfile = {
 };
 
 export const DEFAULT_DEPARTMENTS: DepartmentItem[] = [
-  // 1. Work (Daily & Operational Work)
+  // Work (Daily & Operational Work)
   { id: 'Operations', name: 'Operations', outline: 'Work', colorTheme: 'indigo', dotColor: 'bg-indigo-500' },
   { id: 'Marketing & Sales', name: 'Marketing & Sales', outline: 'Work', colorTheme: 'peach', dotColor: 'bg-amber-500' },
   { id: 'Finance', name: 'Finance', outline: 'Work', colorTheme: 'emerald', dotColor: 'bg-emerald-500' },
   { id: 'Human Resources', name: 'Human Resources', outline: 'Work', colorTheme: 'pink', dotColor: 'bg-rose-500' },
-  // 2. Improvement (Continuous Improvement & Innovation)
+  // Improvement (Continuous Improvement & Innovation)
   { id: 'Engineering', name: 'Engineering', outline: 'Improvement', colorTheme: 'cyan', dotColor: 'bg-teal-500' },
   { id: 'Product & Design', name: 'Product & Design', outline: 'Improvement', colorTheme: 'purple', dotColor: 'bg-purple-500' },
+  // Buy (Procurement & Purchasing)
+  { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' },
 ];
 
 export const getEventOutline = (
   ev: TaskEvent,
   departments: DepartmentItem[] = DEFAULT_DEPARTMENTS
 ): WorkOutline => {
-  if (ev.outline === 'Work' || ev.outline === 'Improvement') {
+  if (ev.outline === 'Work' || ev.outline === 'Improvement' || ev.outline === 'Buy') {
     return ev.outline;
   }
-  const evDept = (ev.department || ev.subtitle || 'Engineering').toLowerCase();
+  const evDept = (ev.department || ev.subtitle || '').toLowerCase();
   const matchedDept = departments.find((d) => d.name.toLowerCase() === evDept);
   if (matchedDept) {
     return matchedDept.outline;
+  }
+  if (evDept.includes('buy') || evDept.includes('purchas') || evDept.includes('procure') || ev.title.toLowerCase().includes('beli') || ev.title.toLowerCase().includes('buy')) {
+    return 'Buy';
   }
   // Default heuristic based on title/department keywords
   if (
@@ -90,147 +95,19 @@ export const TEAM_MEMBERS = [
 export const INITIAL_FILTERS: FilterState = {
   'Work': false,
   'Improvement': false,
+  'Buy': false,
   'Operations': false,
   'Marketing & Sales': false,
   'Finance': false,
   'Human Resources': false,
   'Engineering': false,
   'Product & Design': false,
+  'Procurement': false,
 };
 
 export function getInitialEvents(): TaskEvent[] {
-  const today = new Date();
-  const todayIso = formatDateToISO(today);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowIso = formatDateToISO(tomorrow);
-
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const yesterdayIso = formatDateToISO(yesterday);
-
-  return [
-    {
-      id: 'task-1',
-      title: 'Marketing Strategy',
-      date: todayIso,
-      startTime: '09:00 AM',
-      endTime: '10:30 AM',
-      startHour: 9,
-      durationHours: 1.5,
-      category: 'meetings',
-      colorTheme: 'peach',
-      outline: 'Work',
-      department: 'Marketing & Sales',
-      subtitle: 'Marketing & Sales',
-      status: 'pending',
-      description: 'Review Q3 inbound campaign KPIs and email flows',
-      attendees: [TEAM_MEMBERS[0], TEAM_MEMBERS[1]],
-    },
-    {
-      id: 'task-2',
-      title: 'Standup Meeting',
-      date: todayIso,
-      startTime: '10:30 AM',
-      endTime: '11:30 AM',
-      startHour: 10.5,
-      durationHours: 1,
-      category: 'meetings',
-      colorTheme: 'peach',
-      outline: 'Work',
-      department: 'Operations',
-      subtitle: 'Operations',
-      status: 'completed',
-      description: 'Weekly team sprint alignment and blocker discussions',
-      attendees: [TEAM_MEMBERS[0], TEAM_MEMBERS[2], TEAM_MEMBERS[3]],
-    },
-    {
-      id: 'task-3',
-      title: 'Sprint Retrospective',
-      date: todayIso,
-      startTime: '01:30 PM',
-      endTime: '03:00 PM',
-      startHour: 13.5,
-      durationHours: 1.5,
-      category: 'milestones',
-      colorTheme: 'purple',
-      outline: 'Improvement',
-      department: 'Engineering',
-      subtitle: 'Engineering',
-      status: 'completed',
-      description: 'Sprint 14 retro and action items follow-up',
-      attendees: [TEAM_MEMBERS[2], TEAM_MEMBERS[3], TEAM_MEMBERS[4]],
-    },
-    {
-      id: 'task-4',
-      title: 'Finance Monthly Closing',
-      date: todayIso,
-      startTime: '03:00 PM',
-      endTime: '04:30 PM',
-      startHour: 15,
-      durationHours: 1.5,
-      category: 'deadlines',
-      colorTheme: 'emerald',
-      outline: 'Work',
-      department: 'Finance',
-      subtitle: 'Finance',
-      status: 'pending',
-      description: 'Reconcile month-end invoices and department budget reports',
-      attendees: [TEAM_MEMBERS[0]],
-    },
-    {
-      id: 'task-5',
-      title: 'HR Onboarding Session',
-      date: todayIso,
-      startTime: '04:30 PM',
-      endTime: '05:30 PM',
-      startHour: 16.5,
-      durationHours: 1,
-      category: 'meetings',
-      colorTheme: 'pink',
-      outline: 'Work',
-      department: 'Human Resources',
-      subtitle: 'Human Resources',
-      status: 'pending',
-      description: 'Welcome new team members and workspace setup',
-      attendees: [TEAM_MEMBERS[5]],
-    },
-    {
-      id: 'task-6',
-      title: 'Product Design Audit',
-      date: tomorrowIso,
-      startTime: '10:00 AM',
-      endTime: '12:00 PM',
-      startHour: 10,
-      durationHours: 2,
-      category: 'due_dates',
-      colorTheme: 'cyan',
-      outline: 'Improvement',
-      department: 'Product & Design',
-      subtitle: 'Product & Design',
-      status: 'pending',
-      description: 'Review UI components and mobile responsiveness across screens',
-      attendees: [TEAM_MEMBERS[1], TEAM_MEMBERS[6]],
-    },
-    {
-      id: 'task-7',
-      title: 'System Architecture Review',
-      date: yesterdayIso,
-      startTime: '02:00 PM',
-      endTime: '04:00 PM',
-      startHour: 14,
-      durationHours: 2,
-      category: 'milestones',
-      colorTheme: 'indigo',
-      outline: 'Improvement',
-      department: 'Engineering',
-      subtitle: 'Engineering',
-      status: 'completed',
-      description: 'Database indexing and API endpoint optimization',
-      attendees: [TEAM_MEMBERS[2], TEAM_MEMBERS[3]],
-    },
-  ];
+  return [];
 }
 
-export const INITIAL_EVENTS: TaskEvent[] = getInitialEvents();
+export const INITIAL_EVENTS: TaskEvent[] = [];
+

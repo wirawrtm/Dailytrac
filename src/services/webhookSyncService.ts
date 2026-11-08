@@ -1,5 +1,5 @@
 import { getSavedWebhookUrl } from '../data/appsScriptCode';
-import { TaskEvent, DepartmentItem } from '../types';
+import { TaskEvent, DepartmentItem, WorkOutline } from '../types';
 import { getEventOutline } from '../data/initialData';
 
 export interface WebhookSyncResponse {
@@ -13,7 +13,7 @@ export interface WebhookSyncResponse {
  * Uses no-cors with text/plain to avoid Google Apps Script CORS preflight redirect issues.
  */
 export async function postToAppsScriptWebhook(
-  action: 'save_task' | 'update_status' | 'delete_task' | 'sync_calendar' | 'bulk_sync_tasks',
+  action: 'save_task' | 'update_status' | 'delete_task' | 'sync_calendar' | 'bulk_sync_tasks' | 'delete_department' | 'save_department' | 'bulk_sync_departments',
   data: Record<string, any>
 ): Promise<WebhookSyncResponse> {
   const webhookUrl = getSavedWebhookUrl();
@@ -117,6 +117,19 @@ export async function syncTaskDeleteToSpreadsheet(
 }
 
 /**
+ * Syncs department deletion to Google Spreadsheet
+ */
+export async function syncDeleteDepartmentToSpreadsheet(
+  deptId: string,
+  deptName: string
+): Promise<WebhookSyncResponse> {
+  return postToAppsScriptWebhook('delete_department', {
+    deptId,
+    deptName
+  });
+}
+
+/**
  * Bulk syncs all tasks from the website to Google Spreadsheet (overwriting sheet with current web data)
  */
 export async function bulkSyncTasksToSpreadsheet(
@@ -140,11 +153,34 @@ export async function bulkSyncTasksToSpreadsheet(
 }
 
 /**
+ * Syncs a single new department to Google Spreadsheet
+ */
+export async function syncDepartmentToSpreadsheet(
+  department: DepartmentItem
+): Promise<WebhookSyncResponse> {
+  return postToAppsScriptWebhook('save_department', {
+    department
+  });
+}
+
+/**
+ * Bulk syncs all departments from the website to Google Spreadsheet
+ */
+export async function bulkSyncDepartmentsToSpreadsheet(
+  departments: DepartmentItem[]
+): Promise<WebhookSyncResponse> {
+  return postToAppsScriptWebhook('bulk_sync_departments', {
+    departments
+  });
+}
+
+/**
  * Fetches all tasks from Google Spreadsheet via GET request
  */
 export async function fetchTasksFromSpreadsheet(): Promise<{
   success: boolean;
   tasks?: TaskEvent[];
+  departments?: DepartmentItem[];
   error?: string;
 }> {
   const webhookUrl = getSavedWebhookUrl();
@@ -156,33 +192,86 @@ export async function fetchTasksFromSpreadsheet(): Promise<{
   }
 
   try {
-    const fetchUrl = webhookUrl.includes('?') 
-      ? `${webhookUrl}&action=get_tasks` 
-      : `${webhookUrl}?action=get_tasks`;
+    const separator = webhookUrl.includes('?') ? '&' : '?';
+    const fetchUrl = `${webhookUrl}${separator}action=get_tasks&_t=${Date.now()}`;
 
-    const res = await fetch(fetchUrl);
+    const res = await fetch(fetchUrl, {
+      cache: 'no-store'
+    });
     if (!res.ok) {
       throw new Error(`HTTP error ${res.status}`);
     }
     const data = await res.json();
     if (data.status === 'success' && Array.isArray(data.tasks)) {
-      const parsedTasks: TaskEvent[] = data.tasks.map((t: any) => ({
-        id: String(t.id || `task_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`),
-        title: String(t.title || 'Untitled Task'),
-        department: String(t.department || 'Operations'),
-        subtitle: String(t.department || 'Operations'),
-        description: String(t.description || ''),
-        date: String(t.date || new Date().toISOString().split('T')[0]),
-        dueDate: t.dueDate ? String(t.dueDate) : undefined,
-        status: t.status === 'completed' ? 'completed' : 'pending',
-        startTime: '09:00',
-        endTime: '10:00',
-        category: 'meetings',
-        colorTheme: t.outline === 'Improvement' ? 'purple' : 'cyan'
-      }));
+      const parsedTasks: TaskEvent[] = data.tasks.map((t: any) => {
+        const rawOutline = String(t.outline || '').trim();
+        const deptStr = String(t.department || 'Operations').trim();
+        let inferredOutline: WorkOutline = 'Work';
+        if (rawOutline === 'Improvement' || rawOutline === 'Work' || rawOutline === 'Buy') {
+          inferredOutline = rawOutline;
+        } else if (
+          rawOutline.toLowerCase().includes('buy') || 
+          rawOutline.toLowerCase().includes('purchas') || 
+          deptStr.toLowerCase().includes('procure') || 
+          deptStr.toLowerCase().includes('buy') ||
+          String(t.title || '').toLowerCase().includes('beli')
+        ) {
+          inferredOutline = 'Buy';
+        } else if (
+          rawOutline.toLowerCase().includes('improv') || 
+          deptStr.toLowerCase().includes('eng') || 
+          deptStr.toLowerCase().includes('design') || 
+          deptStr.toLowerCase().includes('product')
+        ) {
+          inferredOutline = 'Improvement';
+        }
+
+        return {
+          id: String(t.id || `task_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`),
+          title: String(t.title || 'Untitled Task'),
+          outline: inferredOutline,
+          department: deptStr,
+          subtitle: deptStr,
+          description: String(t.description || ''),
+          date: String(t.date || new Date().toISOString().split('T')[0]),
+          dueDate: t.dueDate ? String(t.dueDate) : undefined,
+          status: t.status === 'completed' ? 'completed' : 'pending',
+          startTime: '09:00',
+          endTime: '10:00',
+          category: 'meetings',
+          colorTheme: inferredOutline === 'Improvement' ? 'purple' : inferredOutline === 'Buy' ? 'peach' : (deptStr === 'Operations' ? 'indigo' : 'cyan')
+        };
+      });
+      let parsedDepartments: DepartmentItem[] | undefined = undefined;
+      if (Array.isArray(data.departments) && data.departments.length > 0) {
+        parsedDepartments = data.departments.map((d: any) => {
+          const deptOutlineRaw = String(d.outline || '').trim();
+          let outline: WorkOutline = 'Work';
+          if (deptOutlineRaw === 'Improvement' || deptOutlineRaw === 'Buy' || deptOutlineRaw === 'Work') {
+            outline = deptOutlineRaw;
+          } else if (
+            deptOutlineRaw.toLowerCase().includes('buy') || 
+            String(d.name).toLowerCase().includes('procure') || 
+            String(d.name).toLowerCase().includes('buy')
+          ) {
+            outline = 'Buy';
+          } else if (deptOutlineRaw.toLowerCase().includes('improv')) {
+            outline = 'Improvement';
+          }
+          return {
+            id: String(d.id || d.name),
+            name: String(d.name),
+            outline,
+            colorTheme: String(d.colorTheme || (outline === 'Improvement' ? 'purple' : outline === 'Buy' ? 'peach' : 'indigo')),
+            dotColor: String(d.dotColor || (outline === 'Improvement' ? 'bg-purple-500' : outline === 'Buy' ? 'bg-amber-500' : 'bg-indigo-500'))
+          };
+        });
+      }
+
       return {
         success: true,
-        tasks: parsedTasks
+        tasks: parsedTasks,
+        departments: parsedDepartments
       };
     }
     return {
@@ -193,6 +282,73 @@ export async function fetchTasksFromSpreadsheet(): Promise<{
     return {
       success: false,
       error: err.message || 'Gagal mengambil data dari Google Spreadsheet'
+    };
+  }
+}
+
+/**
+ * Fetches all departments from Google Spreadsheet via GET request
+ */
+export async function fetchDepartmentsFromSpreadsheet(): Promise<{
+  success: boolean;
+  departments?: DepartmentItem[];
+  error?: string;
+}> {
+  const webhookUrl = getSavedWebhookUrl();
+  if (!webhookUrl || !webhookUrl.trim()) {
+    return {
+      success: false,
+      error: 'Belum ada Webhook URL yang disimpan.'
+    };
+  }
+
+  try {
+    const separator = webhookUrl.includes('?') ? '&' : '?';
+    const fetchUrl = `${webhookUrl}${separator}action=departments&_t=${Date.now()}`;
+
+    const res = await fetch(fetchUrl, {
+      cache: 'no-store'
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP error ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.status === 'success' && Array.isArray(data.departments)) {
+      const parsedDepts: DepartmentItem[] = data.departments.map((d: any) => {
+        const deptOutlineRaw = String(d.outline || '').trim();
+        let outline: WorkOutline = 'Work';
+        if (deptOutlineRaw === 'Improvement' || deptOutlineRaw === 'Buy' || deptOutlineRaw === 'Work') {
+          outline = deptOutlineRaw;
+        } else if (
+          deptOutlineRaw.toLowerCase().includes('buy') || 
+          String(d.name).toLowerCase().includes('procure') || 
+          String(d.name).toLowerCase().includes('buy')
+        ) {
+          outline = 'Buy';
+        } else if (deptOutlineRaw.toLowerCase().includes('improv')) {
+          outline = 'Improvement';
+        }
+        return {
+          id: String(d.id || d.name),
+          name: String(d.name),
+          outline,
+          colorTheme: String(d.colorTheme || (outline === 'Improvement' ? 'purple' : outline === 'Buy' ? 'peach' : 'indigo')),
+          dotColor: String(d.dotColor || (outline === 'Improvement' ? 'bg-purple-500' : outline === 'Buy' ? 'bg-amber-500' : 'bg-indigo-500'))
+        };
+      });
+      return {
+        success: true,
+        departments: parsedDepts
+      };
+    }
+    return {
+      success: false,
+      error: data.message || 'Format data departemen dari Google Spreadsheet tidak sesuai.'
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Gagal mengambil departemen dari Google Spreadsheet'
     };
   }
 }
