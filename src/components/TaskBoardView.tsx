@@ -360,11 +360,11 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
           </div>
             
             {/* Department Dropdown Button */}
-            <div className="static sm:relative" ref={deptDropdownRef}>
+            <div className="relative shrink-0" ref={deptDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
-                className={`px-2 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-[11px] ${
+                className={`px-2 sm:px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-[11px] ${
                   selectedDepartments.length > 0
                     ? 'bg-white text-emerald-950 font-bold shadow-2xs ring-1 ring-emerald-300'
                     : isDeptDropdownOpen
@@ -388,7 +388,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                         )?.dotColor || 'bg-emerald-500'
                       }`}
                     />
-                    <span className="max-w-[110px] truncate">{selectedDepartments[0]}</span>
+                    <span className="max-w-[130px] truncate">{selectedDepartments[0]}</span>
                     <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold">
                       1
                     </span>
@@ -406,9 +406,9 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                 )}
               </button>
 
-              {/* Dropdown Menu Popup */}
+              {/* Dropdown Menu Popup - Full width so text is never truncated */}
               {isDeptDropdownOpen && (
-                <div className="absolute left-0 right-0 sm:left-auto sm:right-0 top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3 w-full sm:w-[320px] max-w-full animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-2.5">
+                <div className="absolute right-0 top-full mt-1.5 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-3.5 w-[310px] sm:w-[340px] max-w-[calc(100vw-24px)] animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-2.5">
                   {/* Dropdown Header */}
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div className="flex items-center gap-1.5">
@@ -425,7 +425,11 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedDepartments(departments.map((d) => d.name));
+                          const allDeptNames = [
+                            ...departments.map((d) => d.name),
+                            ...(departments.some((d) => d.outline === 'Buy') ? [] : ['Procurement'])
+                          ];
+                          setSelectedDepartments(allDeptNames);
                           setOutlineFilter('all');
                         }}
                         className="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer"
@@ -476,14 +480,14 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                                 : 'hover:bg-slate-50 text-slate-700 font-medium'
                             }`}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
                                 isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
                               }`}>
                                 {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                               </div>
                               <span className={`w-2 h-2 rounded-full shrink-0 ${dept.dotColor}`} />
-                              <span className="text-xs truncate">{dept.name}</span>
+                              <span className="text-xs font-semibold text-slate-800 break-words whitespace-normal text-left">{dept.name}</span>
                             </div>
                             <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-2">
                               {count} task
@@ -520,14 +524,14 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                                 : 'hover:bg-slate-50 text-slate-700 font-medium'
                             }`}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
                                 isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
                               }`}>
                                 {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                               </div>
                               <span className={`w-2 h-2 rounded-full shrink-0 ${dept.dotColor}`} />
-                              <span className="text-xs truncate">{dept.name}</span>
+                              <span className="text-xs font-semibold text-slate-800 break-words whitespace-normal text-left">{dept.name}</span>
                             </div>
                             <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-2">
                               {count} task
@@ -545,7 +549,10 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                       <span>Buy (Procurement & Purchasing)</span>
                     </span>
                     <div className="flex flex-col gap-0.5">
-                      {departments.filter((d) => d.outline === 'Buy').map((dept) => {
+                      {(departments.filter((d) => d.outline === 'Buy').length > 0
+                        ? departments.filter((d) => d.outline === 'Buy')
+                        : [{ id: 'Procurement', name: 'Procurement', outline: 'Buy' as const, colorTheme: 'peach' as const, dotColor: 'bg-amber-500' }]
+                      ).map((dept) => {
                         const isSelected = selectedDepartments.some(
                           (d) => d.toLowerCase() === dept.name.toLowerCase()
                         );
@@ -564,14 +571,14 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                                 : 'hover:bg-slate-50 text-slate-700 font-medium'
                             }`}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
                                 isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
                               }`}>
                                 {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                               </div>
                               <span className={`w-2 h-2 rounded-full shrink-0 ${dept.dotColor}`} />
-                              <span className="text-xs truncate">{dept.name}</span>
+                              <span className="text-xs font-semibold text-slate-800 break-words whitespace-normal text-left">{dept.name}</span>
                             </div>
                             <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-2">
                               {count} task

@@ -51,7 +51,10 @@ export const EventModal: React.FC<EventModalProps> = ({
 
   const workDepartments = departments.filter((d) => d.outline === 'Work');
   const improvementDepartments = departments.filter((d) => d.outline === 'Improvement');
-  const buyDepartments = departments.filter((d) => d.outline === 'Buy');
+  const rawBuyDepartments = departments.filter((d) => d.outline === 'Buy');
+  const buyDepartments = rawBuyDepartments.length > 0 ? rawBuyDepartments : [
+    { id: 'Procurement', name: 'Procurement', outline: 'Buy' as const, colorTheme: 'peach' as const, dotColor: 'bg-amber-500' }
+  ];
   const presetDepartmentNames = departments.map((d) => d.name);
 
   // Close dropdown on outside click
@@ -327,9 +330,9 @@ export const EventModal: React.FC<EventModalProps> = ({
                                 : 'text-slate-700 hover:bg-slate-50'
                             }`}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <span className={`w-2 h-2 rounded-full shrink-0 ${d.dotColor}`} />
-                              <span className="truncate">{d.name}</span>
+                              <span className="font-semibold text-slate-800 break-words whitespace-normal text-left">{d.name}</span>
                             </div>
                             {isSelected && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[3] shrink-0" />}
                           </button>

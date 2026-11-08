@@ -89,6 +89,13 @@ export default function App() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasBuy = parsed.some((d: any) => d.outline === 'Buy');
+          if (!hasBuy) {
+            return [
+              ...parsed,
+              { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
+            ];
+          }
           return parsed;
         }
       }
@@ -149,13 +156,19 @@ export default function App() {
           fetchDepartmentsFromSpreadsheet()
         ]);
 
-        const activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
+        let activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
           ? deptRes.departments
           : (taskRes.success && taskRes.departments && taskRes.departments.length > 0)
           ? taskRes.departments
           : null;
 
         if (activeDepartments && activeDepartments.length > 0) {
+          if (!activeDepartments.some((d) => d.outline === 'Buy')) {
+            activeDepartments = [
+              ...activeDepartments,
+              { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
+            ];
+          }
           setDepartments(activeDepartments);
           try {
             localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
@@ -474,7 +487,7 @@ export default function App() {
         fetchDepartmentsFromSpreadsheet()
       ]);
 
-      const activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
+      let activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
         ? deptRes.departments
         : (fetchRes.success && fetchRes.departments && fetchRes.departments.length > 0)
         ? fetchRes.departments
@@ -483,6 +496,12 @@ export default function App() {
         : null;
 
       if (activeDepartments) {
+        if (!activeDepartments.some((d) => d.outline === 'Buy')) {
+          activeDepartments = [
+            ...activeDepartments,
+            { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
+          ];
+        }
         setDepartments(activeDepartments);
         try {
           localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
