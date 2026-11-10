@@ -74,7 +74,10 @@ export default function App() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          return parsed;
+          return parsed.map((e: any) => ({
+            ...e,
+            title: (e.title && String(e.title).trim()) || e.task || e.name || (e.description && String(e.description).trim()) || 'Tugas Tanpa Judul'
+          }));
         }
       }
     } catch {
@@ -116,10 +119,10 @@ export default function App() {
 
   const [user, setUser] = useState<UserProfile>(CURRENT_USER);
 
-  // Selected date initialized to real current date (Today)
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('weekly');
   const [searchQuery] = useState<string>('');
+  const [outlineFilter, setOutlineFilter] = useState<'all' | 'Work' | 'Improvement' | 'Buy'>('all');
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -178,13 +181,17 @@ export default function App() {
         }
 
         if (taskRes.success && Array.isArray(taskRes.tasks)) {
-          setEvents(taskRes.tasks);
+          const cleanedTasks = taskRes.tasks.map((t: any) => ({
+            ...t,
+            title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
+          }));
+          setEvents(cleanedTasks);
           try {
-            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(taskRes.tasks));
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
           } catch (e) {
             console.error(e);
           }
-          console.log(`[Spreadsheet Sync] ${taskRes.tasks.length} tugas & ${activeDepartments?.length || 0} departemen dimuat dari Google Spreadsheet`);
+          console.log(`[Spreadsheet Sync] ${cleanedTasks.length} tugas & ${activeDepartments?.length || 0} departemen dimuat dari Google Spreadsheet`);
         }
       } catch (e) {
         console.error('Spreadsheet sync error:', e);
@@ -218,7 +225,7 @@ export default function App() {
     }
   }, [departments]);
 
-  // Filtered events based on 2 Main Outlines (Work & Improvement), Department checkboxes & search query
+  // Filtered events based on Top Header Outline Dropdown, Department checkboxes & search query
   const filteredEvents = useMemo(() => {
     return events.filter((ev) => {
       // 1. Search Query filter
@@ -234,7 +241,15 @@ export default function App() {
         }
       }
 
-      // 2. Main Outline ('Work' / 'Improvement') & Department Checkbox filter
+      // 2. Main Outline filter ('Work' | 'Improvement' | 'Buy') from TopHeader dropdown
+      if (outlineFilter !== 'all') {
+        const evOutline = getEventOutline(ev, departments);
+        if (evOutline !== outlineFilter) {
+          return false;
+        }
+      }
+
+      // 3. Department Checkbox filter (if any active)
       const activeKeys = Object.keys(filters).filter((k) => filters[k]);
       if (activeKeys.length > 0) {
         const evOutline = getEventOutline(ev, departments);
@@ -254,7 +269,7 @@ export default function App() {
 
       return true;
     });
-  }, [events, filters, searchQuery, departments]);
+  }, [events, filters, searchQuery, departments, outlineFilter]);
 
   // Handlers
   const handleToggleFilter = (key: string) => {
@@ -511,13 +526,17 @@ export default function App() {
       }
 
       if (fetchRes.success && Array.isArray(fetchRes.tasks)) {
-        setEvents(fetchRes.tasks);
+        const cleanedTasks = fetchRes.tasks.map((t: any) => ({
+          ...t,
+          title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
+        }));
+        setEvents(cleanedTasks);
         try {
-          localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(fetchRes.tasks));
+          localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
         } catch (e) {
           console.error(e);
         }
-        showToast(`Sinkronisasi Berhasil: ${fetchRes.tasks.length} tugas & ${activeDepartments ? activeDepartments.length : departments.length} departemen dimuat langsung dari Google Spreadsheet!`);
+        showToast(`Sinkronisasi Berhasil: ${cleanedTasks.length} tugas & ${activeDepartments ? activeDepartments.length : departments.length} departemen dimuat langsung dari Google Spreadsheet!`);
       } else {
         // If fetch returned error or no webhook, notify user
         showToast(fetchRes.error || 'Gagal mengambil data dari Google Spreadsheet.');
@@ -606,7 +625,7 @@ export default function App() {
             ? 'md:h-full rounded-none border-none'
             : 'md:h-full rounded-[36px] md:rounded-[28px] shadow-xl border border-slate-200/80'
         }`}>
-          {/* Top Header (On Mobile: only Daily/Weekly/Monthly switcher inside green bar; On Desktop: full header) */}
+          {/* Top Header (On Mobile: View and Outline dropdowns inside green bar; On Desktop: full header) */}
           <TopHeader
             user={user}
             isProfileMenuOpen={isProfileMenuOpen}
@@ -620,6 +639,8 @@ export default function App() {
             onSelectDate={setSelectedDate}
             viewMode={viewMode}
             onSelectView={setViewMode}
+            outlineFilter={outlineFilter}
+            onSelectOutline={setOutlineFilter}
             onOpenCreateModal={() => handleOpenCreateModal()}
           />
 

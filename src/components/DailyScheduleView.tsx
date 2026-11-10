@@ -119,6 +119,12 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                 const isImprovement = evOutline === 'Improvement';
                 const isBuy = evOutline === 'Buy';
 
+                const titleText = (event.title && event.title.trim()) || 
+                                  (event as any).task || 
+                                  (event as any).name || 
+                                  (event.description && event.description.trim()) || 
+                                  'Tugas Tanpa Judul';
+
                 return (
                   <div
                     key={event.id}
@@ -141,7 +147,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                             : 'text-slate-900'
                         }`}
                       >
-                        <span>{event.title}</span>
+                        <span>{titleText}</span>
                         {event.status === 'completed' && (
                           <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
                             <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />

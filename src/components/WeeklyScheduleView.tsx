@@ -565,6 +565,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[160px] pr-0.5">
                           {dayEvents.map((event) => {
                             const isImprovement = getEventOutline(event, departments) === 'Improvement';
+                            const titleText = (event.title && event.title.trim()) || 
+                                              (event as any).task || 
+                                              (event as any).name || 
+                                              (event.description && event.description.trim()) || 
+                                              'Tugas Tanpa Judul';
 
                             return (
                               <div
@@ -586,7 +591,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                       : 'text-slate-900'
                                   }`}
                                 >
-                                  <span>{event.title}</span>
+                                  <span>{titleText}</span>
                                   {event.status === 'completed' && (
                                     <span className="inline-flex items-center ml-1 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
                                       <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -708,6 +713,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         const isImprovement = getEventOutline(event, departments) === 'Improvement';
                         const topOffset = Math.max(0, (event.startHour - 9) * 80);
                         const height = Math.max(54, event.durationHours * 80 - 8);
+                        const titleText = (event.title && event.title.trim()) || 
+                                          (event as any).task || 
+                                          (event as any).name || 
+                                          (event.description && event.description.trim()) || 
+                                          'Tugas Tanpa Judul';
 
                         return (
                           <div
@@ -729,7 +739,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             <h4 className={`text-xs sm:text-sm font-semibold leading-snug break-words whitespace-normal flex-1 ${
                               isImprovement ? 'text-violet-950' : 'text-slate-900'
                             }`}>
-                              <span>{event.title}</span>
+                              <span>{titleText}</span>
                               {event.status === 'completed' && (
                                 <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
                                   <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />

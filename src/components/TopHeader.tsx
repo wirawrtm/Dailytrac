@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft,
   ChevronRight,
@@ -7,9 +7,14 @@ import {
   PanelLeft, 
   Maximize2, 
   Minimize2,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Check,
+  Layers,
+  Clock,
+  CalendarDays,
+  LayoutGrid
 } from 'lucide-react';
-import { UserProfile, ViewMode } from '../types';
+import { UserProfile, ViewMode, WorkOutline } from '../types';
 import { formatMonthYear, getMonthWeeks } from '../utils/dateUtils';
 import { MonthCalendarPicker } from './MonthCalendarPicker';
 
@@ -33,6 +38,10 @@ interface TopHeaderProps {
   viewMode: ViewMode;
   onSelectView: (view: ViewMode) => void;
   onOpenCreateModal?: () => void;
+
+  // Outline filter dropdown props
+  outlineFilter?: 'all' | 'Work' | 'Improvement' | 'Buy';
+  onSelectOutline?: (outline: 'all' | 'Work' | 'Improvement' | 'Buy') => void;
 }
 
 export const MobileTopBar: React.FC<TopHeaderProps> = ({
@@ -201,9 +210,31 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onSelectDate,
   viewMode,
   onSelectView,
+  outlineFilter = 'all',
+  onSelectOutline,
 }) => {
   const [isCalendarPickerOpen, setIsCalendarPickerOpen] = useState(false);
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [isOutlineDropdownOpen, setIsOutlineDropdownOpen] = useState(false);
+
+  const viewDropdownRef = useRef<HTMLDivElement>(null);
+  const outlineDropdownRef = useRef<HTMLDivElement>(null);
+
   const monthWeeks = getMonthWeeks(selectedDate, selectedDate);
+
+  // Close dropdowns on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (viewDropdownRef.current && !viewDropdownRef.current.contains(e.target as Node)) {
+        setIsViewDropdownOpen(false);
+      }
+      if (outlineDropdownRef.current && !outlineDropdownRef.current.contains(e.target as Node)) {
+        setIsOutlineDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handlePrevMonth = () => {
     onSelectDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
@@ -212,6 +243,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const handleNextMonth = () => {
     onSelectDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
   };
+
+  const currentViewLabel = 
+    viewMode === 'daily' ? 'Daily' :
+    viewMode === 'monthly' ? 'Monthly' : 'Weekly';
+
+  const currentOutlineLabel =
+    outlineFilter === 'Work' ? 'Work' :
+    outlineFilter === 'Improvement' ? 'Improvement' :
+    outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
     <header className={`py-2 md:py-2.5 px-3 sm:px-4 md:px-5 border-b border-teal-800/30 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3 bg-gradient-to-r from-[#005a50] via-[#00796b] to-[#008d7c] text-white select-none shrink-0 relative z-20 transform-gpu ${
@@ -222,7 +262,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Toggle Sidebar Button */}
         <button
           onClick={onToggleSidebar}
-          title={isSidebarOpen ? "Hide Calendar & Outlines" : "Open Calendar & Outlines"}
+          title={isSidebarOpen ? "Hide Calendar" : "Open Calendar"}
           className={`w-8 h-8 sm:w-auto sm:h-auto sm:p-2 rounded-2xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
             isSidebarOpen 
               ? 'bg-white/15 border-white/25 text-white hover:bg-white/25' 
@@ -283,40 +323,243 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Zone 2 (Full-Width on Mobile inside green bar, Center-Left on Desktop): View Switcher */}
+      {/* Zone 2 (Full-Width on Mobile inside green bar, Center-Left on Desktop): View Dropdown & Outline Dropdown */}
       <div className="order-1 md:order-2 w-full md:w-auto flex items-center justify-between md:justify-start gap-2 md:mr-auto">
-        {/* View Switcher: Daily, Weekly, Monthly (Only active has white pill background, inactive has NO background) */}
-        <div className="flex-1 md:flex-initial grid grid-cols-3 md:flex items-center gap-1 p-0.5">
-          <button
-            onClick={() => onSelectView('daily')}
-            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
-              viewMode === 'daily'
-                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
-                : 'bg-transparent text-white/85 hover:text-white font-semibold'
-            }`}
-          >
-            Daily
-          </button>
-          <button
-            onClick={() => onSelectView('weekly')}
-            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
-              viewMode === 'weekly'
-                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
-                : 'bg-transparent text-white/85 hover:text-white font-semibold'
-            }`}
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => onSelectView('monthly')}
-            className={`px-3.5 py-1.5 text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap text-center ${
-              viewMode === 'monthly'
-                ? 'bg-white text-[#00796b] shadow-sm font-extrabold'
-                : 'bg-transparent text-white/85 hover:text-white font-semibold'
-            }`}
-          >
-            Monthly
-          </button>
+        <div className="flex items-center gap-2">
+          {/* 1. Dropdown View Mode: Daily, Weekly, Monthly */}
+          <div className="relative" ref={viewDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsViewDropdownOpen((prev) => !prev);
+                setIsOutlineDropdownOpen(false);
+              }}
+              title="Pilih tampilan jadwal (Daily, Weekly, Monthly)"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap border ${
+                isViewDropdownOpen 
+                  ? 'bg-white text-[#00796b] border-white shadow-md' 
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+            >
+              {viewMode === 'daily' ? (
+                <Clock className="w-3.5 h-3.5" />
+              ) : viewMode === 'monthly' ? (
+                <LayoutGrid className="w-3.5 h-3.5" />
+              ) : (
+                <CalendarDays className="w-3.5 h-3.5" />
+              )}
+              <span>{currentViewLabel}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isViewDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* View Mode Popover Dropdown */}
+            {isViewDropdownOpen && (
+              <div className="absolute left-0 mt-1.5 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800">
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Tampilan Jadwal
+                </div>
+
+                {/* Daily option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectView('daily');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    viewMode === 'daily'
+                      ? 'bg-teal-50 font-bold text-[#00796b]'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <span className="block font-bold">Daily</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Tampilan per jam harian</span>
+                    </div>
+                  </span>
+                  {viewMode === 'daily' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                </button>
+
+                {/* Weekly option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectView('weekly');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    viewMode === 'weekly'
+                      ? 'bg-teal-50 font-bold text-[#00796b]'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <span className="block font-bold">Weekly</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Tampilan matriks mingguan</span>
+                    </div>
+                  </span>
+                  {viewMode === 'weekly' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                </button>
+
+                {/* Monthly option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectView('monthly');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    viewMode === 'monthly'
+                      ? 'bg-teal-50 font-bold text-[#00796b]'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <LayoutGrid className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <span className="block font-bold">Monthly</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Kalender agenda bulanan</span>
+                    </div>
+                  </span>
+                  {viewMode === 'monthly' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Dropdown Outline: Work, Improvement, Buy */}
+          <div className="relative" ref={outlineDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOutlineDropdownOpen((prev) => !prev);
+                setIsViewDropdownOpen(false);
+              }}
+              title="Pilih filter Outline (Work, Improvement, Buy)"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap border ${
+                isOutlineDropdownOpen 
+                  ? 'bg-white text-[#00796b] border-white shadow-md' 
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+            >
+              {outlineFilter === 'Work' ? (
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/60 shrink-0" />
+              ) : outlineFilter === 'Improvement' ? (
+                <span className="w-2.5 h-2.5 rounded-full bg-violet-400 border border-white/60 shrink-0" />
+              ) : outlineFilter === 'Buy' ? (
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/60 shrink-0" />
+              ) : (
+                <Layers className="w-3.5 h-3.5 text-teal-100 shrink-0" />
+              )}
+              <span>{currentOutlineLabel}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOutlineDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Outline Popover Dropdown */}
+            {isOutlineDropdownOpen && (
+              <div className="absolute left-0 mt-1.5 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800">
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Filter Outline
+                </div>
+
+                {/* Semua Outline */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectOutline?.('all');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    outlineFilter === 'all'
+                      ? 'bg-teal-50 font-bold text-[#00796b]'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <span className="block font-bold">Semua Outline</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Tampilkan semua task</span>
+                    </div>
+                  </span>
+                  {outlineFilter === 'all' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                </button>
+
+                {/* Work Outline */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectOutline?.('Work');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    outlineFilter === 'Work'
+                      ? 'bg-amber-50 font-bold text-amber-800'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-amber-100 shrink-0" />
+                    <div>
+                      <span className="block font-bold">Work</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Daily & Operations</span>
+                    </div>
+                  </span>
+                  {outlineFilter === 'Work' && <Check className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />}
+                </button>
+
+                {/* Improvement Outline */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectOutline?.('Improvement');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    outlineFilter === 'Improvement'
+                      ? 'bg-violet-50 font-bold text-violet-800'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-500 ring-2 ring-violet-100 shrink-0" />
+                    <div>
+                      <span className="block font-bold">Improvement</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Innovation & Upgrade</span>
+                    </div>
+                  </span>
+                  {outlineFilter === 'Improvement' && <Check className="w-3.5 h-3.5 text-violet-600 stroke-[2.5]" />}
+                </button>
+
+                {/* Buy Outline */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectOutline?.('Buy');
+                    setIsOutlineDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    outlineFilter === 'Buy'
+                      ? 'bg-emerald-50 font-bold text-emerald-800'
+                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100 shrink-0" />
+                    <div>
+                      <span className="block font-bold">Buy</span>
+                      <span className="block text-[10px] text-slate-400 font-normal">Procurement & Purchasing</span>
+                    </div>
+                  </span>
+                  {outlineFilter === 'Buy' && <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

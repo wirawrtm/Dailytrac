@@ -226,9 +226,11 @@ export async function fetchTasksFromSpreadsheet(): Promise<{
           inferredOutline = 'Improvement';
         }
 
+        const rawTitle = String(t.title || t.task || t.Task || t.name || t.Title || t.description || '').trim();
+
         return {
           id: String(t.id || `task_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`),
-          title: String(t.title || 'Untitled Task'),
+          title: rawTitle || 'Tugas Tanpa Judul',
           outline: inferredOutline,
           department: deptStr,
           subtitle: deptStr,

@@ -123,76 +123,82 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
     const evOutline = getEventOutline(event, departments);
     const isImprovement = evOutline === 'Improvement';
     const isBuy = evOutline === 'Buy';
-    const completedSubtasks = event.subtasks?.filter((s) => s.completed).length || 0;
-    const totalSubtasks = event.subtasks?.length || 0;
+    const titleText = (event.title && event.title.trim()) || 
+                      (event as any).task || 
+                      (event as any).name || 
+                      (event.description && event.description.trim()) || 
+                      'Tugas Tanpa Judul';
+    const deptName = event.department || event.subtitle || 'General';
+    const isCompleted = colStatus === 'completed' || event.status === 'completed';
 
     return (
       <div
         key={event.id}
         onClick={() => onSelectEvent(event)}
-        className={`p-3.5 sm:p-4 rounded-2xl border ${
+        className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2.5 group relative w-full min-w-0 shadow-xs hover:shadow-md ${
           isBuy
-            ? 'border-emerald-300 bg-emerald-50/95 hover:bg-emerald-100/85'
+            ? 'bg-emerald-50/70 border-emerald-300 hover:bg-emerald-100/60'
             : isImprovement
-            ? 'border-violet-300 bg-violet-50/95 hover:bg-violet-100/85'
-            : 'border-amber-300 bg-amber-50/95 hover:bg-amber-100/85'
-        } hover:shadow-md transition-all cursor-pointer flex flex-col gap-2.5 group relative w-full min-w-0 overflow-hidden`}
+            ? 'bg-violet-50/70 border-violet-300 hover:bg-violet-100/60'
+            : 'bg-amber-50/70 border-amber-300 hover:bg-amber-100/60'
+        }`}
       >
-        <div className="flex items-start justify-between gap-2 min-w-0">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center flex-wrap gap-1.5 mb-1">
+        {/* Row 1: Badges & Date */}
+        <div className="flex items-center justify-between gap-2 min-w-0 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            {/* Outline Badge */}
+            <span
+              className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1.5 ${
+                isBuy
+                  ? 'bg-emerald-200/90 text-emerald-950'
+                  : isImprovement
+                  ? 'bg-violet-200/90 text-violet-950'
+                  : 'bg-amber-200/90 text-amber-950'
+              }`}
+            >
               <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${
-                  isBuy
-                    ? 'bg-emerald-200/90 text-emerald-900'
-                    : isImprovement
-                    ? 'bg-violet-200/90 text-violet-900'
-                    : 'bg-amber-200/90 text-amber-900'
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  isBuy ? 'bg-emerald-600' : isImprovement ? 'bg-violet-600' : 'bg-amber-600'
                 }`}
-              >
-                {evOutline}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 text-slate-700 border border-black/5 truncate max-w-full">
-                {event.department || event.subtitle || 'Task'}
-              </span>
-              {event.dueDate && (
-                <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">
-                  Due: {event.dueDate}
-                </span>
-              )}
-            </div>
-            <h4 className={`text-xs md:text-sm font-bold break-words ${
-              isBuy ? 'text-emerald-950' : isImprovement ? 'text-violet-950' : 'text-slate-900'
-            }`}>
-              <span>{event.title}</span>
-              {event.status === 'completed' && (
-                <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
-                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                </span>
-              )}
-            </h4>
-            <div className="flex items-center gap-2 text-[11px] text-slate-600 mt-1 font-mono">
-              <span>Date: {event.date}</span>
-            </div>
+              />
+              <span>{evOutline}</span>
+            </span>
+
+            {/* Department Badge */}
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs truncate max-w-[150px]">
+              {deptName}
+            </span>
+          </div>
+
+          {/* Date / Due Date */}
+          <div className="flex items-center gap-1 text-[11px] font-mono font-semibold text-slate-500 shrink-0">
+            <CalendarIcon className="w-3 h-3 text-slate-400" />
+            <span>{event.dueDate ? `Due: ${event.dueDate}` : event.date}</span>
           </div>
         </div>
 
-        {event.description && (
-          <p className="text-xs text-slate-600 line-clamp-2 break-words">
-            {event.description}
-          </p>
-        )}
+        {/* Row 2: Task Title */}
+        <div className="min-w-0">
+          <h4 className="text-sm font-bold text-slate-900 leading-snug break-words flex items-start gap-1.5">
+            <span className="flex-1">{titleText}</span>
+            {isCompleted && (
+              <span className="inline-flex items-center text-emerald-600 shrink-0 mt-0.5" title="Selesai (Completed)">
+                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+              </span>
+            )}
+          </h4>
 
-        {totalSubtasks > 0 && (
-          <div className="text-[11px] text-slate-500 font-medium">
-            Subtasks: {completedSubtasks}/{totalSubtasks}
-          </div>
-        )}
+          {event.description && event.description.trim() && (
+            <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+              {event.description}
+            </p>
+          )}
+        </div>
 
-        {/* Footer with delete and quick status buttons */}
-        <div className="flex items-center justify-between pt-2 border-t border-black/5 mt-1 gap-2 min-w-0">
-          {/* Direct Delete button */}
-          {onDeleteEvent && (
+        {/* Row 3: Action Buttons & Status Toggle */}
+        <div className="flex items-center justify-between pt-2 border-t border-black/5 mt-0.5 gap-2 min-w-0">
+          {/* Quick direct delete */}
+          {onDeleteEvent ? (
             <button
               type="button"
               onClick={(e) => {
@@ -204,31 +210,27 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
-          )}
+          ) : <div />}
 
-          {/* Quick status toggle button */}
-          <div className="flex items-center gap-1.5 ml-auto flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
-            {colStatus !== 'completed' ? (
+          {/* Status Toggle Button */}
+          <div onClick={(e) => e.stopPropagation()}>
+            {!isCompleted ? (
               <button
+                type="button"
                 onClick={() => onUpdateEventStatus(event.id, 'completed')}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-[10px] font-bold text-emerald-700 border border-emerald-200 shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-3 py-1 rounded-xl bg-white hover:bg-emerald-600 hover:text-white text-[11px] font-bold text-emerald-700 border border-emerald-300 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
-                <span>Complete</span>
-                <ArrowRight className="w-2.5 h-2.5" />
+                <Check className="w-3 h-3 stroke-[2.5]" />
+                <span>Tandai Selesai</span>
               </button>
             ) : (
-              <div className="flex items-center gap-2 flex-wrap justify-end">
-                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-[3]" />
-                  <span>Complete</span>
-                </span>
-                <button
-                  onClick={() => onUpdateEventStatus(event.id, 'pending')}
-                  className="px-2 py-0.5 rounded-md bg-white/80 hover:bg-white text-[10px] font-semibold text-slate-600 border border-slate-200/80 transition-colors cursor-pointer"
-                >
-                  Move to Pending
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => onUpdateEventStatus(event.id, 'pending')}
+                className="px-2.5 py-1 rounded-xl bg-white/80 hover:bg-white text-[10px] font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 shadow-2xs transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <span>Pindah ke Pending</span>
+              </button>
             )}
           </div>
         </div>
