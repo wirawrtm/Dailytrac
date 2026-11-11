@@ -35,21 +35,21 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         <button 
           onClick={onOpenCreateModal}
           title="Create New Task (+)"
-          className="group relative flex items-center justify-center w-11 h-11 md:w-11 md:h-11 rounded-2xl bg-[#00897b] hover:bg-[#00796b] text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+          className="group relative flex items-center justify-center w-11 h-11 md:w-11 md:h-11 rounded-2xl bg-[#4fa397] hover:bg-[#439285] text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
         >
           <Plus className="w-5 h-5 stroke-[3] text-white transition-transform group-hover:rotate-90 duration-300" />
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#f6c445] ring-2 ring-white"></span>
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#8bc3ba] ring-2 ring-white"></span>
         </button>
 
         {/* Navigation Items: Calendar & Daily Task Tracker & Apps Script (Temp) & Google Sheet DB */}
         <nav className="contents md:flex md:flex-col items-center md:gap-3">
-          {/* Calendar (Active with yellow #f6c445) */}
+          {/* Calendar (Active with sage teal #4fa397) */}
           <button
-            onClick={() => onSelectView('weekly')}
+            onClick={() => onSelectView('daily')}
             title="Calendar Schedule"
             className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
               currentView === 'weekly' || currentView === 'daily' || currentView === 'monthly'
-                ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+                ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -62,7 +62,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             title="Daily Task Tracker"
             className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
               currentView === 'tasks'
-                ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+                ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -75,7 +75,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             title="Database Mirroring (Google Spreadsheet)"
             className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
               currentView === 'database'
-                ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+                ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -88,7 +88,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             title="Apps Script Code & Updates (Temporary)"
             className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 relative ${
               currentView === 'appscript'
-                ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+                ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -111,7 +111,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
           title="Settings"
           className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
             currentView === 'settings'
-              ? 'bg-[#f6c445] text-slate-900 shadow-2xs font-semibold ring-2 ring-[#f6c445]/20'
+              ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
               : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
           }`}
         >

@@ -120,7 +120,7 @@ export default function App() {
   const [user, setUser] = useState<UserProfile>(CURRENT_USER);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('weekly');
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [searchQuery] = useState<string>('');
   const [outlineFilter, setOutlineFilter] = useState<'all' | 'Work' | 'Improvement' | 'Buy'>('all');
 
@@ -582,7 +582,7 @@ export default function App() {
     <div className={`h-full max-h-full w-full font-sans transition-colors duration-200 overflow-hidden flex flex-col md:flex-row items-stretch select-none ${
       isFullscreen 
         ? 'bg-white p-0 gap-0' 
-        : 'bg-[#dce5df] p-2 sm:p-3 md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 gap-2 sm:gap-3 md:gap-3.5'
+        : 'bg-[#eef3f1] p-2 sm:p-3 md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 gap-2 sm:gap-3 md:gap-3.5'
     }`}>
       {/* Toast Alert */}
       {toastMessage && (

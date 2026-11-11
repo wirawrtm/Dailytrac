@@ -3,19 +3,19 @@ import {
   Plus, 
   CheckCircle2, 
   Clock, 
-  AlertCircle, 
   Calendar as CalendarIcon, 
   Check, 
-  ArrowRight,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  Building2,
-  Trash2
+  ChevronDown, 
+  ChevronUp, 
+  Building2, 
+  Trash2,
+  Briefcase,
+  Sparkles,
+  ShoppingBag,
+  Tag
 } from 'lucide-react';
 import { TaskEvent, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
-import { COLOR_THEMES } from '../utils/themeStyles';
 
 interface TaskBoardViewProps {
   events: TaskEvent[];
@@ -95,7 +95,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
     { status: 'completed', title: 'Complete', badge: 'bg-emerald-100 text-emerald-800', color: 'border-emerald-200' },
   ];
 
-  const renderTaskCard = (event: TaskEvent, colStatus: 'pending' | 'completed') => {
+  const renderTaskCard = (event: TaskEvent, index: number, colStatus: 'pending' | 'completed') => {
     const evOutline = getEventOutline(event, departments);
     const isImprovement = evOutline === 'Improvement';
     const isBuy = evOutline === 'Buy';
@@ -106,106 +106,75 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                       'Tugas Tanpa Judul';
     const deptName = event.department || event.subtitle || 'General';
     const isCompleted = colStatus === 'completed' || event.status === 'completed';
+    const isFirstNode = index === 0;
 
     return (
-      <div
-        key={event.id}
-        onClick={() => onSelectEvent(event)}
-        className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2.5 group relative w-full min-w-0 shadow-xs hover:shadow-md ${
-          isBuy
-            ? 'bg-emerald-50/70 border-emerald-300 hover:bg-emerald-100/60'
-            : isImprovement
-            ? 'bg-violet-50/70 border-violet-300 hover:bg-violet-100/60'
-            : 'bg-amber-50/70 border-amber-300 hover:bg-amber-100/60'
-        }`}
-      >
-        {/* Row 1: Badges & Date */}
-        <div className="flex items-center justify-between gap-2 min-w-0 flex-wrap">
-          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-            {/* Outline Badge */}
-            <span
-              className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1.5 ${
-                isBuy
-                  ? 'bg-emerald-200/90 text-emerald-950'
-                  : isImprovement
-                  ? 'bg-violet-200/90 text-violet-950'
-                  : 'bg-amber-200/90 text-amber-950'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  isBuy ? 'bg-emerald-600' : isImprovement ? 'bg-violet-600' : 'bg-amber-600'
-                }`}
-              />
-              <span>{evOutline}</span>
-            </span>
-
-            {/* Department Badge */}
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200 shadow-2xs truncate max-w-[150px]">
-              {deptName}
-            </span>
-          </div>
-
-          {/* Date / Due Date */}
-          <div className="flex items-center gap-1 text-[11px] font-mono font-semibold text-slate-500 shrink-0">
-            <CalendarIcon className="w-3 h-3 text-slate-400" />
-            <span>{event.dueDate ? `Due: ${event.dueDate}` : event.date}</span>
-          </div>
+      <div key={event.id} className="relative flex items-start gap-3 sm:gap-4 group/item w-full min-w-0">
+        {/* Timeline node circle checklist button top aligned with task title */}
+        <div className="relative flex flex-col items-center justify-center shrink-0 z-10 mt-1.5 sm:mt-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateEventStatus(event.id, isCompleted ? 'pending' : 'completed');
+            }}
+            title={isCompleted ? "Tandai Belum Selesai (Pending)" : "Tandai Selesai (Complete)"}
+            className={`w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+              isCompleted
+                ? 'bg-[#00897b] text-white shadow-xs hover:bg-[#00796b] ring-4 ring-teal-50'
+                : 'border-2 border-rose-500 hover:border-rose-600 bg-white hover:bg-rose-50 text-rose-500 shadow-2xs'
+            }`}
+          >
+            <Check className={`w-3.5 h-3.5 ${isCompleted ? 'stroke-[3] text-white' : 'stroke-[2.5] stroke-rose-500 text-rose-500'}`} />
+          </button>
         </div>
 
-        {/* Row 2: Task Title */}
-        <div className="min-w-0">
-          <h4 className="text-sm font-bold text-slate-900 leading-snug break-words flex items-start gap-1.5">
-            <span className="flex-1">{titleText}</span>
-            {isCompleted && (
-              <span className="inline-flex items-center text-emerald-600 shrink-0 mt-0.5" title="Selesai (Completed)">
-                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-              </span>
+        {/* Floating White Timeline Card */}
+        <div
+          onClick={() => onSelectEvent(event)}
+          className={`flex-1 bg-white rounded-3xl border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer p-3.5 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 min-w-0 ${
+            isCompleted ? 'bg-slate-50/50 shadow-sm' : 'hover:-translate-y-0.5'
+          }`}
+        >
+          {/* Middle: Title & Description */}
+          <div className="flex-1 min-w-0 py-0.5">
+            <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+              {titleText}
+            </h4>
+
+            {event.description && event.description.trim() && (
+              <p className="text-[11px] text-slate-400 line-clamp-1 mt-1 leading-tight">
+                {event.description}
+              </p>
             )}
-          </h4>
+          </div>
 
-          {event.description && event.description.trim() && (
-            <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
-              {event.description}
-            </p>
-          )}
-        </div>
+          {/* Right Side: Date/Time & Delete */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Date / Time */}
+            <div className="text-right hidden xs:block">
+              <span className="block text-xs font-semibold text-slate-400 font-mono">
+                {event.dueDate || event.date}
+              </span>
+              {event.startTime && (
+                <span className="block text-[10px] text-slate-400 font-mono mt-0.5">
+                  {event.startTime}
+                </span>
+              )}
+            </div>
 
-        {/* Row 3: Action Buttons & Status Toggle */}
-        <div className="flex items-center justify-between pt-2 border-t border-black/5 mt-0.5 gap-2 min-w-0">
-          {/* Quick direct delete */}
-          {onDeleteEvent ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteEvent(event.id);
-              }}
-              title="Hapus Tugas"
-              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          ) : <div />}
-
-          {/* Status Toggle Button */}
-          <div onClick={(e) => e.stopPropagation()}>
-            {!isCompleted ? (
+            {/* Quick direct delete */}
+            {onDeleteEvent && (
               <button
                 type="button"
-                onClick={() => onUpdateEventStatus(event.id, 'completed')}
-                className="px-3 py-1 rounded-xl bg-white hover:bg-emerald-600 hover:text-white text-[11px] font-bold text-emerald-700 border border-emerald-300 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteEvent(event.id);
+                }}
+                title="Hapus Tugas"
+                className="p-1 rounded-xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer opacity-0 group-hover/item:opacity-100"
               >
-                <Check className="w-3 h-3 stroke-[2.5]" />
-                <span>Tandai Selesai</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onUpdateEventStatus(event.id, 'pending')}
-                className="px-2.5 py-1 rounded-xl bg-white/80 hover:bg-white text-[10px] font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 shadow-2xs transition-all flex items-center gap-1 cursor-pointer"
-              >
-                <span>Pindah ke Pending</span>
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -487,12 +456,12 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
             return (
               <div 
                 key={col.status}
-                className="bg-white rounded-3xl border border-slate-200/80 p-3.5 sm:p-5 flex flex-col md:max-h-[calc(100vh-210px)] shadow-xs transition-all duration-200 w-full min-w-0 overflow-hidden"
+                className="flex flex-col md:max-h-[calc(100vh-170px)] transition-all duration-200 w-full min-w-0"
               >
                 {/* Column Header */}
                 <div 
                   onClick={() => toggleColumn(col.status)}
-                  className={`flex items-center justify-between pb-3 border-b border-slate-100 cursor-pointer select-none group/colheader min-w-0 ${
+                  className={`flex items-center justify-between pb-2.5 px-1 border-b border-slate-200/80 cursor-pointer select-none group/colheader min-w-0 ${
                     isExpanded ? 'mb-3' : 'mb-0'
                   }`}
                 >
@@ -503,7 +472,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                         toggleColumn(col.status);
                       }}
                       title={isExpanded ? `Collapse ${col.title}` : `Expand ${col.title}`}
-                      className="p-1 rounded-xl text-slate-400 group-hover/colheader:text-slate-800 hover:bg-slate-100 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                      className="p-1 rounded-xl text-slate-400 group-hover/colheader:text-slate-800 hover:bg-slate-200/50 transition-all cursor-pointer flex items-center justify-center shrink-0"
                     >
                       {isExpanded ? (
                         <ChevronUp className="w-4 h-4 transition-transform group-hover/colheader:-translate-y-0.5" />
@@ -511,10 +480,10 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                         <ChevronDown className="w-4 h-4 transition-transform group-hover/colheader:translate-y-0.5" />
                       )}
                     </button>
-                    <h3 className="text-sm font-bold text-slate-900 group-hover/colheader:text-[#00796b] transition-colors truncate">
+                    <h3 className="text-base font-bold text-slate-900 group-hover/colheader:text-[#00796b] transition-colors truncate">
                       {col.title}
                     </h3>
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${col.badge}`}>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 ${col.badge}`}>
                       {colEvents.length}
                     </span>
                   </div>
@@ -535,28 +504,33 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                         onOpenCreateModal();
                       }}
                       title="Add task"
-                      className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                {/* Cards List (Collapsible) */}
+                {/* Cards List (Collapsible with timeline line) */}
                 {isExpanded ? (
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 pr-0.5 sm:pr-1 animate-in fade-in duration-200 min-w-0">
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col gap-3.5 pr-1 animate-in fade-in duration-200 min-w-0 pt-1">
+                    {/* Vertical timeline dashed line running down behind the nodes */}
+                    {colEvents.length > 0 && (
+                      <div className="absolute left-[11px] sm:left-[12px] top-4 bottom-6 w-0.5 border-l-2 border-dashed border-teal-200 pointer-events-none z-0" />
+                    )}
+
                     {colEvents.length === 0 ? (
-                      <div className="py-12 text-center text-slate-400 text-xs">
+                      <div className="py-12 text-center text-slate-400 text-xs bg-white/60 rounded-3xl border border-dashed border-slate-200">
                         No tasks in {col.title}
                       </div>
                     ) : (
-                      colEvents.map((event) => renderTaskCard(event, col.status))
+                      colEvents.map((event, idx) => renderTaskCard(event, idx, col.status))
                     )}
                   </div>
                 ) : (
                   <div 
                     onClick={() => toggleColumn(col.status)}
-                    className="py-6 px-4 text-center cursor-pointer hover:bg-slate-50/80 rounded-2xl transition-colors select-none group/collapsed"
+                    className="py-6 px-4 text-center cursor-pointer hover:bg-white/60 rounded-2xl transition-colors select-none group/collapsed"
                   >
                     <p className="text-xs font-semibold text-slate-500 group-hover/collapsed:text-slate-700">
                       {colEvents.length} {colEvents.length === 1 ? 'task' : 'tasks'}

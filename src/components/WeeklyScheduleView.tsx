@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Plus, 
   CheckCircle2, 
+  Check,
   Circle,
   Calendar as CalendarIcon
 } from 'lucide-react';
@@ -311,52 +312,67 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       </button>
                     </div>
 
-                    {/* Day Tasks List */}
+                    {/* Day Tasks List with Vertical Timeline Track */}
                     <div
-                      className={`md:flex-1 flex flex-col ${
+                      className={`relative md:flex-1 flex flex-col ${
                         isSidebarOpen
-                          ? 'md:overflow-y-auto p-3.5 sm:p-4 md:p-2.5 gap-2.5 md:gap-2'
-                          : 'md:overflow-hidden p-3.5 sm:p-4 md:p-2 gap-2.5 md:gap-1.5'
+                          ? 'md:overflow-y-auto pt-3 pb-3 pr-2.5 pl-4 sm:pl-4.5 gap-3 md:gap-2.5'
+                          : 'md:overflow-hidden pt-3 pb-3 pr-2 pl-4 sm:pl-4.5 gap-3 md:gap-2'
                       }`}
                     >
+                      {/* Vertical timeline dashed line centered safely inside padding so dots are not cropped */}
+                      {dayEvents.length > 0 && (
+                        <div className="absolute left-4 sm:left-4.5 top-3 bottom-5 w-0.5 border-l-2 border-dashed border-teal-300 pointer-events-none z-0 -translate-x-1/2" />
+                      )}
+
                       {dayEvents.map((event) => {
-                        const isImprovement = getEventOutline(event, departments) === 'Improvement';
+                        const evOutline = getEventOutline(event, departments);
+                        const titleText = (event.title && event.title.trim()) || 
+                                          (event as any).task || 
+                                          (event as any).name || 
+                                          (event.description && event.description.trim()) || 
+                                          'Tugas Tanpa Judul';
+                        const isCompleted = event.status === 'completed';
 
                         return (
-                          <div
-                            key={event.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectEvent(event);
-                            }}
-                            className={`rounded-2xl border shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center group/card shrink-0 ${
-                              isSidebarOpen
-                                ? 'p-3 px-4 md:p-2.5 md:px-3'
-                                : 'p-3 px-4 md:p-2 md:px-2.5'
-                            } ${
-                              isImprovement
-                                ? 'bg-violet-50/95 border-violet-300 hover:bg-violet-100/85 text-violet-950'
-                                : 'bg-amber-50/95 border-amber-300 hover:bg-amber-100/85 text-slate-900'
-                            }`}
-                          >
-                            <h4
-                              className={`font-semibold leading-snug break-words whitespace-normal flex-1 min-w-0 ${
-                                isSidebarOpen
-                                  ? 'text-xs sm:text-sm md:text-xs lg:text-sm'
-                                  : 'text-xs sm:text-sm md:text-xs lg:text-[13px]'
-                              } ${
-                                isImprovement
-                                  ? 'text-violet-950'
-                                  : 'text-slate-900'
+                          <div key={event.id} className="relative flex items-start gap-2 sm:gap-2.5 group/item w-full min-w-0 z-10">
+                            {/* Timeline node circle positioned at the top of the card and not cropped on column borders */}
+                            <div className="relative flex flex-col items-center justify-center shrink-0 z-10 mt-1 sm:mt-1.5 -ml-4 sm:-ml-4.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onToggleEventStatus) {
+                                    onToggleEventStatus(event.id);
+                                  }
+                                }}
+                                title={isCompleted ? "Tandai Belum Selesai (Pending)" : "Tandai Selesai (Complete)"}
+                                className={`w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                                  isCompleted
+                                    ? 'bg-[#00897b] text-white shadow-2xs hover:bg-[#00796b] ring-2 ring-teal-50'
+                                    : 'border-2 border-rose-500 hover:border-rose-600 bg-white hover:bg-rose-50 text-rose-500 shadow-2xs'
+                                }`}
+                              >
+                                <Check className={`w-3 h-3 ${isCompleted ? 'stroke-[3] text-white' : 'stroke-[2.5] stroke-rose-500 text-rose-500'}`} />
+                              </button>
+                            </div>
+
+                            {/* Floating White Timeline Card */}
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectEvent(event);
+                              }}
+                              className={`flex-1 rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer p-2.5 sm:p-3 flex flex-col group/card shrink-0 min-w-0 ${
+                                isCompleted ? 'bg-slate-50/50 shadow-sm' : 'hover:-translate-y-0.5'
                               }`}
                             >
-                              <span>{event.title}</span>
-                              {event.status === 'completed' && (
-                                <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
-                                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                                </span>
-                              )}
-                            </h4>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                                  {titleText}
+                                </h4>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
@@ -564,12 +580,15 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                         <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[160px] pr-0.5">
                           {dayEvents.map((event) => {
-                            const isImprovement = getEventOutline(event, departments) === 'Improvement';
+                            const evOutline = getEventOutline(event, departments);
+                            const isImprovement = evOutline === 'Improvement';
+                            const isBuy = evOutline === 'Buy';
                             const titleText = (event.title && event.title.trim()) || 
                                               (event as any).task || 
                                               (event as any).name || 
                                               (event.description && event.description.trim()) || 
                                               'Tugas Tanpa Judul';
+                            const isCompleted = event.status === 'completed';
 
                             return (
                               <div
@@ -578,25 +597,33 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                   e.stopPropagation();
                                   onSelectEvent(event);
                                 }}
-                                className={`p-2 px-2.5 rounded-2xl border shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center group/card ${
-                                  isImprovement
-                                    ? 'bg-violet-50/95 border-violet-300 hover:bg-violet-100/85 text-violet-950'
-                                    : 'bg-amber-50/95 border-amber-300 hover:bg-amber-100/85 text-slate-900'
+                                className={`p-1.5 px-2 rounded-xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5 group/card ${
+                                  isCompleted ? 'opacity-80 bg-slate-50/50' : 'hover:-translate-y-0.5'
                                 }`}
                               >
-                                <h4
-                                  className={`text-xs font-semibold leading-snug break-words whitespace-normal flex-1 ${
-                                    isImprovement
-                                      ? 'text-violet-950'
-                                      : 'text-slate-900'
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onToggleEventStatus) {
+                                      onToggleEventStatus(event.id);
+                                    }
+                                  }}
+                                  title={isCompleted ? "Tandai Belum Selesai" : "Tandai Selesai"}
+                                  className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                                    isCompleted
+                                      ? 'bg-[#00897b] text-white shadow-2xs'
+                                      : 'border border-slate-300 hover:border-[#00897b] text-slate-300 hover:text-[#00897b]'
                                   }`}
                                 >
-                                  <span>{titleText}</span>
-                                  {event.status === 'completed' && (
-                                    <span className="inline-flex items-center ml-1 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
-                                      <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                                    </span>
-                                  )}
+                                  <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                                </button>
+                                <h4
+                                  className={`text-xs font-bold leading-snug break-words whitespace-normal flex-1 truncate ${
+                                    isCompleted ? 'text-slate-400 line-through' : 'text-slate-900'
+                                  }`}
+                                >
+                                  {titleText}
                                 </h4>
                               </div>
                             );
@@ -710,7 +737,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                     <div className="absolute inset-0 pointer-events-none p-1.5 flex flex-col gap-2">
                       {dayEvents.map((event) => {
-                        const isImprovement = getEventOutline(event, departments) === 'Improvement';
+                        const evOutline = getEventOutline(event, departments);
+                        const isImprovement = evOutline === 'Improvement';
+                        const isBuy = evOutline === 'Buy';
                         const topOffset = Math.max(0, (event.startHour - 9) * 80);
                         const height = Math.max(54, event.durationHours * 80 - 8);
                         const titleText = (event.title && event.title.trim()) || 
@@ -718,6 +747,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                           (event as any).name || 
                                           (event.description && event.description.trim()) || 
                                           'Tugas Tanpa Judul';
+                        const isCompleted = event.status === 'completed';
 
                         return (
                           <div
@@ -730,22 +760,34 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               e.stopPropagation();
                               onSelectEvent(event);
                             }}
-                            className={`absolute left-1.5 right-1.5 border p-2.5 px-3 rounded-2xl shadow-xs transition-all cursor-pointer pointer-events-auto flex items-start overflow-hidden group hover:shadow-md ${
-                              isImprovement
-                                ? 'bg-violet-50/95 border-violet-300 hover:bg-violet-100/85 text-violet-950'
-                                : 'bg-amber-50/95 border-amber-300 hover:bg-amber-100/85 text-slate-900'
+                            className={`absolute left-1.5 right-1.5 bg-white border border-slate-200/80 p-2.5 px-3 rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer pointer-events-auto flex items-start gap-2 overflow-hidden group ${
+                              isCompleted ? 'opacity-80 bg-slate-50/50 shadow-sm' : 'hover:-translate-y-0.5'
                             }`}
                           >
-                            <h4 className={`text-xs sm:text-sm font-semibold leading-snug break-words whitespace-normal flex-1 ${
-                              isImprovement ? 'text-violet-950' : 'text-slate-900'
-                            }`}>
-                              <span>{titleText}</span>
-                              {event.status === 'completed' && (
-                                <span className="inline-flex items-center ml-1.5 align-middle text-emerald-600 shrink-0" title="Tugas Selesai (Completed)">
-                                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                                </span>
-                              )}
-                            </h4>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onToggleEventStatus) {
+                                  onToggleEventStatus(event.id);
+                                }
+                              }}
+                              title={isCompleted ? "Belum Selesai" : "Tandai Selesai"}
+                              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all cursor-pointer ${
+                                isCompleted
+                                  ? 'bg-[#00897b] text-white shadow-2xs'
+                                  : 'border border-slate-300 hover:border-[#00897b] text-slate-300 hover:text-[#00897b]'
+                              }`}
+                            >
+                              <Check className="w-3 h-3 stroke-[2.5]" />
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <h4 className={`text-xs font-bold leading-snug break-words whitespace-normal ${
+                                isCompleted ? 'text-slate-400 line-through' : 'text-slate-900'
+                              }`}>
+                                {titleText}
+                              </h4>
+                            </div>
                           </div>
                         );
                       })}
