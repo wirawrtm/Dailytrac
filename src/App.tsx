@@ -649,7 +649,7 @@ export default function App() {
         <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
           isFullscreen
             ? 'md:h-full rounded-none border-none'
-            : 'md:h-full rounded-[36px] md:rounded-[28px] shadow-xl border border-slate-200/80'
+            : 'md:h-full rounded-[36px] md:rounded-[28px] shadow-xl border-none md:border md:border-slate-200/80'
         }`}>
           {/* Top Header (On Mobile: View and Outline dropdowns inside green bar; On Desktop: full header) */}
           <TopHeader

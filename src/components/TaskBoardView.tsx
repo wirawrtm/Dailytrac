@@ -129,11 +129,11 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
           </button>
         </div>
 
-        {/* Floating White Timeline Card without border and with thick prominent shadow */}
+        {/* Floating White Timeline Card matching IMG_1013 soft ambient shadow */}
         <div
           onClick={() => onSelectEvent(event)}
-          className={`flex-1 bg-white rounded-3xl shadow-[0_8px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition-all duration-200 cursor-pointer p-3.5 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 min-w-0 ${
-            isCompleted ? 'bg-slate-50/60 shadow-sm' : 'hover:-translate-y-0.5'
+          className={`flex-1 bg-white rounded-3xl shadow-[0_10px_25px_-4px_rgba(0,0,0,0.06),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_14px_32px_-4px_rgba(0,0,0,0.10),0_6px_14px_-2px_rgba(0,0,0,0.04)] transition-all duration-200 cursor-pointer p-3.5 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 min-w-0 ${
+            isCompleted ? 'bg-slate-50/60 shadow-xs' : 'hover:-translate-y-0.5'
           }`}
         >
           {/* Middle: Title & Description */}
