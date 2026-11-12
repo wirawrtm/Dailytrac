@@ -426,19 +426,15 @@ export default function App() {
   };
 
   const handleToggleEventStatus = (eventId: string) => {
-    let nextStatus: TaskEvent['status'] = 'pending';
+    const targetTask = events.find((e) => e.id === eventId);
+    if (!targetTask) return;
+
+    const nextStatus: TaskEvent['status'] = targetTask.status === 'completed' ? 'pending' : 'completed';
+    const updatedTask: TaskEvent = { ...targetTask, status: nextStatus };
+
+    // 1. Update events state & localStorage
     setEvents((prev) => {
-      const updatedEvents = prev.map((e) => {
-        if (e.id === eventId) {
-          nextStatus = e.status === 'completed' ? 'pending' : 'completed';
-          const updated: TaskEvent = { ...e, status: nextStatus };
-          if (selectedEventDetails?.id === eventId) {
-            setSelectedEventDetails(updated);
-          }
-          return updated;
-        }
-        return e;
-      });
+      const updatedEvents = prev.map((e) => (e.id === eventId ? updatedTask : e));
       try {
         localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
       } catch (e) {
@@ -447,15 +443,33 @@ export default function App() {
       return updatedEvents;
     });
 
-    // Trigger Google Apps Script Webhook sync for status update
+    // 2. Update active drawer modal state if open
+    if (selectedEventDetails?.id === eventId) {
+      setSelectedEventDetails(updatedTask);
+    }
+
+    // 3. Immediately trigger Google Apps Script Webhook sync for status & full task update
     syncTaskStatusToSpreadsheet(eventId, nextStatus).catch((err) => {
       console.log('Spreadsheet task status sync:', err);
     });
+    syncTaskToSpreadsheet(updatedTask, departments).catch((err) => {
+      console.log('Spreadsheet full task update sync:', err);
+    });
+
+    // 4. Show toast notification feedback
+    const statusLabel = nextStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
+    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di database!`);
   };
 
   const handleUpdateEventStatus = (eventId: string, newStatus: TaskEvent['status']) => {
+    const targetTask = events.find((e) => e.id === eventId);
+    if (!targetTask) return;
+
+    const updatedTask: TaskEvent = { ...targetTask, status: newStatus };
+
+    // 1. Update events state & localStorage
     setEvents((prev) => {
-      const updatedEvents = prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e));
+      const updatedEvents = prev.map((e) => (e.id === eventId ? updatedTask : e));
       try {
         localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
       } catch (e) {
@@ -464,10 +478,22 @@ export default function App() {
       return updatedEvents;
     });
 
-    // Trigger Google Apps Script Webhook sync for status update
+    // 2. Update active drawer modal state if open
+    if (selectedEventDetails?.id === eventId) {
+      setSelectedEventDetails(updatedTask);
+    }
+
+    // 3. Immediately trigger Google Apps Script Webhook sync for status & full task update
     syncTaskStatusToSpreadsheet(eventId, newStatus).catch((err) => {
       console.log('Spreadsheet task status sync:', err);
     });
+    syncTaskToSpreadsheet(updatedTask, departments).catch((err) => {
+      console.log('Spreadsheet full task update sync:', err);
+    });
+
+    // 4. Show toast notification feedback
+    const statusLabel = newStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
+    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di database!`);
   };
 
   const handleToggleSubtask = (eventId: string, subtaskId: string) => {
