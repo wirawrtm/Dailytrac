@@ -254,10 +254,10 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                     )}
                   </div>
 
-                  {/* Modern Floating Card Matching Image */}
+                  {/* Modern Floating Card Matching Image without border, with thick prominent shadow */}
                   <div
                     onClick={() => onSelectEvent(event)}
-                    className="flex-1 bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_4px_22px_rgba(0,0,0,0.035)] border border-slate-100/90 hover:shadow-md hover:border-slate-200 transition-all cursor-pointer flex items-center justify-between gap-3.5 sm:gap-4.5 min-w-0"
+                    className="flex-1 bg-white rounded-[24px] p-4 sm:p-5 shadow-[0_8px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition-all cursor-pointer flex items-center justify-between gap-3.5 sm:gap-4.5 min-w-0 hover:-translate-y-0.5"
                   >
                     {/* Left: Pastel Icon Circle */}
                     <div className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shrink-0 ${iconConfig.bg} ${iconConfig.color}`}>
@@ -267,7 +267,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                     {/* Middle: Title, Subtitle, Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug truncate">
+                        <h4 className="text-sm sm:text-base font-normal text-slate-900 leading-snug truncate">
                           {titleText}
                         </h4>
                         {isCompleted && (

@@ -234,7 +234,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             }`}
           >
             <div
-              className={`divide-y md:divide-y-0 md:divide-x divide-slate-200/70 w-full h-auto md:h-full md:flex-1 ${
+              className={`divide-y md:divide-y-0 w-full h-auto md:h-full md:flex-1 ${
                 isSidebarOpen
                   ? 'flex flex-col md:flex-row md:min-w-[1050px]'
                   : 'flex flex-col md:grid md:grid-cols-7 md:min-w-0'
@@ -312,17 +312,17 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       </button>
                     </div>
 
-                    {/* Day Tasks List with Vertical Timeline Track */}
+                    {/* Day Tasks List with Vertical Timeline Track Centered Directly on Node Circles */}
                     <div
                       className={`relative md:flex-1 flex flex-col ${
                         isSidebarOpen
-                          ? 'md:overflow-y-auto pt-3 pb-3 pr-2.5 pl-4 sm:pl-4.5 gap-3 md:gap-2.5'
-                          : 'md:overflow-hidden pt-3 pb-3 pr-2 pl-4 sm:pl-4.5 gap-3 md:gap-2'
+                          ? 'md:overflow-y-auto pt-3 pb-3 pr-2.5 pl-3 sm:pl-3.5 gap-3 md:gap-2.5'
+                          : 'md:overflow-hidden pt-3 pb-3 pr-2 pl-3 sm:pl-3.5 gap-3 md:gap-2'
                       }`}
                     >
-                      {/* Vertical timeline dashed line centered safely inside padding so dots are not cropped */}
+                      {/* Vertical timeline dashed line centered precisely through the node circles */}
                       {dayEvents.length > 0 && (
-                        <div className="absolute left-4 sm:left-4.5 top-3 bottom-5 w-0.5 border-l-2 border-dashed border-teal-300 pointer-events-none z-0 -translate-x-1/2" />
+                        <div className="absolute left-[24px] sm:left-[26px] top-3 bottom-5 w-0 border-l-2 border-dashed border-teal-300 pointer-events-none z-0 -translate-x-1/2" />
                       )}
 
                       {dayEvents.map((event) => {
@@ -336,8 +336,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                         return (
                           <div key={event.id} className="relative flex items-start gap-2 sm:gap-2.5 group/item w-full min-w-0 z-10">
-                            {/* Timeline node circle positioned at the top of the card and not cropped on column borders */}
-                            <div className="relative flex flex-col items-center justify-center shrink-0 z-10 mt-1 sm:mt-1.5 -ml-4 sm:-ml-4.5">
+                            {/* Timeline node circle wrapper centered at 12px from start of item */}
+                            <div className="w-6 h-6 flex items-center justify-center shrink-0 z-10 mt-1 sm:mt-1.5">
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -357,18 +357,18 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               </button>
                             </div>
 
-                            {/* Floating White Timeline Card */}
+                            {/* Floating White Timeline Card without card border, with thick prominent shadow */}
                             <div
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onSelectEvent(event);
                               }}
-                              className={`flex-1 rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer p-2.5 sm:p-3 flex flex-col group/card shrink-0 min-w-0 ${
-                                isCompleted ? 'bg-slate-50/50 shadow-sm' : 'hover:-translate-y-0.5'
+                              className={`flex-1 rounded-2xl bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition-all duration-200 cursor-pointer p-2.5 sm:p-3 flex flex-col group/card shrink-0 min-w-0 ${
+                                isCompleted ? 'bg-slate-50/60 shadow-sm' : 'hover:-translate-y-0.5'
                               }`}
                             >
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                                <h4 className="text-xs sm:text-sm font-normal text-slate-900 leading-snug break-words">
                                   {titleText}
                                 </h4>
                               </div>
@@ -597,7 +597,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                   e.stopPropagation();
                                   onSelectEvent(event);
                                 }}
-                                className={`p-1.5 px-2 rounded-xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5 group/card ${
+                                className={`p-1.5 px-2 rounded-xl bg-white shadow-[0_4px_18px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.14)] transition-all cursor-pointer flex items-center gap-1.5 group/card ${
                                   isCompleted ? 'opacity-80 bg-slate-50/50' : 'hover:-translate-y-0.5'
                                 }`}
                               >
@@ -619,7 +619,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                   <Check className="w-2.5 h-2.5 stroke-[2.5]" />
                                 </button>
                                 <h4
-                                  className={`text-xs font-bold leading-snug break-words whitespace-normal flex-1 truncate ${
+                                  className={`text-xs font-normal leading-snug break-words whitespace-normal flex-1 truncate ${
                                     isCompleted ? 'text-slate-400 line-through' : 'text-slate-900'
                                   }`}
                                 >
@@ -760,7 +760,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               e.stopPropagation();
                               onSelectEvent(event);
                             }}
-                            className={`absolute left-1.5 right-1.5 bg-white border border-slate-200/80 p-2.5 px-3 rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer pointer-events-auto flex items-start gap-2 overflow-hidden group ${
+                            className={`absolute left-1.5 right-1.5 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.18)] p-2.5 px-3 rounded-2xl transition-all cursor-pointer pointer-events-auto flex items-start gap-2 overflow-hidden group ${
                               isCompleted ? 'opacity-80 bg-slate-50/50 shadow-sm' : 'hover:-translate-y-0.5'
                             }`}
                           >
@@ -782,7 +782,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               <Check className="w-3 h-3 stroke-[2.5]" />
                             </button>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-xs font-bold leading-snug break-words whitespace-normal ${
+                              <h4 className={`text-xs font-normal leading-snug break-words whitespace-normal ${
                                 isCompleted ? 'text-slate-400 line-through' : 'text-slate-900'
                               }`}>
                                 {titleText}
