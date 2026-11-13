@@ -222,12 +222,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. MAIN CONTENT: FOKUS MENAMPILKAN WEEKLY YANG DIPILIH */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber !== 'all' && focusedWeek && (
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-[#f5f7f6] p-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-slate-50/30 p-2.5 sm:p-3 md:p-3.5">
           {/* Mobile (< md): Vertical scrollable list of all 7 days (shrink-0 per day so nothing is clipped).
               Desktop dengan Sidebar tertutup (!isSidebarOpen): Compact 7 kolom penuh tanpa scroll.
               Desktop dengan Sidebar terbuka (isSidebarOpen): Scrollable horizontal agar tidak tumpang tindih. */}
           <div
-            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-none border-none flex flex-col ${
+            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border-none md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
               isSidebarOpen
                 ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
                 : 'overflow-y-auto md:overflow-hidden'

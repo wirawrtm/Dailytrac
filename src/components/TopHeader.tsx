@@ -66,7 +66,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <div className="md:hidden flex items-center justify-between px-3 py-1.5 bg-white text-slate-900 select-none shrink-0 relative z-30">
+    <div className="md:hidden flex items-center justify-between px-2 pt-1 pb-1.5 bg-transparent text-slate-900 select-none shrink-0 relative z-30">
       {/* Left: Sidebar Toggle + Month Navigator (Month click opens calendar picker) */}
       <div className="flex items-center gap-1.5 shrink-0">
         <button
@@ -255,7 +255,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   return (
     <header className={`py-2 md:py-2.5 px-3 sm:px-4 md:px-5 border-b border-teal-800/30 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3 bg-gradient-to-r from-[#005a50] via-[#00796b] to-[#008d7c] text-white select-none shrink-0 relative z-20 transform-gpu ${
-      isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
+      isFullscreen ? 'rounded-none' : 'rounded-t-[36px] md:rounded-t-[28px]'
     }`}>
       {/* Zone 1 (Desktop only — on Mobile rendered outside via MobileTopBar): Sidebar Toggle + Month Navigator */}
       <div className="hidden md:flex order-1 items-center gap-1.5 sm:gap-2 shrink-0">
