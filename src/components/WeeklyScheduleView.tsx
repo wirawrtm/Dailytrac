@@ -222,12 +222,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. MAIN CONTENT: FOKUS MENAMPILKAN WEEKLY YANG DIPILIH */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber !== 'all' && focusedWeek && (
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-slate-50/30 p-2.5 sm:p-3 md:p-3.5">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-[#f5f7f6] p-0">
           {/* Mobile (< md): Vertical scrollable list of all 7 days (shrink-0 per day so nothing is clipped).
               Desktop dengan Sidebar tertutup (!isSidebarOpen): Compact 7 kolom penuh tanpa scroll.
               Desktop dengan Sidebar terbuka (isSidebarOpen): Scrollable horizontal agar tidak tumpang tindih. */}
           <div
-            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border-none md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
+            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-none border-none flex flex-col ${
               isSidebarOpen
                 ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
                 : 'overflow-y-auto md:overflow-hidden'
@@ -260,9 +260,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         : 'bg-slate-100/60'
                     }`}
                   >
-                    {/* Day Column Header with Theme Green Background without borders */}
+                    {/* Day Column Header matching Menu Navbar green (#4fa397) without borders */}
                     <div
-                      className={`flex items-center justify-between gap-1 shrink-0 bg-[#00897b] text-white whitespace-nowrap ${
+                      className={`flex items-center justify-between gap-1 shrink-0 bg-[#4fa397] text-white whitespace-nowrap ${
                         isSidebarOpen
                           ? 'px-4 py-3 md:px-3 md:py-2.5'
                           : 'px-4 py-3 md:px-2.5 md:py-2'
@@ -283,7 +283,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               : 'w-7 h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-sm md:text-xs lg:text-sm'
                           } ${
                             isSelected || day.isToday
-                              ? 'bg-white text-[#00897b] shadow-2xs font-extrabold ring-2 ring-white/40'
+                              ? 'bg-white text-[#4fa397] shadow-2xs font-extrabold ring-2 ring-white/40'
                               : 'bg-white/20 text-white'
                           }`}
                         >
@@ -302,7 +302,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                           onOpenCreateModal(day.iso, 10);
                         }}
                         title={`Add task on ${day.dayNameId} ${day.dayNumber}`}
-                        className="p-1 rounded-md text-teal-100 hover:text-white hover:bg-white/20 transition-all cursor-pointer shrink-0 opacity-100 md:opacity-80 group-hover:opacity-100"
+                        className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/20 transition-all cursor-pointer shrink-0 opacity-100 md:opacity-80 group-hover:opacity-100"
                       >
                         <Plus className="w-4 h-4 md:w-3.5 md:h-3.5" />
                       </button>

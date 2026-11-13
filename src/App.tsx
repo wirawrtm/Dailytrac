@@ -608,7 +608,7 @@ export default function App() {
     <div className={`h-full max-h-full w-full font-sans transition-colors duration-200 overflow-hidden flex flex-col md:flex-row items-stretch select-none ${
       isFullscreen 
         ? 'bg-white p-0 gap-0' 
-        : 'bg-[#eef3f1] p-2 sm:p-3 md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 gap-2 sm:gap-3 md:gap-3.5'
+        : 'bg-white p-0 gap-0 md:bg-[#eef3f1] md:py-4 md:pr-4 md:pl-0 lg:py-5 lg:pr-5 lg:pl-0 md:gap-3.5'
     }`}>
       {/* Toast Alert */}
       {toastMessage && (
@@ -617,7 +617,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Navigation Rail (Bottom on Mobile with all sides rounded, Left on Desktop) */}
+      {/* Navigation Rail (Fullscreen edge-to-edge Bottom Bar on Mobile, Left Rail on Desktop) */}
       <NavigationRail
         isFullscreen={isFullscreen}
         currentView={viewMode}
@@ -627,8 +627,8 @@ export default function App() {
       />
 
       {/* Content Area Wrapper: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 md:h-full gap-1.5 md:gap-0">
-        {/* Mobile Top Bar (Outside the green header & white card, transparent background) */}
+      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 md:h-full gap-0">
+        {/* Mobile Top Bar (Fullscreen edge-to-edge top bar) */}
         <MobileTopBar
           user={user}
           isProfileMenuOpen={isProfileMenuOpen}
@@ -645,11 +645,11 @@ export default function App() {
           onOpenCreateModal={() => handleOpenCreateModal()}
         />
 
-        {/* Main Rounded Card Container (Extra rounded on mobile, classic rounded on desktop) */}
+        {/* Main Container (Fullscreen edge-to-edge on mobile, rounded card on desktop when not fullscreen) */}
         <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
           isFullscreen
             ? 'md:h-full rounded-none border-none'
-            : 'md:h-full rounded-[36px] md:rounded-[28px] shadow-xl border-none md:border md:border-slate-200/80'
+            : 'md:h-full rounded-none md:rounded-[28px] shadow-none md:shadow-xl border-none md:border md:border-slate-200/80'
         }`}>
           {/* Top Header (On Mobile: View and Outline dropdowns inside green bar; On Desktop: full header) */}
           <TopHeader
