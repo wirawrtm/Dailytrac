@@ -15,6 +15,7 @@ interface NavigationRailProps {
   onOpenSettings: () => void;
   isFullscreen?: boolean;
   onOpenCreateModal?: () => void;
+  isMobileHidden?: boolean;
 }
 
 export const NavigationRail: React.FC<NavigationRailProps> = ({
@@ -23,12 +24,17 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   onOpenSettings,
   isFullscreen = false,
   onOpenCreateModal,
+  isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 w-full h-16 md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 py-2 md:px-0 md:py-6 justify-around md:justify-between select-none transition-all duration-200 z-20 ${
+    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 md:px-0 md:py-6 justify-around md:justify-between select-none transition-all duration-300 ease-in-out z-20 ${
+      isMobileHidden
+        ? 'max-md:h-0 max-md:py-0 max-md:mt-0 max-md:opacity-0 max-md:translate-y-full max-md:overflow-hidden max-md:pointer-events-none max-md:!border-0 max-md:shadow-none'
+        : 'max-md:h-16 max-md:py-2 max-md:mt-2.5 max-md:opacity-100 max-md:translate-y-0'
+    } ${
       isFullscreen
         ? 'border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
-        : 'border md:border-y md:border-r md:border-l-0 border-slate-200/80 rounded-[26px] md:rounded-l-none md:rounded-r-[34px] shadow-xl'
+        : 'border border-slate-200/80 rounded-[24px] shadow-xl md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[34px] md:shadow-xl'
     }`}>
       {/* Create New Task Action Button */}
       <div className="contents md:flex md:flex-col items-center md:gap-5">

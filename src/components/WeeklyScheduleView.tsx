@@ -222,176 +222,173 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. MAIN CONTENT: FOKUS MENAMPILKAN WEEKLY YANG DIPILIH */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber !== 'all' && focusedWeek && (
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-slate-50/30 p-2.5 sm:p-3 md:p-3.5">
-          {/* Mobile (< md): Vertical scrollable list of all 7 days (shrink-0 per day so nothing is clipped).
-              Desktop dengan Sidebar tertutup (!isSidebarOpen): Compact 7 kolom penuh tanpa scroll.
-              Desktop dengan Sidebar terbuka (isSidebarOpen): Scrollable horizontal agar tidak tumpang tindih. */}
+        <div className="flex-1 min-w-0 min-h-0 flex flex-col p-2.5 pt-2 md:p-0">
           <div
-            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border-none md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
+            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border border-slate-200/70 md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
               isSidebarOpen
                 ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
                 : 'overflow-y-auto md:overflow-hidden'
             }`}
           >
-            <div
-              className={`divide-y-0 w-full h-auto md:h-full md:flex-1 ${
-                isSidebarOpen
-                  ? 'flex flex-col md:flex-row md:min-w-[1050px]'
-                  : 'flex flex-col md:grid md:grid-cols-7 md:min-w-0'
-              }`}
-            >
-              {focusedWeek.days.map((day) => {
-                const isSelected = day.iso === selectedIso;
-                const dayEvents = events.filter((e) => e.date === day.iso);
+          <div
+            className={`divide-y-0 w-full h-auto md:h-full md:flex-1 ${
+              isSidebarOpen
+                ? 'flex flex-col md:flex-row md:min-w-[1050px]'
+                : 'flex flex-col md:grid md:grid-cols-7 md:min-w-0'
+            }`}
+          >
+            {focusedWeek.days.map((day) => {
+              const isSelected = day.iso === selectedIso;
+              const dayEvents = events.filter((e) => e.date === day.iso);
 
-                return (
+              return (
+                <div
+                  key={day.iso}
+                  onClick={() => onSelectDate(day.date)}
+                  className={`shrink-0 flex flex-col md:h-full md:overflow-hidden transition-colors cursor-pointer group ${
+                    isSidebarOpen
+                      ? 'w-full md:w-[150px] md:min-w-[150px] md:flex-1'
+                      : 'w-full md:shrink md:min-w-0'
+                  } ${
+                    isSelected
+                      ? 'bg-teal-50/20'
+                      : day.isCurrentMonth
+                      ? 'bg-[#f5f7f6] hover:bg-slate-100/50'
+                      : 'bg-slate-100/60'
+                  }`}
+                >
+                  {/* Day Column Header matching Menu Navbar green (#4fa397) without borders */}
                   <div
-                    key={day.iso}
-                    onClick={() => onSelectDate(day.date)}
-                    className={`shrink-0 flex flex-col md:h-full md:overflow-hidden transition-colors cursor-pointer group ${
+                    className={`flex items-center justify-between gap-1 shrink-0 bg-[#4fa397] text-white whitespace-nowrap ${
                       isSidebarOpen
-                        ? 'w-full md:w-[150px] md:min-w-[150px] md:flex-1'
-                        : 'w-full md:shrink md:min-w-0'
-                    } ${
-                      isSelected
-                        ? 'bg-teal-50/20'
-                        : day.isCurrentMonth
-                        ? 'bg-[#f5f7f6] hover:bg-slate-100/50'
-                        : 'bg-slate-100/60'
+                        ? 'px-4 py-3 md:px-3 md:py-2.5'
+                        : 'px-4 py-3 md:px-2.5 md:py-2'
                     }`}
                   >
-                    {/* Day Column Header matching Menu Navbar green (#4fa397) without borders */}
-                    <div
-                      className={`flex items-center justify-between gap-1 shrink-0 bg-[#4fa397] text-white whitespace-nowrap ${
-                        isSidebarOpen
-                          ? 'px-4 py-3 md:px-3 md:py-2.5'
-                          : 'px-4 py-3 md:px-2.5 md:py-2'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 md:gap-1.5 min-w-0">
-                        <span
-                          className={`font-bold text-white capitalize truncate ${
-                            isSidebarOpen ? 'text-sm' : 'text-sm md:text-xs lg:text-sm'
-                          }`}
-                        >
-                          {day.dayNameId}
+                    <div className="flex items-center gap-2 md:gap-1.5 min-w-0">
+                      <span
+                        className={`font-bold text-white capitalize truncate ${
+                          isSidebarOpen ? 'text-sm' : 'text-sm md:text-xs lg:text-sm'
+                        }`}
+                      >
+                        {day.dayNameId}
+                      </span>
+                      <span
+                        className={`rounded-full flex items-center justify-center font-bold shrink-0 transition-all ${
+                          isSidebarOpen
+                            ? 'w-7 h-7 text-sm'
+                            : 'w-7 h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-sm md:text-xs lg:text-sm'
+                        } ${
+                          isSelected || day.isToday
+                            ? 'bg-white text-[#4fa397] shadow-2xs font-extrabold ring-2 ring-white/40'
+                            : 'bg-white/20 text-white'
+                        }`}
+                      >
+                        {day.dayNumber}
+                      </span>
+                      {dayEvents.length > 0 && (
+                        <span className="md:hidden text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white font-mono">
+                          {dayEvents.length} task
                         </span>
-                        <span
-                          className={`rounded-full flex items-center justify-center font-bold shrink-0 transition-all ${
-                            isSidebarOpen
-                              ? 'w-7 h-7 text-sm'
-                              : 'w-7 h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-sm md:text-xs lg:text-sm'
-                          } ${
-                            isSelected || day.isToday
-                              ? 'bg-white text-[#4fa397] shadow-2xs font-extrabold ring-2 ring-white/40'
-                              : 'bg-white/20 text-white'
-                          }`}
-                        >
-                          {day.dayNumber}
-                        </span>
-                        {dayEvents.length > 0 && (
-                          <span className="md:hidden text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white font-mono">
-                            {dayEvents.length} task
-                          </span>
-                        )}
-                      </div>
+                      )}
+                    </div>
 
-                      <button
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenCreateModal(day.iso, 10);
+                      }}
+                      title={`Add task on ${day.dayNameId} ${day.dayNumber}`}
+                      className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/20 transition-all cursor-pointer shrink-0 opacity-100 md:opacity-80 group-hover:opacity-100"
+                    >
+                      <Plus className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Day Tasks List with Vertical Timeline Track Centered Directly on Node Circles */}
+                  <div
+                    className={`relative md:flex-1 flex flex-col ${
+                      isSidebarOpen
+                        ? 'md:overflow-y-auto pt-3 pb-3 pr-2.5 pl-3 sm:pl-3.5 gap-3 md:gap-2.5'
+                        : 'md:overflow-hidden pt-3 pb-3 pr-2 pl-3 sm:pl-3.5 gap-3 md:gap-2'
+                    }`}
+                  >
+                    {/* Vertical timeline dashed line centered precisely through the node circles */}
+                    {dayEvents.length > 0 && (
+                      <div className="absolute left-[24px] sm:left-[26px] top-3 bottom-5 w-0 border-l-2 border-dashed border-teal-300 pointer-events-none z-0 -translate-x-1/2" />
+                    )}
+
+                    {dayEvents.map((event) => {
+                      const evOutline = getEventOutline(event, departments);
+                      const titleText = (event.title && event.title.trim()) || 
+                                        (event as any).task || 
+                                        (event as any).name || 
+                                        (event.description && event.description.trim()) || 
+                                        'Tugas Tanpa Judul';
+                      const isCompleted = event.status === 'completed';
+
+                      return (
+                        <div key={event.id} className="relative flex items-start gap-2 sm:gap-2.5 group/item w-full min-w-0 z-10">
+                          {/* Timeline node circle wrapper centered at 12px from start of item */}
+                          <div className="w-6 h-6 flex items-center justify-center shrink-0 z-10 mt-1 sm:mt-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onToggleEventStatus) {
+                                  onToggleEventStatus(event.id);
+                                }
+                              }}
+                              title={isCompleted ? "Tandai Belum Selesai (Pending)" : "Tandai Selesai (Complete)"}
+                              className={`w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                                isCompleted
+                                  ? 'bg-[#00897b] text-white shadow-2xs hover:bg-[#00796b] ring-2 ring-teal-50'
+                                  : 'border-2 border-rose-500 hover:border-rose-600 bg-white hover:bg-rose-50 text-rose-500 shadow-2xs'
+                              }`}
+                            >
+                              <Check className={`w-3 h-3 ${isCompleted ? 'stroke-[3] text-white' : 'stroke-[2.5] stroke-rose-500 text-rose-500'}`} />
+                            </button>
+                          </div>
+
+                          {/* Floating White Timeline Card matching IMG_1013 soft ambient shadow */}
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectEvent(event);
+                            }}
+                            className={`flex-1 rounded-2xl bg-white shadow-[0_10px_25px_-4px_rgba(0,0,0,0.06),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_14px_32px_-4px_rgba(0,0,0,0.10),0_6px_14px_-2px_rgba(0,0,0,0.04)] transition-all duration-200 cursor-pointer p-2.5 sm:p-3 flex flex-col group/card shrink-0 min-w-0 ${
+                              isCompleted ? 'bg-slate-50/60 shadow-xs' : 'hover:-translate-y-0.5'
+                            }`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs sm:text-sm font-normal text-slate-900 leading-snug break-words">
+                                {titleText}
+                              </h4>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {dayEvents.length === 0 && (
+                      <div
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenCreateModal(day.iso, 10);
                         }}
-                        title={`Add task on ${day.dayNameId} ${day.dayNumber}`}
-                        className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/20 transition-all cursor-pointer shrink-0 opacity-100 md:opacity-80 group-hover:opacity-100"
+                        className={`rounded-2xl border border-dashed border-slate-200 hover:border-teal-300 hover:bg-teal-50/20 flex flex-row md:flex-col items-center justify-center gap-1.5 md:gap-0 text-slate-400 hover:text-teal-700 transition-all cursor-pointer p-2 text-center shrink-0 ${
+                          isSidebarOpen ? 'h-11 md:h-24' : 'h-11 md:h-20'
+                        }`}
                       >
-                        <Plus className="w-4 h-4 md:w-3.5 md:h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Day Tasks List with Vertical Timeline Track Centered Directly on Node Circles */}
-                    <div
-                      className={`relative md:flex-1 flex flex-col ${
-                        isSidebarOpen
-                          ? 'md:overflow-y-auto pt-3 pb-3 pr-2.5 pl-3 sm:pl-3.5 gap-3 md:gap-2.5'
-                          : 'md:overflow-hidden pt-3 pb-3 pr-2 pl-3 sm:pl-3.5 gap-3 md:gap-2'
-                      }`}
-                    >
-                      {/* Vertical timeline dashed line centered precisely through the node circles */}
-                      {dayEvents.length > 0 && (
-                        <div className="absolute left-[24px] sm:left-[26px] top-3 bottom-5 w-0 border-l-2 border-dashed border-teal-300 pointer-events-none z-0 -translate-x-1/2" />
-                      )}
-
-                      {dayEvents.map((event) => {
-                        const evOutline = getEventOutline(event, departments);
-                        const titleText = (event.title && event.title.trim()) || 
-                                          (event as any).task || 
-                                          (event as any).name || 
-                                          (event.description && event.description.trim()) || 
-                                          'Tugas Tanpa Judul';
-                        const isCompleted = event.status === 'completed';
-
-                        return (
-                          <div key={event.id} className="relative flex items-start gap-2 sm:gap-2.5 group/item w-full min-w-0 z-10">
-                            {/* Timeline node circle wrapper centered at 12px from start of item */}
-                            <div className="w-6 h-6 flex items-center justify-center shrink-0 z-10 mt-1 sm:mt-1.5">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (onToggleEventStatus) {
-                                    onToggleEventStatus(event.id);
-                                  }
-                                }}
-                                title={isCompleted ? "Tandai Belum Selesai (Pending)" : "Tandai Selesai (Complete)"}
-                                className={`w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                  isCompleted
-                                    ? 'bg-[#00897b] text-white shadow-2xs hover:bg-[#00796b] ring-2 ring-teal-50'
-                                    : 'border-2 border-rose-500 hover:border-rose-600 bg-white hover:bg-rose-50 text-rose-500 shadow-2xs'
-                                }`}
-                              >
-                                <Check className={`w-3 h-3 ${isCompleted ? 'stroke-[3] text-white' : 'stroke-[2.5] stroke-rose-500 text-rose-500'}`} />
-                              </button>
-                            </div>
-
-                            {/* Floating White Timeline Card matching IMG_1013 soft ambient shadow */}
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onSelectEvent(event);
-                              }}
-                              className={`flex-1 rounded-2xl bg-white shadow-[0_10px_25px_-4px_rgba(0,0,0,0.06),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_14px_32px_-4px_rgba(0,0,0,0.10),0_6px_14px_-2px_rgba(0,0,0,0.04)] transition-all duration-200 cursor-pointer p-2.5 sm:p-3 flex flex-col group/card shrink-0 min-w-0 ${
-                                isCompleted ? 'bg-slate-50/60 shadow-xs' : 'hover:-translate-y-0.5'
-                              }`}
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-xs sm:text-sm font-normal text-slate-900 leading-snug break-words">
-                                  {titleText}
-                                </h4>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {dayEvents.length === 0 && (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenCreateModal(day.iso, 10);
-                          }}
-                          className={`rounded-2xl border border-dashed border-slate-200 hover:border-teal-300 hover:bg-teal-50/20 flex flex-row md:flex-col items-center justify-center gap-1.5 md:gap-0 text-slate-400 hover:text-teal-700 transition-all cursor-pointer p-2 text-center shrink-0 ${
-                            isSidebarOpen ? 'h-11 md:h-24' : 'h-11 md:h-20'
-                          }`}
-                        >
-                          <Plus className="w-3.5 h-3.5 md:mb-1 text-slate-300 group-hover:text-teal-600" />
-                          <span className="text-[11px] font-semibold">+ Add Task</span>
-                        </div>
-                      )}
-                    </div>
+                        <Plus className="w-3.5 h-3.5 md:mb-1 text-slate-300 group-hover:text-teal-600" />
+                        <span className="text-[11px] font-semibold">+ Add Task</span>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+          </div>
           </div>
         </div>
       )}
