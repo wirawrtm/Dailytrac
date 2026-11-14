@@ -222,14 +222,13 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. MAIN CONTENT: FOKUS MENAMPILKAN WEEKLY YANG DIPILIH */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber !== 'all' && focusedWeek && (
-        <div className="flex-1 min-w-0 min-h-0 flex flex-col p-2.5 pt-2 md:p-0">
-          <div
-            className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border border-slate-200/70 md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
-              isSidebarOpen
-                ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
-                : 'overflow-y-auto md:overflow-hidden'
-            }`}
-          >
+        <div
+          className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border border-slate-200/70 md:border md:border-slate-200/80 shadow-2xs flex flex-col ${
+            isSidebarOpen
+              ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
+              : 'overflow-y-auto md:overflow-hidden'
+          }`}
+        >
           <div
             className={`divide-y-0 w-full h-auto md:h-full md:flex-1 ${
               isSidebarOpen
@@ -388,7 +387,6 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </div>
               );
             })}
-          </div>
           </div>
         </div>
       )}
