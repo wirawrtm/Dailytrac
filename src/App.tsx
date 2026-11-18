@@ -646,22 +646,29 @@ export default function App() {
     if (prevTop === undefined) return;
 
     const now = Date.now();
-    if (now < state.lockUntil) return;
+    if (now < state.lockUntil) {
+      state.accumulatedDelta = 0;
+      state.lastDirection = null;
+      return;
+    }
 
     // Reveal bars immediately when scrolled back near the top
-    if (currentTop <= 8 && isMobileBarsHidden) {
+    if (currentTop <= 10 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
-      state.lastDirection = 'up';
-      state.lockUntil = now + 240;
+      state.lastDirection = null;
+      state.lockUntil = now + 300;
       setIsMobileBarsHidden(false);
       return;
     }
 
+    // Do not hide bars if the container barely overflows (prevents ping-pong resize loops)
+    if (maxScroll < 140 && !isMobileBarsHidden) return;
+
     // Ignore rubber-band / overscroll jitter right at the bottom edge
-    if (maxScroll > 40 && currentTop >= maxScroll - 4) return;
+    if (maxScroll > 40 && currentTop >= maxScroll - 6) return;
 
     const delta = currentTop - prevTop;
-    if (Math.abs(delta) < 1.5) return;
+    if (Math.abs(delta) < 2) return;
 
     const dir: 'up' | 'down' = delta > 0 ? 'down' : 'up';
     if (state.lastDirection !== dir) {
@@ -671,13 +678,15 @@ export default function App() {
       state.accumulatedDelta += delta;
     }
 
-    if (dir === 'down' && state.accumulatedDelta > 40 && currentTop > 48 && !isMobileBarsHidden) {
+    if (dir === 'down' && state.accumulatedDelta > 72 && currentTop > 64 && !isMobileBarsHidden) {
       state.accumulatedDelta = 0;
-      state.lockUntil = now + 240;
+      state.lastDirection = null;
+      state.lockUntil = now + 300;
       setIsMobileBarsHidden(true);
-    } else if (dir === 'up' && state.accumulatedDelta < -32 && isMobileBarsHidden) {
+    } else if (dir === 'up' && state.accumulatedDelta < -56 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
-      state.lockUntil = now + 240;
+      state.lastDirection = null;
+      state.lockUntil = now + 300;
       setIsMobileBarsHidden(false);
     }
   };
@@ -689,6 +698,7 @@ export default function App() {
 
   const handleMobileTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
+    if (!isMobileBarsHidden) return;
     const startY = mobileScrollRef.current.touchStartY;
     if (startY === null) return;
     const currentY = e.touches[0]?.clientY;
@@ -697,10 +707,12 @@ export default function App() {
     if (now < mobileScrollRef.current.lockUntil) return;
 
     const diffY = currentY - startY;
-    // Swiping finger downward (scrolling up) reveals hidden bars even if content is at top
-    if (diffY > 48 && isMobileBarsHidden) {
+    // Deliberate downward pull reveals hidden bars even when scroll container is at top
+    if (diffY > 72) {
       mobileScrollRef.current.touchStartY = currentY;
-      mobileScrollRef.current.lockUntil = now + 240;
+      mobileScrollRef.current.accumulatedDelta = 0;
+      mobileScrollRef.current.lastDirection = null;
+      mobileScrollRef.current.lockUntil = now + 300;
       setIsMobileBarsHidden(false);
     }
   };

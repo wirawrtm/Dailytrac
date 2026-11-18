@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronRight,
   ChevronDown,
@@ -58,12 +58,22 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   // Default to the current active week containing selectedDate (e.g. Week 4)
   const [focusedWeekNumber, setFocusedWeekNumber] = useState<number | 'all'>(() => currentSelectedWeek?.weekNumber ?? 1);
 
+  const focusedWeekBtnRef = useRef<HTMLButtonElement | null>(null);
+
   // Sync focused week whenever selectedDate changes externally
   useEffect(() => {
     if (currentSelectedWeek && focusedWeekNumber !== 'all') {
       setFocusedWeekNumber(currentSelectedWeek.weekNumber);
     }
   }, [selectedIso]);
+
+  // Center active week pill horizontally only when focused week changes (not on unrelated re-renders)
+  useEffect(() => {
+    const el = focusedWeekBtnRef.current;
+    if (el && typeof window !== 'undefined' && window.innerWidth < 768) {
+      el.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+    }
+  }, [focusedWeekNumber]);
 
   // Month navigation
   const handlePrevMonth = () => {
@@ -158,8 +168,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   <button
                     key={week.weekNumber}
                     ref={(el) => {
-                      if (isFocused && el && typeof window !== 'undefined' && window.innerWidth < 768) {
-                        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                      if (isFocused) {
+                        focusedWeekBtnRef.current = el;
                       }
                     }}
                     onClick={() => handleSelectWeek(week)}
