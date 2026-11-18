@@ -37,7 +37,8 @@ import {
   fetchTasksFromSpreadsheet,
   fetchDepartmentsFromSpreadsheet,
   bulkSyncTasksToSpreadsheet,
-  bulkSyncDepartmentsToSpreadsheet
+  bulkSyncDepartmentsToSpreadsheet,
+  deduplicateTasks
 } from './services/webhookSyncService';
 
 const STORAGE_KEY_EVENTS = 'tasklio_events_v200_live_spreadsheet';
@@ -74,10 +75,10 @@ export default function App() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          return parsed.map((e: any) => ({
+          return deduplicateTasks(parsed.map((e: any) => ({
             ...e,
             title: (e.title && String(e.title).trim()) || e.task || e.name || (e.description && String(e.description).trim()) || 'Tugas Tanpa Judul'
-          }));
+          })));
         }
       }
     } catch {
@@ -203,10 +204,10 @@ export default function App() {
         }
 
         if (taskRes.success && Array.isArray(taskRes.tasks)) {
-          const cleanedTasks = taskRes.tasks.map((t: any) => ({
+          const cleanedTasks = deduplicateTasks(taskRes.tasks.map((t: any) => ({
             ...t,
             title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
-          }));
+          })));
           setEvents(cleanedTasks);
           try {
             localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
@@ -401,9 +402,11 @@ export default function App() {
   const handleSaveEvent = (savedEvent: TaskEvent) => {
     setEvents((prev) => {
       const exists = prev.some((e) => e.id === savedEvent.id);
-      const updated = exists
-        ? prev.map((e) => (e.id === savedEvent.id ? savedEvent : e))
-        : [...prev, savedEvent];
+      const updated = deduplicateTasks(
+        exists
+          ? prev.map((e) => (e.id === savedEvent.id ? savedEvent : e))
+          : [...prev, savedEvent]
+      );
       try {
         localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updated));
       } catch (e) {
@@ -470,13 +473,12 @@ export default function App() {
       setSelectedEventDetails(updatedTask);
     }
 
-    // 3. Immediately trigger Google Apps Script Webhook sync for status & full task update
-    syncTaskStatusToSpreadsheet(eventId, nextStatus).catch((err) => {
-      console.log('Spreadsheet task status sync:', err);
-    });
-    syncTaskToSpreadsheet(updatedTask, departments).catch((err) => {
-      console.log('Spreadsheet full task update sync:', err);
-    });
+    // 3. Immediately trigger Google Apps Script Webhook sync sequentially to avoid duplicate row race conditions
+    syncTaskStatusToSpreadsheet(eventId, nextStatus)
+      .then(() => syncTaskToSpreadsheet(updatedTask, departments))
+      .catch((err) => {
+        console.log('Spreadsheet task status sync:', err);
+      });
 
     // 4. Show toast notification feedback
     const statusLabel = nextStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
@@ -505,13 +507,12 @@ export default function App() {
       setSelectedEventDetails(updatedTask);
     }
 
-    // 3. Immediately trigger Google Apps Script Webhook sync for status & full task update
-    syncTaskStatusToSpreadsheet(eventId, newStatus).catch((err) => {
-      console.log('Spreadsheet task status sync:', err);
-    });
-    syncTaskToSpreadsheet(updatedTask, departments).catch((err) => {
-      console.log('Spreadsheet full task update sync:', err);
-    });
+    // 3. Immediately trigger Google Apps Script Webhook sync sequentially to avoid duplicate row race conditions
+    syncTaskStatusToSpreadsheet(eventId, newStatus)
+      .then(() => syncTaskToSpreadsheet(updatedTask, departments))
+      .catch((err) => {
+        console.log('Spreadsheet task status sync:', err);
+      });
 
     // 4. Show toast notification feedback
     const statusLabel = newStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
@@ -574,10 +575,10 @@ export default function App() {
       }
 
       if (fetchRes.success && Array.isArray(fetchRes.tasks)) {
-        const cleanedTasks = fetchRes.tasks.map((t: any) => ({
+        const cleanedTasks = deduplicateTasks(fetchRes.tasks.map((t: any) => ({
           ...t,
           title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
-        }));
+        })));
         setEvents(cleanedTasks);
         try {
           localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
@@ -651,13 +652,16 @@ export default function App() {
     if (currentTop <= 8 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = 'up';
-      state.lockUntil = now + 340;
+      state.lockUntil = now + 240;
       setIsMobileBarsHidden(false);
       return;
     }
 
+    // Ignore rubber-band / overscroll jitter right at the bottom edge
+    if (maxScroll > 40 && currentTop >= maxScroll - 4) return;
+
     const delta = currentTop - prevTop;
-    if (Math.abs(delta) < 1) return;
+    if (Math.abs(delta) < 1.5) return;
 
     const dir: 'up' | 'down' = delta > 0 ? 'down' : 'up';
     if (state.lastDirection !== dir) {
@@ -667,13 +671,13 @@ export default function App() {
       state.accumulatedDelta += delta;
     }
 
-    if (dir === 'down' && state.accumulatedDelta > 16 && currentTop > 20 && !isMobileBarsHidden) {
+    if (dir === 'down' && state.accumulatedDelta > 40 && currentTop > 48 && !isMobileBarsHidden) {
       state.accumulatedDelta = 0;
-      state.lockUntil = now + 340;
+      state.lockUntil = now + 240;
       setIsMobileBarsHidden(true);
-    } else if (dir === 'up' && state.accumulatedDelta < -12 && isMobileBarsHidden) {
+    } else if (dir === 'up' && state.accumulatedDelta < -32 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
-      state.lockUntil = now + 340;
+      state.lockUntil = now + 240;
       setIsMobileBarsHidden(false);
     }
   };
@@ -694,9 +698,9 @@ export default function App() {
 
     const diffY = currentY - startY;
     // Swiping finger downward (scrolling up) reveals hidden bars even if content is at top
-    if (diffY > 24 && isMobileBarsHidden) {
+    if (diffY > 48 && isMobileBarsHidden) {
       mobileScrollRef.current.touchStartY = currentY;
-      mobileScrollRef.current.lockUntil = now + 340;
+      mobileScrollRef.current.lockUntil = now + 240;
       setIsMobileBarsHidden(false);
     }
   };
@@ -745,7 +749,7 @@ export default function App() {
         />
 
         {/* Main Container (Floating rounded card on mobile & desktop when not fullscreen) */}
-        <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-all duration-200 transform-gpu ${
+        <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-shadow duration-200 ${
           isFullscreen
             ? 'md:h-full rounded-none border-none'
             : 'md:h-full rounded-[24px] md:rounded-[28px] shadow-xl border border-slate-200/80'

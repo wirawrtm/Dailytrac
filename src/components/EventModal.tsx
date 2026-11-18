@@ -163,7 +163,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     const theme = initialEvent?.colorTheme || getDepartmentTheme(department);
 
     const newEvent: TaskEvent = {
-      id: initialEvent?.id || `evt-${Date.now()}`,
+      id: initialEvent?.id || `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       title: task.trim(),
       outline,
       department: department.trim() || 'Operations',

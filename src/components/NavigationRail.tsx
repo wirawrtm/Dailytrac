@@ -27,9 +27,9 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 md:px-0 md:py-6 justify-around md:justify-between select-none transition-all duration-300 ease-in-out z-20 ${
+    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 md:px-0 md:py-6 justify-around md:justify-between select-none transition-[height,margin,padding,opacity,transform] duration-200 ease-out z-20 ${
       isMobileHidden
-        ? 'max-md:h-0 max-md:py-0 max-md:mt-0 max-md:opacity-0 max-md:translate-y-full max-md:overflow-hidden max-md:pointer-events-none max-md:!border-0 max-md:shadow-none'
+        ? 'max-md:h-0 max-md:py-0 max-md:mt-0 max-md:opacity-0 max-md:translate-y-2 max-md:overflow-hidden max-md:pointer-events-none max-md:!border-0 max-md:shadow-none'
         : 'max-md:h-16 max-md:py-2 max-md:mt-2.5 max-md:opacity-100 max-md:translate-y-0'
     } ${
       isFullscreen

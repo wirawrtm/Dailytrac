@@ -9,6 +9,50 @@ export interface WebhookSyncResponse {
 }
 
 /**
+ * Ensures every TaskEvent in a list has a strictly unique `id`.
+ * - Exact duplicate rows (same id, title, date, department) collapse to the latest entry.
+ * - Distinct tasks sharing an id (e.g., copied row in Google Sheets) receive a deterministic unique suffix.
+ */
+export function deduplicateTasks(tasks: TaskEvent[]): TaskEvent[] {
+  const result: TaskEvent[] = [];
+  const usedIds = new Set<string>();
+  const indexBySignature = new Map<string, number>();
+
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+    const baseId = String(task.id || '').trim() || `task_${Date.now()}_${i}`;
+    const signature = [
+      baseId,
+      (task.title || '').trim().toLowerCase(),
+      (task.date || '').trim(),
+      (task.department || task.subtitle || '').trim().toLowerCase(),
+    ].join('|');
+
+    const existingSigIndex = indexBySignature.get(signature);
+    if (existingSigIndex !== undefined) {
+      // Exact duplicate row: keep the unique assigned id and update with latest fields
+      result[existingSigIndex] = { ...task, id: result[existingSigIndex].id };
+      continue;
+    }
+
+    let uniqueId = baseId;
+    if (usedIds.has(uniqueId)) {
+      let suffix = 2;
+      while (usedIds.has(`${baseId}-${suffix}`)) {
+        suffix++;
+      }
+      uniqueId = `${baseId}-${suffix}`;
+    }
+
+    usedIds.add(uniqueId);
+    indexBySignature.set(signature, result.length);
+    result.push(uniqueId === task.id ? task : { ...task, id: uniqueId });
+  }
+
+  return result;
+}
+
+/**
  * Sends a task creation / update / deletion payload to the Google Apps Script Webhook.
  * Uses no-cors with text/plain to avoid Google Apps Script CORS preflight redirect issues.
  */
@@ -272,7 +316,7 @@ export async function fetchTasksFromSpreadsheet(): Promise<{
 
       return {
         success: true,
-        tasks: parsedTasks,
+        tasks: deduplicateTasks(parsedTasks),
         departments: parsedDepartments
       };
     }
