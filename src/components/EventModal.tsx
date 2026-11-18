@@ -191,7 +191,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] my-auto overflow-x-hidden min-w-0"
+        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[88dvh] my-auto overflow-x-hidden min-w-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -215,7 +215,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         {/* Form Body - Department, Task, Description, Date, Due Date (optional) */}
         <form 
           onSubmit={handleSubmit} 
-          className="flex-1 overflow-y-auto overflow-x-hidden p-5 sm:p-6 flex flex-col gap-4 text-xs text-slate-700 touch-pan-y overscroll-contain min-w-0 w-full box-border"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-5 sm:p-6 space-y-4 text-xs text-slate-700 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] min-w-0 w-full box-border"
         >
           
           {/* 1. DEPARTMENT DROPDOWN (Filtered by Selected Outline: Work, Improvement, Buy) */}
