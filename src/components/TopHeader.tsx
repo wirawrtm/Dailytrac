@@ -69,11 +69,11 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className={`md:hidden flex items-center justify-between px-1.5 py-0 bg-transparent text-slate-900 select-none shrink-0 relative z-30 transition-[height,margin,opacity] duration-150 ease-out ${
+      className={
         isMobileHidden
-          ? 'h-0 mb-0 opacity-0 pointer-events-none overflow-hidden'
-          : 'h-12 mb-1.5 opacity-100'
-      }`}
+          ? 'hidden'
+          : 'md:hidden flex items-center justify-between px-1.5 py-0 h-12 mb-1.5 bg-transparent text-slate-900 select-none shrink-0 relative z-30'
+      }
     >
       {/* Left: Sidebar Toggle + Month Navigator (Month click opens calendar picker) */}
       <div className="flex items-center gap-1.5 shrink-0">

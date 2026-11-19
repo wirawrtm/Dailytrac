@@ -656,7 +656,7 @@ export default function App() {
     if (currentTop <= 10 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 300;
+      state.lockUntil = now + 100;
       setIsMobileBarsHidden(false);
       return;
     }
@@ -681,12 +681,12 @@ export default function App() {
     if (dir === 'down' && state.accumulatedDelta > 72 && currentTop > 64 && !isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 300;
+      state.lockUntil = now + 100;
       setIsMobileBarsHidden(true);
     } else if (dir === 'up' && state.accumulatedDelta < -56 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 300;
+      state.lockUntil = now + 100;
       setIsMobileBarsHidden(false);
     }
   };
@@ -712,7 +712,7 @@ export default function App() {
       mobileScrollRef.current.touchStartY = currentY;
       mobileScrollRef.current.accumulatedDelta = 0;
       mobileScrollRef.current.lastDirection = null;
-      mobileScrollRef.current.lockUntil = now + 300;
+      mobileScrollRef.current.lockUntil = now + 100;
       setIsMobileBarsHidden(false);
     }
   };
