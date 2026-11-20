@@ -43,6 +43,7 @@ import {
   sanitizeFirestoreId,
   deduplicateTasks,
 } from './services/firebaseDbService';
+import { isTransientOfflineError } from './firebase';
 
 const STORAGE_KEY_FILTERS = 'tasklio_filters_firebase';
 
@@ -154,40 +155,68 @@ export default function App() {
     };
     setUser(fallbackProfile);
 
-    async function setupFirestore() {
-      try {
-        await ensurePermanentWorkspace();
-        if (cancelled) return;
-
-        unsubWorkspace = subscribeWorkspaceProfile(fallbackProfile, (profile) => {
-          if (!cancelled) {
-            setUser((prev) => ({
-              ...profile,
-              email: prev.email || savedLocalEmail,
-            }));
-          }
-        });
-        unsubTasks = subscribeTasks((liveTasks) => {
-          if (!cancelled) {
-            setEvents(liveTasks);
-            setIsLoadingData(false);
-          }
-        });
-        unsubDepts = subscribeDepartments((liveDepts) => {
-          if (!cancelled && liveDepts.length > 0) setDepartments(liveDepts);
-        });
-      } catch (err: any) {
+    // Attach real-time listeners immediately so onSnapshot handles connection/reconnection cleanly
+    try {
+      unsubWorkspace = subscribeWorkspaceProfile(fallbackProfile, (profile) => {
         if (!cancelled) {
+          setUser((prev) => ({
+            ...profile,
+            email: prev.email || savedLocalEmail,
+          }));
+        }
+      });
+      unsubTasks = subscribeTasks((liveTasks) => {
+        if (!cancelled) {
+          setEvents(liveTasks);
           setIsLoadingData(false);
+        }
+      });
+      unsubDepts = subscribeDepartments((liveDepts) => {
+        if (!cancelled && liveDepts.length > 0) setDepartments(liveDepts);
+      });
+    } catch (err: any) {
+      if (!cancelled) {
+        setIsLoadingData(false);
+        if (isTransientOfflineError(err)) {
+          showToast('Koneksi Firebase sedang offline, menunggu sambungan pulih...');
+        } else {
           setFirestoreError(err instanceof Error ? err : new Error(String(err)));
         }
       }
     }
 
-    setupFirestore();
+    const runEnsureWorkspace = () => {
+      void ensurePermanentWorkspace().catch((err: any) => {
+        if (!cancelled && !isTransientOfflineError(err)) {
+          setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+        }
+      });
+    };
+
+    runEnsureWorkspace();
+
+    const offlineFallbackTimer = window.setTimeout(() => {
+      if (!cancelled) {
+        setIsLoadingData((stillLoading) => {
+          if (stillLoading) {
+            showToast('Menghubungkan ke Firebase... Pastikan koneksi internet aktif.');
+          }
+          return false;
+        });
+      }
+    }, 11000);
+
+    const handleOnline = () => {
+      if (!cancelled) {
+        runEnsureWorkspace();
+      }
+    };
+    window.addEventListener('online', handleOnline);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(offlineFallbackTimer);
+      window.removeEventListener('online', handleOnline);
       unsubWorkspace?.();
       unsubTasks?.();
       unsubDepts?.();

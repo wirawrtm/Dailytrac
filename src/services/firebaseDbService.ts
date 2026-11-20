@@ -13,7 +13,7 @@ import {
   writeBatch,
   Unsubscribe,
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { db, handleFirestoreError, isTransientOfflineError, OperationType } from '../firebase';
 import {
   DepartmentItem,
   EventCategory,
@@ -292,6 +292,10 @@ export async function ensurePermanentWorkspace(): Promise<void> {
       await batch.commit();
     }
   } catch (error) {
+    if (isTransientOfflineError(error)) {
+      console.warn('Firestore sementara offline saat memuat workspace, menunggu sinkronisasi otomatis...', error);
+      return;
+    }
     handleFirestoreError(error, OperationType.WRITE, wsPath);
   }
 }

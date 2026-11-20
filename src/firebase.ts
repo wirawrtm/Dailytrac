@@ -65,6 +65,26 @@ export function handleFirestoreError(
   throw new Error(JSON.stringify(errInfo));
 }
 
+export function isTransientOfflineError(error: unknown): boolean {
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { code?: unknown }).code || '')
+      : '';
+  const msg =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : String(error || '').toLowerCase();
+
+  return (
+    code === 'unavailable' ||
+    code === 'deadline-exceeded' ||
+    msg.includes('client is offline') ||
+    msg.includes('failed to get document because the client is offline') ||
+    msg.includes('could not reach cloud firestore backend') ||
+    msg.includes('network error')
+  );
+}
+
 export async function testConnection(): Promise<boolean> {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
