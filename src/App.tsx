@@ -21,44 +21,40 @@ import { DailyScheduleView } from './components/DailyScheduleView';
 import { MonthlyScheduleView } from './components/MonthlyScheduleView';
 import { TaskBoardView } from './components/TaskBoardView';
 import { SettingsView } from './components/SettingsView';
-import { AppsScriptHubView } from './components/AppsScriptHubView';
 import { DatabaseView } from './components/DatabaseView';
 import { EventModal } from './components/EventModal';
 import { EventDetailDrawer } from './components/EventDetailDrawer';
 import { NotificationModal } from './components/NotificationModal';
 import { SettingsModal } from './components/SettingsModal';
 import { formatDateToISO } from './utils/dateUtils';
-import { 
-  syncDeleteDepartmentToSpreadsheet, 
-  syncDepartmentToSpreadsheet,
-  syncTaskToSpreadsheet,
-  syncTaskDeleteToSpreadsheet,
-  syncTaskStatusToSpreadsheet,
-  fetchTasksFromSpreadsheet,
-  fetchDepartmentsFromSpreadsheet,
-  bulkSyncTasksToSpreadsheet,
-  bulkSyncDepartmentsToSpreadsheet,
-  deduplicateTasks
-} from './services/webhookSyncService';
+import {
+  ensurePermanentWorkspace,
+  subscribeWorkspaceProfile,
+  subscribeTasks,
+  subscribeDepartments,
+  updateWorkspaceProfileInFirestore,
+  saveTaskToFirestore,
+  updateTaskStatusInFirestore,
+  updateTaskSubtasksInFirestore,
+  deleteTaskFromFirestore,
+  saveDepartmentToFirestore,
+  deleteDepartmentAndTasksFromFirestore,
+  resetWorkspaceDataInFirestore,
+  sanitizeFirestoreId,
+  deduplicateTasks,
+} from './services/firebaseDbService';
 
-const STORAGE_KEY_EVENTS = 'tasklio_events_v200_live_spreadsheet';
-const STORAGE_KEY_FILTERS = 'tasklio_filters_v200_live_spreadsheet';
-const STORAGE_KEY_DEPARTMENTS = 'tasklio_departments_v200_live_spreadsheet';
+const STORAGE_KEY_FILTERS = 'tasklio_filters_firebase';
 
 export default function App() {
-  // Purge all old legacy storage keys on mount to guarantee zero leftover dummy data
+  // Purge legacy spreadsheet/appscript localStorage keys on mount
   useEffect(() => {
     try {
       Object.keys(localStorage).forEach((key) => {
         if (
           key.startsWith('tasklio_') &&
-          key !== STORAGE_KEY_EVENTS &&
           key !== STORAGE_KEY_FILTERS &&
-          key !== STORAGE_KEY_DEPARTMENTS &&
-          key !== 'tasklio_appscript_webhook_url' &&
-          key !== 'tasklio_appscript_code_v2' &&
-          key !== 'tasklio_appscript_notes_v2' &&
-          key !== 'tasklio_appscript_title_v2'
+          key !== 'tasklio_workspace_email'
         ) {
           localStorage.removeItem(key);
         }
@@ -68,55 +64,17 @@ export default function App() {
     }
   }, []);
 
-  // Initial State: 100% clean, empty dummy data, only synced from spreadsheet or local storage
-  const [events, setEvents] = useState<TaskEvent[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_EVENTS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return deduplicateTasks(parsed.map((e: any) => ({
-            ...e,
-            title: (e.title && String(e.title).trim()) || e.task || e.name || (e.description && String(e.description).trim()) || 'Tugas Tanpa Judul'
-          })));
-        }
-      }
-    } catch {
-      // fallback
-    }
-    return [];
-  });
+  const [firestoreError, setFirestoreError] = useState<Error | null>(null);
+  if (firestoreError) {
+    throw firestoreError;
+  }
 
-  const [departments, setDepartments] = useState<DepartmentItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_DEPARTMENTS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasBuy = parsed.some((d: any) => d.outline === 'Buy');
-          if (!hasBuy) {
-            return [
-              ...parsed,
-              { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
-            ];
-          }
-          return parsed;
-        }
-      }
-    } catch {
-      // fallback
-    }
-    return DEFAULT_DEPARTMENTS;
-  });
+  // Initial State: populated from permanent Firestore real-time listeners
+  const [events, setEvents] = useState<TaskEvent[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+  const [departments, setDepartments] = useState<DepartmentItem[]>(DEFAULT_DEPARTMENTS);
 
-  const [filters, setFilters] = useState<FilterState>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_FILTERS);
-      return stored ? JSON.parse(stored) : INITIAL_FILTERS;
-    } catch {
-      return INITIAL_FILTERS;
-    }
-  });
+  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
 
   const [user, setUser] = useState<UserProfile>(CURRENT_USER);
 
@@ -135,13 +93,15 @@ export default function App() {
   const [isMobileBarsHidden, setIsMobileBarsHidden] = useState(false);
 
   const mobileScrollRef = useRef<{
-    lastTopMap: WeakMap<HTMLElement, number>;
+    activeTarget: HTMLElement | null;
+    lastTop: number;
     accumulatedDelta: number;
     lastDirection: 'up' | 'down' | null;
     lockUntil: number;
     touchStartY: number | null;
   }>({
-    lastTopMap: new WeakMap(),
+    activeTarget: null,
+    lastTop: 0,
     accumulatedDelta: 0,
     lastDirection: null,
     lockUntil: 0,
@@ -173,64 +133,66 @@ export default function App() {
     }, 3000);
   };
 
-  // Auto-fetch tasks & departments from Google Spreadsheet on initial load if Webhook URL exists
+  // Initialize permanent Firestore workspace + real-time subscriptions on mount
   useEffect(() => {
-    async function initSpreadsheetSync() {
+    let cancelled = false;
+    let unsubWorkspace: (() => void) | undefined;
+    let unsubTasks: (() => void) | undefined;
+    let unsubDepts: (() => void) | undefined;
+
+    let savedLocalEmail = CURRENT_USER.email;
+    try {
+      const storedEmail = localStorage.getItem('tasklio_workspace_email');
+      if (storedEmail) savedLocalEmail = storedEmail;
+    } catch {
+      // ignore
+    }
+
+    const fallbackProfile: UserProfile = {
+      ...CURRENT_USER,
+      email: savedLocalEmail,
+    };
+    setUser(fallbackProfile);
+
+    async function setupFirestore() {
       try {
-        const [taskRes, deptRes] = await Promise.all([
-          fetchTasksFromSpreadsheet(),
-          fetchDepartmentsFromSpreadsheet()
-        ]);
+        await ensurePermanentWorkspace();
+        if (cancelled) return;
 
-        let activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
-          ? deptRes.departments
-          : (taskRes.success && taskRes.departments && taskRes.departments.length > 0)
-          ? taskRes.departments
-          : null;
-
-        if (activeDepartments && activeDepartments.length > 0) {
-          if (!activeDepartments.some((d) => d.outline === 'Buy')) {
-            activeDepartments = [
-              ...activeDepartments,
-              { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
-            ];
+        unsubWorkspace = subscribeWorkspaceProfile(fallbackProfile, (profile) => {
+          if (!cancelled) {
+            setUser((prev) => ({
+              ...profile,
+              email: prev.email || savedLocalEmail,
+            }));
           }
-          setDepartments(activeDepartments);
-          try {
-            localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
-          } catch (e) {
-            console.error(e);
+        });
+        unsubTasks = subscribeTasks((liveTasks) => {
+          if (!cancelled) {
+            setEvents(liveTasks);
+            setIsLoadingData(false);
           }
+        });
+        unsubDepts = subscribeDepartments((liveDepts) => {
+          if (!cancelled && liveDepts.length > 0) setDepartments(liveDepts);
+        });
+      } catch (err: any) {
+        if (!cancelled) {
+          setIsLoadingData(false);
+          setFirestoreError(err instanceof Error ? err : new Error(String(err)));
         }
-
-        if (taskRes.success && Array.isArray(taskRes.tasks)) {
-          const cleanedTasks = deduplicateTasks(taskRes.tasks.map((t: any) => ({
-            ...t,
-            title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
-          })));
-          setEvents(cleanedTasks);
-          try {
-            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
-          } catch (e) {
-            console.error(e);
-          }
-          console.log(`[Spreadsheet Sync] ${cleanedTasks.length} tugas & ${activeDepartments?.length || 0} departemen dimuat dari Google Spreadsheet`);
-        }
-      } catch (e) {
-        console.error('Spreadsheet sync error:', e);
       }
     }
-    initSpreadsheetSync();
-  }, []);
 
-  // Persist to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
-    } catch (e) {
-      console.error('Failed to save events to localStorage', e);
-    }
-  }, [events]);
+    setupFirestore();
+
+    return () => {
+      cancelled = true;
+      unsubWorkspace?.();
+      unsubTasks?.();
+      unsubDepts?.();
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -239,14 +201,6 @@ export default function App() {
       console.error('Failed to save filters to localStorage', e);
     }
   }, [filters]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(departments));
-    } catch (e) {
-      console.error('Failed to save departments to localStorage', e);
-    }
-  }, [departments]);
 
   // Filtered events based on Top Header Outline Dropdown, Department checkboxes & search query
   const filteredEvents = useMemo(() => {
@@ -312,74 +266,50 @@ export default function App() {
   };
 
   const handleAddDepartment = (newDept: DepartmentItem) => {
-    setDepartments((prev) => {
-      const updated = [...prev, newDept];
-      try {
-        localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
+    const safeDept: DepartmentItem = {
+      ...newDept,
+      id: sanitizeFirestoreId(newDept.id || newDept.name, 'dept'),
+    };
+    setDepartments((prev) => [...prev, safeDept]);
+    setFilters((prev) => ({ ...prev, [safeDept.name]: false }));
+
+    saveDepartmentToFirestore(safeDept).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
-    setFilters((prev) => {
-      const updated = { ...prev, [newDept.name]: false };
-      try {
-        localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
-    syncDepartmentToSpreadsheet(newDept).catch((err) => {
-      console.log('Spreadsheet department add sync:', err);
-    });
-    showToast(`Departemen "${newDept.name}" berhasil ditambahkan ke database & spreadsheet!`);
+    showToast(`Departemen "${safeDept.name}" berhasil disimpan ke Firebase Firestore!`);
   };
 
   const handleRemoveDepartment = (deptId: string) => {
     const targetDept = departments.find((d) => d.id === deptId || d.name === deptId);
     const deptName = targetDept ? targetDept.name : deptId;
+    const targetFirestoreId = targetDept ? targetDept.id : deptId;
 
-    const updatedDepts = departments.filter((d) => d.id !== deptId && d.name !== deptId);
-    setDepartments(updatedDepts);
+    const relatedTaskIds = events
+      .filter((e) => (e.department || e.subtitle || '').toLowerCase().trim() === deptName.toLowerCase().trim())
+      .map((e) => e.id);
 
+    setDepartments((prev) => prev.filter((d) => d.id !== deptId && d.name !== deptId));
     setFilters((prev) => {
       const next = { ...prev };
       delete next[deptId];
       delete next[deptName];
-      try {
-        localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(next));
-      } catch (e) {
-        console.error(e);
-      }
       return next;
     });
-
-    // Clean up tasks belonging to the removed department
-    setEvents((prev) => {
-      const updatedEvents = prev.filter(
+    setEvents((prev) =>
+      prev.filter(
         (e) => (e.department || e.subtitle || '').toLowerCase().trim() !== deptName.toLowerCase().trim()
-      );
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
-      } catch (e) {
-        console.error(e);
-      }
-      return updatedEvents;
+      )
+    );
+
+    deleteDepartmentAndTasksFromFirestore(
+      targetFirestoreId,
+      deptName,
+      relatedTaskIds
+    ).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
 
-    try {
-      localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(updatedDepts));
-    } catch (e) {
-      console.error(e);
-    }
-
-    // Trigger Google Apps Script Webhook sync to delete department row from Google Spreadsheet
-    syncDeleteDepartmentToSpreadsheet(deptId, deptName).catch((err) => {
-      console.log('Spreadsheet department delete sync:', err);
-    });
-
-    showToast(`Departemen "${deptName}" dan tugas terkait berhasil dihapus dari database & spreadsheet!`);
+    showToast(`Departemen "${deptName}" dan tugas terkait berhasil dihapus dari Firestore!`);
   };
 
   const handleOpenCreateModal = (defaultDate?: string, defaultHour?: number) => {
@@ -400,54 +330,40 @@ export default function App() {
   };
 
   const handleSaveEvent = (savedEvent: TaskEvent) => {
-    setEvents((prev) => {
-      const exists = prev.some((e) => e.id === savedEvent.id);
-      const updated = deduplicateTasks(
-        exists
-          ? prev.map((e) => (e.id === savedEvent.id ? savedEvent : e))
-          : [...prev, savedEvent]
-      );
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+    const safeId = sanitizeFirestoreId(savedEvent.id, 'evt');
+    const normalizedEvent: TaskEvent = { ...savedEvent, id: safeId };
+    const exists = events.some((e) => e.id === normalizedEvent.id);
 
-    if (selectedEventDetails?.id === savedEvent.id) {
-      setSelectedEventDetails(savedEvent);
+    setEvents((prev) =>
+      deduplicateTasks(
+        exists
+          ? prev.map((e) => (e.id === normalizedEvent.id ? normalizedEvent : e))
+          : [...prev, normalizedEvent]
+      )
+    );
+
+    if (selectedEventDetails?.id === normalizedEvent.id) {
+      setSelectedEventDetails(normalizedEvent);
     }
 
-    // Trigger Google Apps Script Webhook sync to save task to Google Spreadsheet
-    syncTaskToSpreadsheet(savedEvent, departments).catch((err) => {
-      console.log('Spreadsheet task save sync:', err);
+    saveTaskToFirestore(normalizedEvent, departments, exists).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
 
-    showToast(`Tugas "${savedEvent.title}" berhasil disimpan!`);
+    showToast(`Tugas "${normalizedEvent.title}" berhasil disimpan ke Firebase!`);
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    const targetTask = events.find((e) => e.id === eventId);
-    setEvents((prev) => {
-      const updated = prev.filter((e) => e.id !== eventId);
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+    setEvents((prev) => prev.filter((e) => e.id !== eventId));
     if (selectedEventDetails?.id === eventId) {
       setSelectedEventDetails(null);
     }
 
-    // Trigger Google Apps Script Webhook sync to delete task from Google Spreadsheet
-    syncTaskDeleteToSpreadsheet(eventId, targetTask?.title).catch((err) => {
-      console.log('Spreadsheet task delete sync:', err);
+    deleteTaskFromFirestore(eventId).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
 
-    showToast('Tugas berhasil dihapus');
+    showToast('Tugas berhasil dihapus dari Firebase');
   };
 
   const handleToggleEventStatus = (eventId: string) => {
@@ -457,32 +373,17 @@ export default function App() {
     const nextStatus: TaskEvent['status'] = targetTask.status === 'completed' ? 'pending' : 'completed';
     const updatedTask: TaskEvent = { ...targetTask, status: nextStatus };
 
-    // 1. Update events state & localStorage
-    setEvents((prev) => {
-      const updatedEvents = prev.map((e) => (e.id === eventId ? updatedTask : e));
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
-      } catch (e) {
-        console.error(e);
-      }
-      return updatedEvents;
-    });
-
-    // 2. Update active drawer modal state if open
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? updatedTask : e)));
     if (selectedEventDetails?.id === eventId) {
       setSelectedEventDetails(updatedTask);
     }
 
-    // 3. Immediately trigger Google Apps Script Webhook sync sequentially to avoid duplicate row race conditions
-    syncTaskStatusToSpreadsheet(eventId, nextStatus)
-      .then(() => syncTaskToSpreadsheet(updatedTask, departments))
-      .catch((err) => {
-        console.log('Spreadsheet task status sync:', err);
-      });
+    updateTaskStatusInFirestore(eventId, nextStatus).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+    });
 
-    // 4. Show toast notification feedback
     const statusLabel = nextStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
-    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di database!`);
+    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di Firebase!`);
   };
 
   const handleUpdateEventStatus = (eventId: string, newStatus: TaskEvent['status']) => {
@@ -491,108 +392,51 @@ export default function App() {
 
     const updatedTask: TaskEvent = { ...targetTask, status: newStatus };
 
-    // 1. Update events state & localStorage
-    setEvents((prev) => {
-      const updatedEvents = prev.map((e) => (e.id === eventId ? updatedTask : e));
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
-      } catch (e) {
-        console.error(e);
-      }
-      return updatedEvents;
-    });
-
-    // 2. Update active drawer modal state if open
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? updatedTask : e)));
     if (selectedEventDetails?.id === eventId) {
       setSelectedEventDetails(updatedTask);
     }
 
-    // 3. Immediately trigger Google Apps Script Webhook sync sequentially to avoid duplicate row race conditions
-    syncTaskStatusToSpreadsheet(eventId, newStatus)
-      .then(() => syncTaskToSpreadsheet(updatedTask, departments))
-      .catch((err) => {
-        console.log('Spreadsheet task status sync:', err);
-      });
+    updateTaskStatusInFirestore(eventId, newStatus).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+    });
 
-    // 4. Show toast notification feedback
     const statusLabel = newStatus === 'completed' ? 'Selesai (Complete)' : 'Belum Selesai (Pending)';
-    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di database!`);
+    showToast(`Status tugas "${updatedTask.title}" diperbarui ke ${statusLabel} di Firebase!`);
   };
 
   const handleToggleSubtask = (eventId: string, subtaskId: string) => {
-    setEvents((prev) => {
-      const updatedEvents = prev.map((e) => {
-        if (e.id === eventId && e.subtasks) {
-          const updatedSubtasks = e.subtasks.map((st) =>
-            st.id === subtaskId ? { ...st, completed: !st.completed } : st
-          );
-          const updated = { ...e, subtasks: updatedSubtasks };
-          if (selectedEventDetails?.id === eventId) {
-            setSelectedEventDetails(updated);
-          }
-          return updated;
-        }
-        return e;
-      });
-      try {
-        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(updatedEvents));
-      } catch (e) {
-        console.error(e);
-      }
-      return updatedEvents;
+    const targetTask = events.find((e) => e.id === eventId);
+    if (!targetTask || !targetTask.subtasks) return;
+
+    const updatedSubtasks = targetTask.subtasks.map((st) =>
+      st.id === subtaskId ? { ...st, completed: !st.completed } : st
+    );
+    const updatedTask: TaskEvent = { ...targetTask, subtasks: updatedSubtasks };
+
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? updatedTask : e)));
+    if (selectedEventDetails?.id === eventId) {
+      setSelectedEventDetails(updatedTask);
+    }
+
+    updateTaskSubtasksInFirestore(eventId, updatedSubtasks).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
   };
 
-  const handleSyncSpreadsheet = async () => {
-    showToast('Menghubungi Google Spreadsheet...');
-    try {
-      const [fetchRes, deptRes] = await Promise.all([
-        fetchTasksFromSpreadsheet(),
-        fetchDepartmentsFromSpreadsheet()
-      ]);
-
-      let activeDepartments = (deptRes.success && deptRes.departments && deptRes.departments.length > 0)
-        ? deptRes.departments
-        : (fetchRes.success && fetchRes.departments && fetchRes.departments.length > 0)
-        ? fetchRes.departments
-        : (deptRes.success && deptRes.departments)
-        ? deptRes.departments
-        : null;
-
-      if (activeDepartments) {
-        if (!activeDepartments.some((d) => d.outline === 'Buy')) {
-          activeDepartments = [
-            ...activeDepartments,
-            { id: 'Procurement', name: 'Procurement', outline: 'Buy', colorTheme: 'peach', dotColor: 'bg-amber-500' }
-          ];
-        }
-        setDepartments(activeDepartments);
-        try {
-          localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(activeDepartments));
-        } catch (e) {
-          console.error(e);
-        }
+  const handleUpdateUser = (updated: Partial<UserProfile>) => {
+    const nextUser = { ...user, ...updated };
+    setUser(nextUser);
+    if (updated.email) {
+      try {
+        localStorage.setItem('tasklio_workspace_email', updated.email);
+      } catch {
+        // ignore
       }
-
-      if (fetchRes.success && Array.isArray(fetchRes.tasks)) {
-        const cleanedTasks = deduplicateTasks(fetchRes.tasks.map((t: any) => ({
-          ...t,
-          title: (t.title && String(t.title).trim()) || t.task || t.name || (t.description && String(t.description).trim()) || 'Tugas Tanpa Judul'
-        })));
-        setEvents(cleanedTasks);
-        try {
-          localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(cleanedTasks));
-        } catch (e) {
-          console.error(e);
-        }
-        showToast(`Sinkronisasi Berhasil: ${cleanedTasks.length} tugas & ${activeDepartments ? activeDepartments.length : departments.length} departemen dimuat langsung dari Google Spreadsheet!`);
-      } else {
-        // If fetch returned error or no webhook, notify user
-        showToast(fetchRes.error || 'Gagal mengambil data dari Google Spreadsheet.');
-      }
-    } catch (err: any) {
-      showToast('Gagal menyinkronkan: ' + (err.message || 'Kesalahan jaringan'));
     }
+    updateWorkspaceProfileInFirestore(user, updated).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+    });
   };
 
   const handleResetData = () => {
@@ -601,14 +445,14 @@ export default function App() {
     setFilters(INITIAL_FILTERS);
     setDepartments(DEFAULT_DEPARTMENTS);
     setSelectedDate(new Date());
-    try {
-      localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(freshEvents));
-      localStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(INITIAL_FILTERS));
-      localStorage.setItem(STORAGE_KEY_DEPARTMENTS, JSON.stringify(DEFAULT_DEPARTMENTS));
-    } catch (e) {
-      console.error('Failed to reset localStorage', e);
-    }
-    showToast('Data tugas & kalender berhasil dipulihkan!');
+
+    resetWorkspaceDataInFirestore(
+      events.map((e) => e.id),
+      departments.map((d) => d.id)
+    ).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+    });
+    showToast('Data tugas di Firebase Firestore berhasil direset!');
   };
 
   const handleToggleFullscreen = () => {
@@ -629,21 +473,28 @@ export default function App() {
 
   const handleMobileScrollCapture = (e: React.UIEvent<HTMLDivElement>) => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
-    if (isSidebarOpen) return;
+    if (isSidebarOpen || isProfileMenuOpen) return;
 
     const target = e.target as HTMLElement | null;
     if (!target) return;
 
-    // Ignore horizontal-only scroll containers (e.g. Minggu 1-5 pill strip)
+    // Ignore horizontal-only or barely overflowing containers
     if (target.scrollHeight <= target.clientHeight + 24) return;
 
     const maxScroll = Math.max(0, target.scrollHeight - target.clientHeight);
     const currentTop = Math.max(0, Math.min(target.scrollTop, maxScroll));
     const state = mobileScrollRef.current;
-    const prevTop = state.lastTopMap.get(target);
-    state.lastTopMap.set(target, currentTop);
 
-    if (prevTop === undefined) return;
+    if (state.activeTarget !== target) {
+      state.activeTarget = target;
+      state.lastTop = currentTop;
+      state.accumulatedDelta = 0;
+      state.lastDirection = null;
+      return;
+    }
+
+    const prevTop = state.lastTop;
+    state.lastTop = currentTop;
 
     const now = Date.now();
     if (now < state.lockUntil) {
@@ -652,20 +503,20 @@ export default function App() {
       return;
     }
 
-    // Reveal bars immediately when scrolled back near the top
-    if (currentTop <= 10 && isMobileBarsHidden) {
+    // Reveal bars smoothly when scrolled back to the top
+    if (currentTop <= 16 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 100;
+      state.lockUntil = now + 420;
       setIsMobileBarsHidden(false);
       return;
     }
 
-    // Do not hide bars if the container barely overflows (prevents ping-pong resize loops)
-    if (maxScroll < 140 && !isMobileBarsHidden) return;
+    // Require ample overflow before hiding so collapsing bars (~128px) never clamps scrollTop
+    if (maxScroll < 240 && !isMobileBarsHidden) return;
 
-    // Ignore rubber-band / overscroll jitter right at the bottom edge
-    if (maxScroll > 40 && currentTop >= maxScroll - 6) return;
+    // Ignore rubber-band / overscroll bounce near the bottom edge
+    if (maxScroll > 60 && currentTop >= maxScroll - 24) return;
 
     const delta = currentTop - prevTop;
     if (Math.abs(delta) < 2) return;
@@ -678,15 +529,15 @@ export default function App() {
       state.accumulatedDelta += delta;
     }
 
-    if (dir === 'down' && state.accumulatedDelta > 72 && currentTop > 64 && !isMobileBarsHidden) {
+    if (dir === 'down' && state.accumulatedDelta > 90 && currentTop > 72 && !isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 100;
+      state.lockUntil = now + 420;
       setIsMobileBarsHidden(true);
-    } else if (dir === 'up' && state.accumulatedDelta < -56 && isMobileBarsHidden) {
+    } else if (dir === 'up' && state.accumulatedDelta < -75 && isMobileBarsHidden) {
       state.accumulatedDelta = 0;
       state.lastDirection = null;
-      state.lockUntil = now + 100;
+      state.lockUntil = now + 420;
       setIsMobileBarsHidden(false);
     }
   };
@@ -698,7 +549,7 @@ export default function App() {
 
   const handleMobileTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
-    if (!isMobileBarsHidden) return;
+    if (!isMobileBarsHidden || isSidebarOpen || isProfileMenuOpen) return;
     const startY = mobileScrollRef.current.touchStartY;
     if (startY === null) return;
     const currentY = e.touches[0]?.clientY;
@@ -707,14 +558,20 @@ export default function App() {
     if (now < mobileScrollRef.current.lockUntil) return;
 
     const diffY = currentY - startY;
-    // Deliberate downward pull reveals hidden bars even when scroll container is at top
-    if (diffY > 72) {
+    // Deliberate downward pull reveals hidden bars even when scroll container is already at top
+    if (diffY > 85) {
       mobileScrollRef.current.touchStartY = currentY;
       mobileScrollRef.current.accumulatedDelta = 0;
       mobileScrollRef.current.lastDirection = null;
-      mobileScrollRef.current.lockUntil = now + 100;
+      mobileScrollRef.current.lockUntil = now + 420;
       setIsMobileBarsHidden(false);
     }
+  };
+
+  const handleMobileTouchEnd = () => {
+    mobileScrollRef.current.touchStartY = null;
+    mobileScrollRef.current.accumulatedDelta = 0;
+    mobileScrollRef.current.lastDirection = null;
   };
 
   return (
@@ -790,6 +647,8 @@ export default function App() {
             onScrollCapture={handleMobileScrollCapture}
             onTouchStart={handleMobileTouchStart}
             onTouchMove={handleMobileTouchMove}
+            onTouchEnd={handleMobileTouchEnd}
+            onTouchCancel={handleMobileTouchEnd}
             className="flex-1 flex flex-row min-w-0 min-h-0 overflow-hidden h-full relative"
           >
             {/* Mobile Backdrop when Sidebar is open on Phone */}
@@ -842,6 +701,9 @@ export default function App() {
                 onSelectDate={setSelectedDate}
                 onChangeView={setViewMode}
                 events={filteredEvents}
+                totalEventsCount={events.length}
+                isLoading={isLoadingData}
+                onResetOutlineFilter={() => setOutlineFilter('all')}
                 departments={departments}
                 onOpenCreateModal={handleOpenCreateModal}
                 onSelectEvent={(e) => setSelectedEventDetails(e)}
@@ -876,7 +738,7 @@ export default function App() {
             {viewMode === 'settings' && (
               <SettingsView
                 user={user}
-                onUpdateUser={(updated) => setUser({ ...user, ...updated })}
+                onUpdateUser={handleUpdateUser}
                 departments={departments}
                 onAddDepartment={handleAddDepartment}
                 onRemoveDepartment={handleRemoveDepartment}
@@ -889,20 +751,10 @@ export default function App() {
               />
             )}
 
-            {viewMode === 'appscript' && (
-              <AppsScriptHubView
-                onShowToast={showToast}
-                onBackToCalendar={() => setViewMode('weekly')}
-                onSyncSpreadsheet={handleSyncSpreadsheet}
-              />
-            )}
-
             {viewMode === 'database' && (
               <DatabaseView
                 events={events}
                 departments={departments}
-                onSyncSpreadsheet={handleSyncSpreadsheet}
-                onShowToast={showToast}
                 onOpenCreateModal={() => handleOpenCreateModal()}
               />
             )}
@@ -947,7 +799,7 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         user={user}
-        onUpdateUser={(updated) => setUser({ ...user, ...updated })}
+        onUpdateUser={handleUpdateUser}
         onResetData={handleResetData}
       />
     </div>

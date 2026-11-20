@@ -3,6 +3,7 @@ import { X, Calendar, Building2, FileText, CheckCircle2, Trash2, ChevronDown, Ch
 import { TaskEvent, EventColorTheme, DepartmentItem, WorkOutline } from '../types';
 import { DEFAULT_DEPARTMENTS } from '../data/initialData';
 import { formatDateToISO } from '../utils/dateUtils';
+import { TASK_FIELD_LIMITS } from '../services/firebaseDbService';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -391,6 +392,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             <input
               type="text"
               required
+              maxLength={TASK_FIELD_LIMITS.TITLE_MAX}
               value={task}
               onChange={(e) => setTask(e.target.value)}
               placeholder="e.g. Standup Meeting, UX Audit Sync, Client Presentation..."
@@ -405,6 +407,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             </label>
             <textarea
               rows={3}
+              maxLength={TASK_FIELD_LIMITS.DESCRIPTION_MAX}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add detailed task description, agenda, or notes..."

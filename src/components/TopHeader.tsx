@@ -69,11 +69,11 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className={
+      className={`md:hidden flex items-center justify-between px-1.5 py-0 bg-transparent text-slate-900 select-none shrink-0 relative z-30 transition-[max-height,opacity,transform,margin] duration-200 ease-out motion-reduce:transition-none ${
         isMobileHidden
-          ? 'hidden'
-          : 'md:hidden flex items-center justify-between px-1.5 py-0 h-12 mb-1.5 bg-transparent text-slate-900 select-none shrink-0 relative z-30'
-      }
+          ? 'max-h-0 opacity-0 mb-0 -translate-y-2 pointer-events-none overflow-hidden'
+          : 'h-12 max-h-12 opacity-100 mb-1.5 translate-y-0 overflow-visible'
+      }`}
     >
       {/* Left: Sidebar Toggle + Month Navigator (Month click opens calendar picker) */}
       <div className="flex items-center gap-1.5 shrink-0">
@@ -171,18 +171,6 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
               <div className="py-1">
                 <button
                   onClick={() => {
-                    onSelectView('appscript');
-                    onOpenProfileMenu();
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer font-semibold"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span>Apps Script Hub</span>
-                    <span className="text-[9px] bg-rose-100 text-rose-700 font-bold px-1.5 py-0.2 rounded-full uppercase">TMP</span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
                     onSelectView('settings');
                     onOpenProfileMenu();
                   }}
@@ -194,7 +182,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
                   onClick={onResetData}
                   className="w-full text-left px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center justify-between cursor-pointer font-medium"
                 >
-                  <span>Reset Demo Events</span>
+                  <span>Reset Workspace Data</span>
                 </button>
               </div>
             </div>
@@ -623,18 +611,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <div className="py-1">
                 <button
                   onClick={() => {
-                    onSelectView('appscript');
-                    onOpenProfileMenu();
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer font-semibold"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span>Apps Script Hub</span>
-                    <span className="text-[9px] bg-rose-100 text-rose-700 font-bold px-1.5 py-0.2 rounded-full uppercase">TMP</span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
                     onSelectView('settings');
                     onOpenProfileMenu();
                   }}
@@ -646,7 +622,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   onClick={onResetData}
                   className="w-full text-left px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center justify-between cursor-pointer font-medium"
                 >
-                  <span>Reset Demo Events</span>
+                  <span>Reset Workspace Data</span>
                 </button>
               </div>
             </div>

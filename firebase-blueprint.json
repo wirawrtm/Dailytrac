@@ -1,0 +1,231 @@
+{
+  "entities": {
+    "WorkspaceProfile": {
+      "title": "WorkspaceProfile",
+      "description": "Permanent non-PII workspace profile and preferences.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Fixed permanent workspace identifier ('primary').",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the workspace.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar URL or SVG data URL.",
+          "maxLength": 10000
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Preferred timezone label.",
+          "maxLength": 60
+        },
+        "role": {
+          "type": "string",
+          "description": "Workspace role label.",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when workspace was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when workspace was last updated."
+        }
+      },
+      "required": ["id", "name", "timezone", "createdAt", "updatedAt"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A scheduled daily/weekly task event in the permanent workspace.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique task identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "workspaceId": {
+          "type": "string",
+          "description": "Parent workspace identifier ('primary').",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the task.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "outline": {
+          "type": "string",
+          "enum": ["Work", "Improvement", "Buy"],
+          "description": "Primary work outline category."
+        },
+        "department": {
+          "type": "string",
+          "description": "Department name associated with the task.",
+          "maxLength": 120
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Secondary department/subtitle label.",
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed notes or agenda for the task.",
+          "maxLength": 2000
+        },
+        "date": {
+          "type": "string",
+          "description": "Scheduled date in YYYY-MM-DD format.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Optional due date in YYYY-MM-DD format or empty string.",
+          "maxLength": 10
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Display start time string.",
+          "maxLength": 20
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Display end time string.",
+          "maxLength": 20
+        },
+        "startHour": {
+          "type": "number",
+          "description": "Start hour on timeline (0-24)."
+        },
+        "durationHours": {
+          "type": "number",
+          "description": "Duration in hours."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["meetings", "due_dates", "milestones", "deadlines", "personal", "birthdays"],
+          "description": "Event category."
+        },
+        "colorTheme": {
+          "type": "string",
+          "enum": ["purple", "indigo", "cyan", "peach", "pink", "emerald"],
+          "description": "Color theme token."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed", "cancelled"],
+          "description": "Current completion status."
+        },
+        "location": {
+          "type": "string",
+          "description": "Optional physical or virtual location.",
+          "maxLength": 300
+        },
+        "meetingLink": {
+          "type": "string",
+          "description": "Optional meeting URL.",
+          "maxLength": 500
+        },
+        "subtasks": {
+          "type": "array",
+          "description": "Bounded checklist of subtasks (max 50 items)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when task was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when task was last updated."
+        }
+      },
+      "required": ["id", "workspaceId", "title", "outline", "department", "date", "status", "category", "colorTheme", "startHour", "durationHours", "createdAt", "updatedAt"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "A workspace department belonging to a work outline.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Sanitized document identifier for the department.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "workspaceId": {
+          "type": "string",
+          "description": "Parent workspace identifier ('primary').",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable department name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "outline": {
+          "type": "string",
+          "enum": ["Work", "Improvement", "Buy"],
+          "description": "Default work outline for this department."
+        },
+        "colorTheme": {
+          "type": "string",
+          "enum": ["purple", "indigo", "cyan", "peach", "pink", "emerald"],
+          "description": "Color theme token."
+        },
+        "dotColor": {
+          "type": "string",
+          "description": "Tailwind dot color class.",
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when department was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when department was last updated."
+        }
+      },
+      "required": ["id", "workspaceId", "name", "outline", "colorTheme", "dotColor", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/workspaces/{workspaceId}": {
+      "schema": { "$ref": "#/entities/WorkspaceProfile" },
+      "description": "Permanent workspace root document ('primary')."
+    },
+    "/workspaces/{workspaceId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Permanent workspace tasks collection stored in Firestore."
+    },
+    "/workspaces/{workspaceId}/departments/{deptId}": {
+      "schema": { "$ref": "#/entities/Department" },
+      "description": "Permanent workspace departments collection stored in Firestore."
+    }
+  }
+}

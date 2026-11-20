@@ -1,0 +1,253 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Global Safety Net (Default Deny)
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // Global Helpers
+    // =========================================================================
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isPermanentWorkspace(workspaceId) {
+      return workspaceId == 'primary';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function parentWorkspaceExists(workspaceId) {
+      return exists(/databases/$(database)/documents/workspaces/$(workspaceId));
+    }
+
+    function parentWorkspaceExistsOrCreating(workspaceId) {
+      return exists(/databases/$(database)/documents/workspaces/$(workspaceId))
+        || existsAfter(/databases/$(database)/documents/workspaces/$(workspaceId));
+    }
+
+    // =========================================================================
+    // Entity Validation Blueprints
+    // =========================================================================
+    function isValidWorkspace(data, workspaceId) {
+      return data.keys().hasAll(['id', 'name', 'timezone', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'avatar', 'timezone', 'role', 'createdAt', 'updatedAt'])
+        && data.id is string
+        && data.id == workspaceId
+        && isValidId(data.id)
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 100
+        && data.timezone is string
+        && data.timezone.size() >= 1
+        && data.timezone.size() <= 60
+        && (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 10000))
+        && (!('role' in data) || (data.role is string && data.role.size() <= 60))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSubtaskList(subtasks) {
+      return subtasks is list
+        && subtasks.size() <= 50
+        && (
+          subtasks.size() == 0
+          || (
+            subtasks[0] is map
+            && subtasks[0].keys().hasAll(['id', 'title', 'completed'])
+            && subtasks[0].keys().hasOnly(['id', 'title', 'completed'])
+            && subtasks[0].id is string
+            && subtasks[0].id.size() >= 1
+            && subtasks[0].id.size() <= 128
+            && subtasks[0].title is string
+            && subtasks[0].title.size() >= 1
+            && subtasks[0].title.size() <= 300
+            && subtasks[0].completed is bool
+          )
+        );
+    }
+
+    function isValidTask(data, workspaceId, taskId) {
+      return data.keys().hasAll([
+          'id', 'workspaceId', 'title', 'outline', 'department', 'date',
+          'status', 'category', 'colorTheme', 'startHour', 'durationHours',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'workspaceId', 'title', 'outline', 'department', 'subtitle',
+          'description', 'date', 'dueDate', 'startTime', 'endTime',
+          'startHour', 'durationHours', 'category', 'colorTheme', 'status',
+          'location', 'meetingLink', 'subtasks', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string
+        && data.id == taskId
+        && isValidId(data.id)
+        && data.workspaceId is string
+        && data.workspaceId == workspaceId
+        && data.workspaceId == 'primary'
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 300
+        && data.outline in ['Work', 'Improvement', 'Buy']
+        && data.department is string
+        && data.department.size() >= 1
+        && data.department.size() <= 120
+        && (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 120))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
+        && data.date is string
+        && data.date.size() == 10
+        && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && (!('dueDate' in data) || (data.dueDate is string && (data.dueDate == '' || (data.dueDate.size() == 10 && data.dueDate.matches('^\\d{4}-\\d{2}-\\d{2}$')))))
+        && (!('startTime' in data) || (data.startTime is string && data.startTime.size() <= 20))
+        && (!('endTime' in data) || (data.endTime is string && data.endTime.size() <= 20))
+        && (data.startHour is int || data.startHour is float)
+        && data.startHour >= 0
+        && data.startHour <= 24
+        && (data.durationHours is int || data.durationHours is float)
+        && data.durationHours > 0
+        && data.durationHours <= 24
+        && data.category in ['meetings', 'due_dates', 'milestones', 'deadlines', 'personal', 'birthdays']
+        && data.colorTheme in ['purple', 'indigo', 'cyan', 'peach', 'pink', 'emerald']
+        && data.status in ['pending', 'in_progress', 'completed', 'cancelled']
+        && (!('location' in data) || (data.location is string && data.location.size() <= 300))
+        && (!('meetingLink' in data) || (data.meetingLink is string && data.meetingLink.size() <= 500))
+        && (!('subtasks' in data) || isValidSubtaskList(data.subtasks))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDepartment(data, workspaceId, deptId) {
+      return data.keys().hasAll(['id', 'workspaceId', 'name', 'outline', 'colorTheme', 'dotColor', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'workspaceId', 'name', 'outline', 'colorTheme', 'dotColor', 'createdAt', 'updatedAt'])
+        && data.id is string
+        && data.id == deptId
+        && isValidId(data.id)
+        && data.workspaceId is string
+        && data.workspaceId == workspaceId
+        && data.workspaceId == 'primary'
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 120
+        && data.outline in ['Work', 'Improvement', 'Buy']
+        && data.colorTheme in ['purple', 'indigo', 'cyan', 'peach', 'pink', 'emerald']
+        && data.dotColor is string
+        && data.dotColor.size() >= 1
+        && data.dotColor.size() <= 40
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // =========================================================================
+    // Collection: /workspaces/{workspaceId} (Scoped exclusively to 'primary')
+    // =========================================================================
+    match /workspaces/{workspaceId} {
+      allow get: if isValidId(workspaceId) && isPermanentWorkspace(workspaceId);
+      allow list: if false;
+
+      allow create: if isPermanentWorkspace(workspaceId)
+        && isValidId(workspaceId)
+        && isValidWorkspace(incoming(), workspaceId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isPermanentWorkspace(workspaceId)
+        && isValidId(workspaceId)
+        && isValidWorkspace(incoming(), workspaceId)
+        && incoming().id == existing().id
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatar', 'timezone', 'role', 'updatedAt']);
+
+      allow delete: if false;
+
+      // =======================================================================
+      // Subcollection: /workspaces/{workspaceId}/tasks/{taskId}
+      // =======================================================================
+      match /tasks/{taskId} {
+        allow get: if isValidId(workspaceId) && isValidId(taskId) && isPermanentWorkspace(workspaceId);
+        allow list: if isValidId(workspaceId) && isPermanentWorkspace(workspaceId) && existing().workspaceId == 'primary';
+
+        allow create: if isPermanentWorkspace(workspaceId)
+          && isValidId(workspaceId)
+          && isValidId(taskId)
+          && isValidTask(incoming(), workspaceId, taskId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && parentWorkspaceExistsOrCreating(workspaceId);
+
+        allow update: if isPermanentWorkspace(workspaceId)
+          && isValidId(workspaceId)
+          && isValidId(taskId)
+          && isValidTask(incoming(), workspaceId, taskId)
+          && incoming().id == existing().id
+          && incoming().workspaceId == existing().workspaceId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && existing().status != 'cancelled'
+          && parentWorkspaceExists(workspaceId)
+          && (
+            // Action 1: Toggle task status
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+            ||
+            // Action 2: Toggle subtasks checklist
+            incoming().diff(existing()).affectedKeys().hasOnly(['subtasks', 'updatedAt'])
+            ||
+            // Action 3: Edit task fields
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'outline', 'department', 'subtitle', 'description',
+              'date', 'dueDate', 'startTime', 'endTime', 'startHour',
+              'durationHours', 'category', 'colorTheme', 'status',
+              'location', 'meetingLink', 'subtasks', 'updatedAt'
+            ])
+          );
+
+        allow delete: if isPermanentWorkspace(workspaceId)
+          && isValidId(taskId)
+          && existing().workspaceId == 'primary';
+      }
+
+      // =======================================================================
+      // Subcollection: /workspaces/{workspaceId}/departments/{deptId}
+      // =======================================================================
+      match /departments/{deptId} {
+        allow get: if isValidId(workspaceId) && isValidId(deptId) && isPermanentWorkspace(workspaceId);
+        allow list: if isValidId(workspaceId) && isPermanentWorkspace(workspaceId) && existing().workspaceId == 'primary';
+
+        allow create: if isPermanentWorkspace(workspaceId)
+          && isValidId(workspaceId)
+          && isValidId(deptId)
+          && isValidDepartment(incoming(), workspaceId, deptId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && parentWorkspaceExistsOrCreating(workspaceId);
+
+        allow update: if isPermanentWorkspace(workspaceId)
+          && isValidId(workspaceId)
+          && isValidId(deptId)
+          && isValidDepartment(incoming(), workspaceId, deptId)
+          && incoming().id == existing().id
+          && incoming().workspaceId == existing().workspaceId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && parentWorkspaceExists(workspaceId)
+          && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'outline', 'colorTheme', 'dotColor', 'updatedAt']);
+
+        allow delete: if isPermanentWorkspace(workspaceId)
+          && isValidId(deptId)
+          && existing().workspaceId == 'primary';
+      }
+    }
+  }
+}

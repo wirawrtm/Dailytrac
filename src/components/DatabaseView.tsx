@@ -1,56 +1,31 @@
 import React, { useState } from 'react';
 import { 
   Database, 
-  RefreshCw, 
-  ExternalLink, 
   Search, 
-  Filter, 
   CheckCircle2, 
   Clock, 
   Building2, 
-  FileSpreadsheet, 
-  Download, 
   Layers, 
-  ArrowUpRight,
   Sparkles,
-  Link2
 } from 'lucide-react';
 import { TaskEvent, DepartmentItem } from '../types';
-import { getSavedWebhookUrl } from '../data/appsScriptCode';
 
 interface DatabaseViewProps {
   events: TaskEvent[];
   departments: DepartmentItem[];
-  onSyncSpreadsheet: () => Promise<void>;
-  onShowToast?: (msg: string) => void;
   onOpenCreateModal?: () => void;
 }
 
 export const DatabaseView: React.FC<DatabaseViewProps> = ({
   events,
   departments,
-  onSyncSpreadsheet,
-  onShowToast,
   onOpenCreateModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'tasks' | 'departments'>('tasks');
   const [searchQuery, setSearchQuery] = useState('');
   const [outlineFilter, setOutlineFilter] = useState<'all' | 'Work' | 'Improvement' | 'Buy'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
-  const [isSyncing, setIsSyncing] = useState(false);
 
-  const webhookUrl = getSavedWebhookUrl();
-
-  const handleManualSync = async () => {
-    setIsSyncing(true);
-    try {
-      await onSyncSpreadsheet();
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // Filter tasks for the table view
   const filteredTasks = events.filter((t) => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch = !q || 
@@ -78,38 +53,29 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
             <Database className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Database Mirroring
+                Firebase Firestore Database
               </h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                <FileSpreadsheet className="w-3 h-3 stroke-[2.5]" />
-                <span>Google Spreadsheet Live</span>
+                <Sparkles className="w-3 h-3 stroke-[2.5]" />
+                <span>Firestore Live Real-Time</span>
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Tampilan cermin (mirroring) tabel database yang tersinkron 100% sama dengan Google Spreadsheet Anda.
+              Seluruh tugas dan departemen tersimpan permanen di Cloud Firestore (workspaces/primary) secara real-time.
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5] ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang'}</span>
-          </button>
-
           {onOpenCreateModal && (
             <button
               onClick={onOpenCreateModal}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#f6c445] hover:bg-[#eab32f] text-slate-900 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
             >
-              <span>+ Tambah Baris Tugas</span>
+              <span>+ Tambah Tugas ke Firestore</span>
             </button>
           )}
         </div>
@@ -122,18 +88,18 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Baris Tasks</p>
-              <h3 className="text-xl font-bold text-slate-900 mt-0.5">{events.length} Baris</h3>
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Dokumen Tasks</p>
+              <h3 className="text-xl font-bold text-slate-900 mt-0.5">{events.length} Dokumen</h3>
             </div>
             <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
-              <FileSpreadsheet className="w-4.5 h-4.5" />
+              <Layers className="w-4.5 h-4.5" />
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pending Task</p>
-              <h3 className="text-xl font-bold text-amber-600 mt-0.5">{pendingCount} Baris</h3>
+              <h3 className="text-xl font-bold text-amber-600 mt-0.5">{pendingCount} Dokumen</h3>
             </div>
             <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
               <Clock className="w-4.5 h-4.5" />
@@ -143,7 +109,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Complete Task</p>
-              <h3 className="text-xl font-bold text-emerald-600 mt-0.5">{completedCount} Baris</h3>
+              <h3 className="text-xl font-bold text-emerald-600 mt-0.5">{completedCount} Dokumen</h3>
             </div>
             <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <CheckCircle2 className="w-4.5 h-4.5" />
@@ -152,7 +118,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
 
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Departments Sheet</p>
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Departments</p>
               <h3 className="text-xl font-bold text-indigo-600 mt-0.5">{departments.length} Kategori</h3>
             </div>
             <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -163,7 +129,6 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
 
         {/* Tab & Controls Bar */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-          {/* Tab Selector: Tasks vs Departments Sheet */}
           <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl">
             <button
               onClick={() => setActiveTab('tasks')}
@@ -173,8 +138,8 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Sheet "Tasks" ({events.length})</span>
+              <Database className="w-3.5 h-3.5" />
+              <span>Collection &quot;tasks&quot; ({events.length})</span>
             </button>
 
             <button
@@ -186,11 +151,10 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Sheet "Departments" ({departments.length})</span>
+              <span>Collection &quot;departments&quot; ({departments.length})</span>
             </button>
           </div>
 
-          {/* Search & Filters (only for tasks) */}
           {activeTab === 'tasks' && (
             <div className="flex items-center gap-2 flex-wrap flex-1 justify-end min-w-0">
               <div className="relative min-w-[180px] sm:min-w-[240px]">
@@ -204,7 +168,6 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                 />
               </div>
 
-              {/* Outline Filter */}
               <select
                 value={outlineFilter}
                 onChange={(e) => setOutlineFilter(e.target.value as any)}
@@ -216,7 +179,6 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                 <option value="Buy">Buy</option>
               </select>
 
-              {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -230,21 +192,21 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
           )}
         </div>
 
-        {/* Tab 1: Tasks Mirroring Table (Exact 9 Columns matching Google Spreadsheet) */}
+        {/* Tab 1: Firestore Tasks Collection */}
         {activeTab === 'tasks' && (
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
             <div className="px-4 py-3 bg-emerald-50/60 border-b border-emerald-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span className="text-xs font-bold text-emerald-950">
-                  Google Sheet Tab: <code>Tasks</code>
+                  Firestore Collection: <code>tasks</code>
                 </span>
                 <span className="text-[11px] text-emerald-700">
-                  (9 Kolom: Task ID, Task Title, Outline, Department, Description, Date, Due Date, Status, Last Modified)
+                  (Real-time synced fields: ID, Title, Outline, Department, Description, Date, Due Date, Status)
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-emerald-800">
-                {filteredTasks.length} baris ditampilkan
+                {filteredTasks.length} dokumen ditampilkan
               </span>
             </div>
 
@@ -253,14 +215,14 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                 <thead>
                   <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
                     <th className="py-2.5 px-3 w-10 text-center text-slate-400">#</th>
-                    <th className="py-2.5 px-3.5 font-mono">A: Task ID</th>
-                    <th className="py-2.5 px-3.5">B: Task Title</th>
-                    <th className="py-2.5 px-3.5">C: Outline</th>
-                    <th className="py-2.5 px-3.5">D: Department</th>
-                    <th className="py-2.5 px-3.5">E: Description</th>
-                    <th className="py-2.5 px-3.5">F: Date</th>
-                    <th className="py-2.5 px-3.5">G: Due Date</th>
-                    <th className="py-2.5 px-3.5">H: Status</th>
+                    <th className="py-2.5 px-3.5 font-mono">Task ID</th>
+                    <th className="py-2.5 px-3.5">Task Title</th>
+                    <th className="py-2.5 px-3.5">Outline</th>
+                    <th className="py-2.5 px-3.5">Department</th>
+                    <th className="py-2.5 px-3.5">Description</th>
+                    <th className="py-2.5 px-3.5">Date</th>
+                    <th className="py-2.5 px-3.5">Due Date</th>
+                    <th className="py-2.5 px-3.5">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -269,21 +231,21 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                       <td colSpan={9} className="py-12 text-center text-slate-500 text-xs">
                         <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
                           <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                            <FileSpreadsheet className="w-5 h-5" />
+                            <Database className="w-5 h-5" />
                           </div>
-                          <p className="font-bold text-slate-800 text-sm">Belum Ada Data Tugas dari Spreadsheet</p>
+                          <p className="font-bold text-slate-800 text-sm">Belum Ada Dokumen Tugas di Firestore</p>
                           <p className="text-slate-500 text-xs text-center">
-                            Data dummy bawaan telah dibersihkan 100%. Klik tombol di bawah untuk menarik seluruh baris data langsung dari Google Spreadsheet Anda.
+                            Tambahkan tugas baru untuk langsung menyimpannya ke Firebase Firestore.
                           </p>
-                          <button
-                            type="button"
-                            onClick={handleManualSync}
-                            disabled={isSyncing}
-                            className="mt-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
-                          >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                            <span>Tarik Data Dari Google Spreadsheet</span>
-                          </button>
+                          {onOpenCreateModal && (
+                            <button
+                              type="button"
+                              onClick={onOpenCreateModal}
+                              className="mt-2 px-4 py-2 rounded-xl bg-[#00796b] hover:bg-[#00695c] text-white font-bold text-xs cursor-pointer shadow-xs active:scale-95"
+                            >
+                              + Tambah Tugas
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -344,21 +306,21 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
           </div>
         )}
 
-        {/* Tab 2: Departments Mirroring Table (5 Columns matching Google Spreadsheet) */}
+        {/* Tab 2: Firestore Departments Collection */}
         {activeTab === 'departments' && (
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
                 <span className="text-xs font-bold text-slate-900">
-                  Google Sheet Tab: <code>Departments</code>
+                  Firestore Collection: <code>departments</code>
                 </span>
                 <span className="text-[11px] text-slate-500">
-                  (5 Kolom: Dept ID, Dept Name, Outline Default, Color Theme, Dot Color)
+                  (Fields: Dept ID, Dept Name, Outline Default, Color Theme, Dot Color)
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-slate-700">
-                {departments.length} baris
+                {departments.length} dokumen
               </span>
             </div>
 
@@ -367,11 +329,11 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                 <thead>
                   <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
                     <th className="py-2.5 px-3 w-10 text-center text-slate-400">#</th>
-                    <th className="py-2.5 px-3.5 font-mono">A: Dept ID</th>
-                    <th className="py-2.5 px-3.5">B: Dept Name</th>
-                    <th className="py-2.5 px-3.5">C: Outline Default</th>
-                    <th className="py-2.5 px-3.5">D: Color Theme</th>
-                    <th className="py-2.5 px-3.5">E: Dot Color</th>
+                    <th className="py-2.5 px-3.5 font-mono">Dept ID</th>
+                    <th className="py-2.5 px-3.5">Dept Name</th>
+                    <th className="py-2.5 px-3.5">Outline Default</th>
+                    <th className="py-2.5 px-3.5">Color Theme</th>
+                    <th className="py-2.5 px-3.5">Dot Color</th>
                     <th className="py-2.5 px-3.5 text-right">Tugas Terkait</th>
                   </tr>
                 </thead>
@@ -383,19 +345,10 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                           <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
                             <Building2 className="w-5 h-5" />
                           </div>
-                          <p className="font-bold text-slate-800 text-sm">Belum Ada Data Departemen dari Spreadsheet</p>
+                          <p className="font-bold text-slate-800 text-sm">Belum Ada Dokumen Departemen di Firestore</p>
                           <p className="text-slate-500 text-xs text-center">
-                            Tab <code>Departments</code> di Google Sheet Anda masih kosong atau belum disinkronkan.
+                            Tambahkan departemen baru melalui halaman Settings.
                           </p>
-                          <button
-                            type="button"
-                            onClick={handleManualSync}
-                            disabled={isSyncing}
-                            className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 disabled:opacity-50"
-                          >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                            <span>Tarik Departemen Dari Spreadsheet</span>
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -405,43 +358,43 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                         e => (e.department || e.subtitle || '').toLowerCase() === dept.name.toLowerCase()
                       ).length;
 
-                    return (
-                      <tr key={dept.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">
-                          {idx + 1}
-                        </td>
-                        <td className="py-2.5 px-3.5 font-mono text-[11px] font-bold text-slate-800">
-                          {dept.id}
-                        </td>
-                        <td className="py-2.5 px-3.5 font-bold text-slate-900 flex items-center gap-2">
-                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dept.dotColor}`} />
-                          <span>{dept.name}</span>
-                        </td>
-                        <td className="py-2.5 px-3.5">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                            dept.outline === 'Improvement' 
-                              ? 'bg-purple-50 text-purple-700 border border-purple-200' 
-                              : dept.outline === 'Buy'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            {dept.outline}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
-                          {dept.colorTheme}
-                        </td>
-                        <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
-                          {dept.dotColor}
-                        </td>
-                        <td className="py-2.5 px-3.5 text-right font-mono font-bold text-slate-700">
-                          {taskCount} task
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
+                      return (
+                        <tr key={dept.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">
+                            {idx + 1}
+                          </td>
+                          <td className="py-2.5 px-3.5 font-mono text-[11px] font-bold text-slate-800">
+                            {dept.id}
+                          </td>
+                          <td className="py-2.5 px-3.5 font-bold text-slate-900 flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dept.dotColor}`} />
+                            <span>{dept.name}</span>
+                          </td>
+                          <td className="py-2.5 px-3.5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              dept.outline === 'Improvement' 
+                                ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                                : dept.outline === 'Buy'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}>
+                              {dept.outline}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
+                            {dept.colorTheme}
+                          </td>
+                          <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
+                            {dept.dotColor}
+                          </td>
+                          <td className="py-2.5 px-3.5 text-right font-mono font-bold text-slate-700">
+                            {taskCount} task
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
               </table>
             </div>
           </div>

@@ -26,6 +26,9 @@ interface DailyScheduleViewProps {
   onSelectDate: (date: Date) => void;
   onChangeView?: (view: ViewMode) => void;
   events: TaskEvent[];
+  totalEventsCount?: number;
+  isLoading?: boolean;
+  onResetOutlineFilter?: () => void;
   departments?: DepartmentItem[];
   onOpenCreateModal: (defaultDate?: string, defaultHour?: number) => void;
   onSelectEvent: (event: TaskEvent) => void;
@@ -97,37 +100,68 @@ const getEventIconConfig = (event: TaskEvent, outline: string, index: number) =>
 export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   selectedDate,
   onSelectDate,
+  onChangeView,
   events,
+  totalEventsCount,
+  isLoading = false,
+  onResetOutlineFilter,
   departments = DEFAULT_DEPARTMENTS,
   onOpenCreateModal,
   onSelectEvent,
   onToggleEventStatus,
 }) => {
   const selectedIso = formatDateToISO(selectedDate);
+  const allCount = totalEventsCount ?? events.length;
   const dayEvents = useMemo(() => {
     return events.filter((e) => e.date === selectedIso);
   }, [events, selectedIso]);
 
-  // Sliding 3-day window for Jour 1, Jour 2, Jour 3 tabs
+  const nearestDateInfo = useMemo(() => {
+    if (events.length === 0) return null;
+    const uniqueDates = Array.from(
+      new Set(events.map((e) => e.date).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)))
+    ).sort();
+    if (uniqueDates.length === 0) return null;
+
+    const pastOrSame = uniqueDates.filter((d) => d < selectedIso);
+    const targetIso =
+      pastOrSame.length > 0
+        ? pastOrSame[pastOrSame.length - 1]
+        : uniqueDates.find((d) => d > selectedIso) || uniqueDates[uniqueDates.length - 1];
+
+    if (!targetIso || targetIso === selectedIso) return null;
+    const [y, m, day] = targetIso.split('-').map(Number);
+    const targetDate = new Date(y, m - 1, day);
+    const tasksOnDate = events.filter((e) => e.date === targetIso);
+    return {
+      iso: targetIso,
+      date: targetDate,
+      label: targetDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+      tasks: tasksOnDate,
+    };
+  }, [events, selectedIso]);
+
+  // Sliding 3-day window for Hari 1, Hari 2, Hari 3 tabs
   const daysTabs = useMemo(() => {
-    const tabs: { date: Date; iso: string; dayIndex: number; label: string; dateStr: string }[] = [];
+    const tabs: { date: Date; iso: string; dayIndex: number; label: string; dateStr: string; count: number }[] = [];
     const base = new Date(selectedDate);
-    // Display 3 days starting from current selectedDate or anchor
     for (let i = 0; i < 3; i++) {
       const d = new Date(base);
       d.setDate(base.getDate() + i);
       const iso = formatDateToISO(d);
       const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      const count = events.filter((e) => e.date === iso).length;
       tabs.push({
         date: d,
         iso,
         dayIndex: i + 1,
         label: `Hari ${i + 1}`,
-        dateStr
+        dateStr,
+        count,
       });
     }
     return tabs;
-  }, [selectedDate]);
+  }, [selectedDate, events]);
 
   const handlePrevDay = () => {
     const d = new Date(selectedDate);
@@ -178,10 +212,17 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                   onClick={() => onSelectDate(tab.date)}
                   className="flex flex-col items-center group cursor-pointer text-center relative"
                 >
-                  <span className={`text-xs sm:text-sm font-bold transition-colors ${
+                  <span className={`text-xs sm:text-sm font-bold transition-colors flex items-center gap-1 ${
                     isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-700'
                   }`}>
-                    {tab.label}
+                    <span>{tab.label}</span>
+                    {tab.count > 0 && (
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                        isActive ? 'bg-[#e6f4f2] text-[#00796b]' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
                   </span>
                   <span className={`text-[11px] sm:text-xs transition-colors mt-0.5 ${
                     isActive ? 'text-slate-500 font-medium' : 'text-slate-400 group-hover:text-slate-600'
@@ -189,7 +230,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                     {tab.dateStr}
                   </span>
                   {isActive && (
-                    <div className="h-0.5 w-10 bg-[#4fa397] rounded-full mt-2 animate-in fade-in duration-200" />
+                    <div className="h-0.5 w-10 bg-[#4fa397] rounded-full mt-2" />
                   )}
                 </button>
               );
@@ -208,15 +249,122 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         </div>
 
         {/* Timeline & Cards Section */}
-        {dayEvents.length === 0 ? (
+        {isLoading && events.length === 0 ? (
           <div className="py-16 text-center flex flex-col items-center justify-center my-auto">
-            <div className="w-16 h-16 rounded-3xl bg-[#e6f4f2] text-[#4fa397] flex items-center justify-center mb-3.5 shadow-xs">
-              <CalendarIcon className="w-8 h-8 stroke-[2.2]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#e6f4f2] text-[#4fa397] flex items-center justify-center mb-3.5 animate-pulse">
+              <Clock className="w-6 h-6 stroke-[2.2]" />
             </div>
-            <h3 className="text-base font-bold text-slate-800">Tidak ada agenda pada hari ini</h3>
+            <h3 className="text-base font-bold text-slate-800">Memuat data dari Firebase...</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
-              Buat agenda harian Anda teratur dan produktif dengan menambahkan tugas baru.
+              Menyinkronkan jadwal harian dan tugas dari Cloud Firestore.
             </p>
+          </div>
+        ) : dayEvents.length === 0 ? (
+          <div className="py-8 sm:py-12 text-center flex flex-col items-center justify-center my-auto gap-4">
+            <div className="w-14 h-14 rounded-3xl bg-[#e6f4f2] text-[#4fa397] flex items-center justify-center shadow-xs">
+              <CalendarIcon className="w-7 h-7 stroke-[2.2]" />
+            </div>
+
+            {events.length === 0 && allCount > 0 ? (
+              <div className="flex flex-col items-center gap-2">
+                <h3 className="text-base font-bold text-slate-800">
+                  Tidak ada agenda pada filter Outline ini
+                </h3>
+                <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                  Terdapat {allCount} tugas di Firebase Firestore, namun tersembunyi oleh filter Outline aktif.
+                </p>
+                {onResetOutlineFilter && (
+                  <button
+                    type="button"
+                    onClick={onResetOutlineFilter}
+                    className="mt-1 px-4 py-2 rounded-full bg-[#4fa397] hover:bg-[#439285] text-white text-xs font-bold cursor-pointer shadow-xs"
+                  >
+                    Tampilkan Semua Outline ({allCount})
+                  </button>
+                )}
+              </div>
+            ) : events.length > 0 && nearestDateInfo ? (
+              <div className="w-full flex flex-col items-center gap-3.5">
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">
+                    Tidak ada agenda pada {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
+                    Tersedia <strong className="text-[#00796b]">{events.length} tugas</strong> tersimpan permanen di Firebase (terakhir pada <strong>{nearestDateInfo.label}</strong>).
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelectDate(nearestDateInfo.date)}
+                    className="px-4 py-2 rounded-full bg-[#4fa397] hover:bg-[#439285] text-white text-xs font-bold cursor-pointer shadow-xs transition-colors"
+                  >
+                    Buka {nearestDateInfo.label} ({nearestDateInfo.tasks.length} Tugas)
+                  </button>
+                  {onChangeView && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onChangeView('weekly')}
+                        className="px-4 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold cursor-pointer shadow-2xs transition-colors"
+                      >
+                        Lihat Weekly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onChangeView('tasks')}
+                        className="px-4 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold cursor-pointer shadow-2xs transition-colors"
+                      >
+                        Semua Tugas ({events.length})
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Compact preview of the most recent date's tasks so data is immediately visible */}
+                <div className="w-full max-w-md mt-2 text-left bg-white rounded-[24px] p-4 shadow-[0_10px_25px_-4px_rgba(0,0,0,0.05),0_4px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
+                    <span>Tugas Terakhir ({nearestDateInfo.label})</span>
+                    <button
+                      type="button"
+                      onClick={() => onSelectDate(nearestDateInfo.date)}
+                      className="text-[#00796b] hover:underline cursor-pointer normal-case"
+                    >
+                      Lihat tanggal ini &rarr;
+                    </button>
+                  </div>
+                  {nearestDateInfo.tasks.slice(0, 3).map((ev) => (
+                    <div
+                      key={ev.id}
+                      onClick={() => onSelectEvent(ev)}
+                      className="flex items-center justify-between gap-3 px-3 py-2 rounded-2xl bg-slate-50/80 hover:bg-[#e6f4f2]/60 cursor-pointer transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-slate-900 truncate">{ev.title}</p>
+                        <p className="text-[10.5px] text-slate-400 truncate">
+                          {ev.department || ev.subtitle || 'Operasional'} &middot; {ev.outline || 'Work'}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                        ev.status === 'completed'
+                          ? 'bg-[#e6f4f2] text-[#4fa397]'
+                          : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {ev.status === 'completed' ? 'Selesai' : 'Pending'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-base font-bold text-slate-800">Tidak ada agenda pada hari ini</h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                  Buat agenda harian Anda teratur dan produktif dengan menambahkan tugas baru.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="relative pl-7 sm:pl-9 py-2 flex flex-col gap-4 sm:gap-5">

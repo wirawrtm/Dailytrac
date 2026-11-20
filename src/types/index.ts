@@ -56,7 +56,7 @@ export interface DepartmentItem {
   dotColor: string;
 }
 
-export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'tasks' | 'settings' | 'appscript' | 'database';
+export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'tasks' | 'settings' | 'database';
 
 export interface UserProfile {
   name: string;

@@ -4,7 +4,6 @@ import {
   CheckSquare, 
   Settings, 
   Plus,
-  Code2,
   Database
 } from 'lucide-react';
 import { ViewMode } from '../types';
@@ -27,10 +26,10 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex-row md:flex-col items-center px-4 max-md:py-0 md:px-0 md:py-6 justify-around md:justify-between select-none z-20 ${
+    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 max-md:py-0 md:px-0 md:py-6 justify-around md:justify-between select-none z-20 max-md:transition-[max-height,opacity,transform,margin] max-md:duration-200 max-md:ease-out max-md:overflow-hidden motion-reduce:transition-none ${
       isMobileHidden
-        ? 'hidden md:flex'
-        : 'flex max-md:h-16 max-md:mt-2.5'
+        ? 'max-md:max-h-0 max-md:opacity-0 max-md:mt-0 max-md:translate-y-2 max-md:pointer-events-none max-md:border-0 max-md:shadow-none'
+        : 'max-md:h-16 max-md:max-h-16 max-md:opacity-100 max-md:mt-2.5 max-md:translate-y-0'
     } ${
       isFullscreen
         ? 'border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
@@ -47,7 +46,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
           <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#8bc3ba] ring-2 ring-white"></span>
         </button>
 
-        {/* Navigation Items: Calendar & Daily Task Tracker & Apps Script (Temp) & Google Sheet DB */}
+        {/* Navigation Items: Calendar, Daily Task Tracker & Firebase Firestore DB */}
         <nav className="contents md:flex md:flex-col items-center md:gap-3">
           {/* Calendar (Active with sage teal #4fa397) */}
           <button
@@ -75,10 +74,10 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             <CheckSquare className="w-4.5 h-4.5 stroke-[2.2]" />
           </button>
 
-          {/* Database Mirroring (Spreadsheet Mirror) */}
+          {/* Database Mirroring (Firebase Firestore) */}
           <button
             onClick={() => onSelectView('database')}
-            title="Database Mirroring (Google Spreadsheet)"
+            title="Database Firebase Firestore"
             className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 ${
               currentView === 'database'
                 ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
@@ -86,22 +85,6 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             }`}
           >
             <Database className="w-4.5 h-4.5 stroke-[2.2]" />
-          </button>
-
-          {/* Apps Script (Temporary Menu) */}
-          <button
-            onClick={() => onSelectView('appscript')}
-            title="Apps Script Code & Updates (Temporary)"
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 relative ${
-              currentView === 'appscript'
-                ? 'bg-[#4fa397] text-white shadow-xs font-semibold ring-2 ring-[#4fa397]/20'
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <Code2 className="w-4.5 h-4.5 stroke-[2.2]" />
-            <span className="absolute -top-1 -right-1 text-[7.5px] font-black px-1 py-0.2 rounded-full bg-rose-500 text-white uppercase tracking-tighter">
-              TMP
-            </span>
           </button>
 
         </nav>
