@@ -26,14 +26,14 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 w-full md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 max-md:py-0 md:px-0 md:py-6 justify-around md:justify-between select-none z-20 max-md:transition-[max-height,opacity,transform,margin] max-md:duration-200 max-md:ease-out max-md:overflow-hidden motion-reduce:transition-none ${
+    <aside className={`order-2 md:order-1 md:w-[74px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-4 max-md:py-0 md:px-0 md:py-6 justify-around md:justify-between select-none max-md:fixed max-md:h-16 max-md:z-30 md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
       isMobileHidden
-        ? 'max-md:max-h-0 max-md:opacity-0 max-md:mt-0 max-md:translate-y-2 max-md:pointer-events-none max-md:border-0 max-md:shadow-none'
-        : 'max-md:h-16 max-md:max-h-16 max-md:opacity-100 max-md:mt-2.5 max-md:translate-y-0'
+        ? 'max-md:translate-y-[calc(100%+24px)] max-md:opacity-0 max-md:pointer-events-none'
+        : 'max-md:translate-y-0 max-md:opacity-100'
     } ${
       isFullscreen
-        ? 'border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
-        : 'border border-slate-200/80 rounded-[24px] shadow-xl md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[34px] md:shadow-xl'
+        ? 'max-md:bottom-0 max-md:left-0 max-md:right-0 border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
+        : 'max-md:bottom-2.5 max-md:left-2.5 max-md:right-2.5 border border-slate-200/80 rounded-[24px] shadow-xl md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[34px] md:shadow-xl'
     }`}>
       {/* Create New Task Action Button */}
       <div className="contents md:flex md:flex-col items-center md:gap-5">

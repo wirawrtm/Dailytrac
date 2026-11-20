@@ -183,7 +183,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-slate-50/40 overflow-y-auto select-none p-4 sm:p-6 md:p-8">
+    <div className="flex-1 flex flex-col min-w-0 bg-slate-50/40 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] max-md:pb-24 select-none p-4 sm:p-6 md:p-8">
       <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
         {/* Top Page Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs">

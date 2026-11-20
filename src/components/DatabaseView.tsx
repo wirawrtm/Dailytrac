@@ -45,7 +45,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
   const completedCount = events.filter(e => e.status === 'completed').length;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50/60 overflow-y-auto select-none">
+    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-50/60 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] max-md:pb-24 select-none">
       {/* Top Header */}
       <div className="px-4 sm:px-6 py-4 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">

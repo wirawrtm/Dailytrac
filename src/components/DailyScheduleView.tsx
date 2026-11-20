@@ -28,6 +28,7 @@ interface DailyScheduleViewProps {
   events: TaskEvent[];
   totalEventsCount?: number;
   isLoading?: boolean;
+  isMobileBarsHidden?: boolean;
   onResetOutlineFilter?: () => void;
   departments?: DepartmentItem[];
   onOpenCreateModal: (defaultDate?: string, defaultHour?: number) => void;
@@ -104,6 +105,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   events,
   totalEventsCount,
   isLoading = false,
+  isMobileBarsHidden = false,
   onResetOutlineFilter,
   departments = DEFAULT_DEPARTMENTS,
   onOpenCreateModal,
@@ -178,7 +180,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-[#fbfcfb] overflow-hidden select-none relative h-full">
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-5 sm:py-7 flex flex-col gap-6 max-w-2xl mx-auto w-full min-w-0">
+      <div className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-4 sm:px-8 py-5 sm:py-7 flex flex-col gap-6 max-w-2xl mx-auto w-full min-w-0">
         
         {/* Top Header: Back Button + Title ("Planificateur de voyage" style) */}
         <div className="flex items-start gap-4 shrink-0 pt-1">
@@ -472,16 +474,18 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
           </div>
         )}
 
-        {/* Bottom Spacing so button doesn't block last card */}
-        <div className="h-20 shrink-0" />
+        {/* Bottom Spacing so floating button & dock don't block last card */}
+        <div className="h-36 md:h-20 shrink-0" />
       </div>
 
-      {/* Bottom Sticky Action Button ("Organiser mon voyage" style) */}
-      <div className="sticky bottom-0 left-0 right-0 p-4 sm:p-5 bg-gradient-to-t from-[#fbfcfb] via-[#fbfcfb]/95 to-transparent shrink-0 flex justify-center z-20">
+      {/* Bottom Floating Action Button synced smoothly on GPU with mobile dock */}
+      <div className={`max-md:absolute md:sticky bottom-0 left-0 right-0 p-4 sm:p-5 bg-gradient-to-t from-[#fbfcfb] via-[#fbfcfb]/95 to-transparent shrink-0 flex justify-center z-20 pointer-events-none max-md:transition-transform max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
+        isMobileBarsHidden ? 'max-md:translate-y-0' : 'max-md:-translate-y-[74px]'
+      }`}>
         <button
           type="button"
           onClick={() => onOpenCreateModal(selectedIso, 9)}
-          className="w-full max-w-sm py-4 px-8 rounded-full bg-[#4fa397] hover:bg-[#439285] text-white font-bold text-base shadow-lg shadow-[#4fa397]/25 flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+          className="pointer-events-auto w-full max-w-sm py-4 px-8 rounded-full bg-[#4fa397] hover:bg-[#439285] text-white font-bold text-base shadow-lg shadow-[#4fa397]/25 flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
         >
           <Plus className="w-5 h-5 stroke-[2.5]" />
           <span>Buat Tugas Baru</span>

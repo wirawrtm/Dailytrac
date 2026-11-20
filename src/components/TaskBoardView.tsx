@@ -184,7 +184,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 bg-slate-50/50 overflow-y-auto overflow-x-hidden md:overflow-hidden select-none touch-pan-y">
+    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 bg-slate-50/50 overflow-y-auto overflow-x-hidden md:overflow-hidden select-none touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]">
       {/* Top Header */}
       {/* Top Toolbar */}
       <div className="px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-white border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 w-full max-w-full min-w-0">
@@ -445,7 +445,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
       </div>
 
       {/* 2 Columns: Pending Task & Complete */}
-      <div className="flex-1 p-3.5 sm:p-6 md:p-8 w-full max-w-full min-w-0 overflow-x-hidden md:overflow-x-auto">
+      <div className="md:flex-1 p-3.5 pb-28 sm:p-6 max-md:pb-28 md:p-8 w-full max-w-full min-w-0 md:overflow-x-auto md:min-h-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto md:h-full items-start w-full min-w-0">
           {columns.map((col) => {
             const isExpanded = expandedColumns[col.status];
@@ -513,7 +513,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
 
                 {/* Cards List (Collapsible with timeline line) */}
                 {isExpanded ? (
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col gap-3.5 pr-1 animate-in fade-in duration-200 min-w-0 pt-1">
+                  <div className="md:flex-1 md:overflow-y-auto md:overflow-x-hidden relative flex flex-col gap-3.5 pr-1 animate-in fade-in duration-200 min-w-0 pt-1">
                     {/* Vertical timeline dashed line running down behind the nodes */}
                     {colEvents.length > 0 && (
                       <div className="absolute left-[11px] sm:left-[12px] top-4 bottom-6 w-0.5 border-l-2 border-dashed border-teal-200 pointer-events-none z-0" />

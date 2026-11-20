@@ -2,13 +2,67 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  memoryLocalCache,
   doc,
   getDocFromServer,
+  type Firestore,
+  type FirestoreSettings,
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+function createFirestoreInstance(): Firestore {
+  const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+  const ua = isBrowser ? navigator.userAgent : '';
+  const isSafariOrIOS =
+    isBrowser &&
+    (/iPhone|iPad|iPod/i.test(ua) ||
+      (/Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|Android/i.test(ua)));
+
+  const settings: FirestoreSettings = {
+    ...(isBrowser
+      ? isSafariOrIOS
+        ? { experimentalForceLongPolling: true }
+        : { experimentalAutoDetectLongPolling: true }
+      : {}),
+  };
+
+  if (isBrowser && typeof indexedDB !== 'undefined') {
+    try {
+      return initializeFirestore(
+        app,
+        {
+          ...settings,
+          localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager(),
+          }),
+        },
+        firebaseConfig.firestoreDatabaseId
+      );
+    } catch {
+      // Fallback if Firestore was already initialized or IndexedDB is unavailable
+    }
+  }
+
+  try {
+    return initializeFirestore(
+      app,
+      {
+        ...settings,
+        localCache: memoryLocalCache(),
+      },
+      firebaseConfig.firestoreDatabaseId
+    );
+  } catch {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+}
+
+export const db: Firestore = createFirestoreInstance();
 export const auth = getAuth(app);
 
 export { firebaseConfig };

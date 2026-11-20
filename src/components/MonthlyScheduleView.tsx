@@ -41,7 +41,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
       </div>
 
       {/* Days Grid */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-5 overflow-y-auto">
+      <div className="flex-1 grid grid-cols-7 grid-rows-5 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] max-md:pb-24">
         {monthGrid.map((item, idx) => {
           const isSelected = item.iso === selectedIso;
           const dayEvents = events.filter((e) => e.date === item.iso);

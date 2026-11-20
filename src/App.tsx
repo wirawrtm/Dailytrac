@@ -28,7 +28,6 @@ import { NotificationModal } from './components/NotificationModal';
 import { SettingsModal } from './components/SettingsModal';
 import { formatDateToISO } from './utils/dateUtils';
 import {
-  ensurePermanentWorkspace,
   subscribeWorkspaceProfile,
   subscribeTasks,
   subscribeDepartments,
@@ -109,12 +108,13 @@ export default function App() {
     touchStartY: null,
   });
 
-  // Always show mobile top/bottom bars when switching views or opening sidebar
+  // Always show mobile bars when switching views, dates, or opening sidebar
   useEffect(() => {
     setIsMobileBarsHidden(false);
+    mobileScrollRef.current.activeTarget = null;
     mobileScrollRef.current.accumulatedDelta = 0;
     mobileScrollRef.current.lastDirection = null;
-  }, [viewMode, isSidebarOpen]);
+  }, [viewMode, selectedDate, isSidebarOpen]);
 
   // Modals & Drawers state
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -185,16 +185,6 @@ export default function App() {
       }
     }
 
-    const runEnsureWorkspace = () => {
-      void ensurePermanentWorkspace().catch((err: any) => {
-        if (!cancelled && !isTransientOfflineError(err)) {
-          setFirestoreError(err instanceof Error ? err : new Error(String(err)));
-        }
-      });
-    };
-
-    runEnsureWorkspace();
-
     const offlineFallbackTimer = window.setTimeout(() => {
       if (!cancelled) {
         setIsLoadingData((stillLoading) => {
@@ -206,17 +196,9 @@ export default function App() {
       }
     }, 11000);
 
-    const handleOnline = () => {
-      if (!cancelled) {
-        runEnsureWorkspace();
-      }
-    };
-    window.addEventListener('online', handleOnline);
-
     return () => {
       cancelled = true;
       window.clearTimeout(offlineFallbackTimer);
-      window.removeEventListener('online', handleOnline);
       unsubWorkspace?.();
       unsubTasks?.();
       unsubDepts?.();
@@ -732,6 +714,7 @@ export default function App() {
                 events={filteredEvents}
                 totalEventsCount={events.length}
                 isLoading={isLoadingData}
+                isMobileBarsHidden={isMobileBarsHidden}
                 onResetOutlineFilter={() => setOutlineFilter('all')}
                 departments={departments}
                 onOpenCreateModal={handleOpenCreateModal}

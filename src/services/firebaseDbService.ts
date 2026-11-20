@@ -256,6 +256,9 @@ function buildDepartmentPayload(
   return payload;
 }
 
+let workspaceSeedAttempted = false;
+let departmentsSeedAttempted = false;
+
 export async function ensurePermanentWorkspace(): Promise<void> {
   const wsPath = `workspaces/${PERMANENT_WORKSPACE_ID}`;
   const wsRef = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID);
@@ -319,6 +322,9 @@ export function subscribeWorkspaceProfile(
           timezone: String(data.timezone || fallbackUser.timezone || 'GMT+07'),
           role: String(data.role || fallbackUser.role || 'Product Lead'),
         });
+      } else if (!snapshot.metadata.fromCache && !workspaceSeedAttempted) {
+        workspaceSeedAttempted = true;
+        void ensurePermanentWorkspace();
       }
     },
     (error) => {
@@ -382,6 +388,10 @@ export function subscribeDepartments(
   return onSnapshot(
     q,
     (snapshot) => {
+      if (snapshot.empty && !snapshot.metadata.fromCache && !departmentsSeedAttempted) {
+        departmentsSeedAttempted = true;
+        void ensurePermanentWorkspace();
+      }
       const list: DepartmentItem[] = snapshot.docs.map((d) => {
         const data = d.data();
         return {
