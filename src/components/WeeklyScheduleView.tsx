@@ -145,7 +145,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden select-none h-full">
+    <div className="flex-1 flex flex-col min-w-0 bg-white max-md:overflow-y-auto max-md:overflow-x-hidden max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] max-md:pt-[96px] md:overflow-hidden select-none h-full">
 
       {/* 2. WEEKLY BUTTONS TOOLBAR (Tombol Weekly untuk fokus ke week yang dipilih) */}
       {weeklyMode === 'month_weeks' && (
@@ -233,10 +233,10 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       {/* 3. MAIN CONTENT: FOKUS MENAMPILKAN WEEKLY YANG DIPILIH */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber !== 'all' && focusedWeek && (
         <div
-          className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border border-slate-200/70 md:border md:border-slate-200/80 shadow-2xs flex flex-col overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] ${
+          className={`flex-1 min-w-0 min-h-0 bg-[#f5f7f6] rounded-3xl md:rounded-[36px] border border-slate-200/70 md:border md:border-slate-200/80 shadow-2xs flex flex-col md:overscroll-y-contain ${
             isSidebarOpen
-              ? 'overflow-y-auto md:overflow-x-auto md:overflow-y-hidden'
-              : 'overflow-y-auto md:overflow-hidden'
+              ? 'md:overflow-x-auto md:overflow-y-hidden'
+              : 'md:overflow-hidden'
           }`}
         >
           <div
@@ -403,7 +403,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 4. ALTERNATIVE: SEMUA MINGGU MATRIX (Jika user mengklik tombol 'Semua Minggu') */}
       {weeklyMode === 'month_weeks' && focusedWeekNumber === 'all' && (
-        <div className="flex-1 min-w-0 min-h-0 overflow-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:pb-24 flex flex-col bg-slate-50/20">
+        <div className="flex-1 min-w-0 min-h-0 max-md:overflow-x-auto md:overflow-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:pb-24 flex flex-col bg-slate-50/20">
           {/* Top Columns Header (SENIN - MINGGU) */}
           <div className="grid grid-cols-[105px_repeat(7,minmax(140px,1fr))] min-w-[1085px] border-b border-slate-200/80 sticky top-0 bg-white z-20 shadow-2xs">
             <div className="p-2 text-[10px] font-bold text-slate-400 font-mono flex items-center justify-center border-r border-slate-100 bg-slate-50/60">
@@ -654,7 +654,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 5. TIMELINE JAM VIEW (Single Week with Hourly Timeline) */}
       {weeklyMode === 'single_week_hours' && (
-        <div className="flex-1 min-w-0 min-h-0 overflow-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:pb-24 flex flex-col">
+        <div className="flex-1 min-w-0 min-h-0 max-md:overflow-x-auto md:overflow-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:pb-24 flex flex-col">
           {/* Header 7 Days (Senin - Minggu) */}
           <div className="grid grid-cols-[80px_repeat(7,minmax(140px,1fr))] min-w-[1060px] border-b border-slate-100 sticky top-0 bg-white z-20 shadow-2xs">
             <div className="p-3 text-[11px] font-bold text-slate-400 font-mono flex items-center justify-center border-r border-slate-100 bg-slate-50/60">

@@ -305,7 +305,8 @@ export async function ensurePermanentWorkspace(): Promise<void> {
 
 export function subscribeWorkspaceProfile(
   fallbackUser: UserProfile,
-  onData: (profile: UserProfile) => void
+  onData: (profile: UserProfile) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
   const path = `workspaces/${PERMANENT_WORKSPACE_ID}`;
   const wsRef = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID);
@@ -324,17 +325,34 @@ export function subscribeWorkspaceProfile(
         });
       } else if (!snapshot.metadata.fromCache && !workspaceSeedAttempted) {
         workspaceSeedAttempted = true;
-        void ensurePermanentWorkspace();
+        ensurePermanentWorkspace().catch((err) => {
+          if (onError) {
+            onError(err instanceof Error ? err : new Error(String(err)));
+          }
+        });
       }
     },
     (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
+      if (isTransientOfflineError(error)) {
+        console.warn('Firestore sementara offline saat sinkronisasi profil workspace.', error);
+        return;
+      }
+      try {
+        handleFirestoreError(error, OperationType.GET, path);
+      } catch (formattedErr) {
+        if (onError) {
+          onError(formattedErr instanceof Error ? formattedErr : new Error(String(formattedErr)));
+        } else {
+          throw formattedErr;
+        }
+      }
     }
   );
 }
 
 export function subscribeTasks(
-  onData: (tasks: TaskEvent[]) => void
+  onData: (tasks: TaskEvent[]) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
   const path = `workspaces/${PERMANENT_WORKSPACE_ID}/tasks`;
   const q = query(
@@ -371,13 +389,26 @@ export function subscribeTasks(
       onData(deduplicateTasks(list));
     },
     (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      if (isTransientOfflineError(error)) {
+        console.warn('Firestore sementara offline saat sinkronisasi tugas.', error);
+        return;
+      }
+      try {
+        handleFirestoreError(error, OperationType.LIST, path);
+      } catch (formattedErr) {
+        if (onError) {
+          onError(formattedErr instanceof Error ? formattedErr : new Error(String(formattedErr)));
+        } else {
+          throw formattedErr;
+        }
+      }
     }
   );
 }
 
 export function subscribeDepartments(
-  onData: (departments: DepartmentItem[]) => void
+  onData: (departments: DepartmentItem[]) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
   const path = `workspaces/${PERMANENT_WORKSPACE_ID}/departments`;
   const q = query(
@@ -390,7 +421,11 @@ export function subscribeDepartments(
     (snapshot) => {
       if (snapshot.empty && !snapshot.metadata.fromCache && !departmentsSeedAttempted) {
         departmentsSeedAttempted = true;
-        void ensurePermanentWorkspace();
+        ensurePermanentWorkspace().catch((err) => {
+          if (onError) {
+            onError(err instanceof Error ? err : new Error(String(err)));
+          }
+        });
       }
       const list: DepartmentItem[] = snapshot.docs.map((d) => {
         const data = d.data();
@@ -405,7 +440,19 @@ export function subscribeDepartments(
       onData(list);
     },
     (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      if (isTransientOfflineError(error)) {
+        console.warn('Firestore sementara offline saat sinkronisasi departemen.', error);
+        return;
+      }
+      try {
+        handleFirestoreError(error, OperationType.LIST, path);
+      } catch (formattedErr) {
+        if (onError) {
+          onError(formattedErr instanceof Error ? formattedErr : new Error(String(formattedErr)));
+        } else {
+          throw formattedErr;
+        }
+      }
     }
   );
 }
@@ -426,7 +473,16 @@ export async function updateWorkspaceProfileInFirestore(
   };
 
   try {
-    await updateDoc(wsRef, merged);
+    const snap = await getDoc(wsRef);
+    if (!snap.exists()) {
+      await setDoc(wsRef, {
+        ...merged,
+        id: PERMANENT_WORKSPACE_ID,
+        createdAt: serverTimestamp(),
+      });
+    } else {
+      await updateDoc(wsRef, merged);
+    }
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }

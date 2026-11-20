@@ -184,7 +184,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 bg-slate-50/50 overflow-y-auto overflow-x-hidden md:overflow-hidden select-none touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 bg-slate-50/50 overflow-y-auto overflow-x-hidden md:overflow-hidden max-md:pt-[96px] select-none touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]">
       {/* Top Header */}
       {/* Top Toolbar */}
       <div className="px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-white border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 w-full max-w-full min-w-0">

@@ -52,6 +52,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
   onResetData,
   isSidebarOpen,
   onToggleSidebar,
+  isFullscreen = false,
   selectedDate,
   onSelectDate,
   onSelectView,
@@ -69,7 +70,13 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className="md:hidden flex items-center justify-between px-1.5 py-0 h-12 mb-1.5 bg-transparent text-slate-900 select-none shrink-0 relative z-30"
+      className={`md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-[54px] px-4 py-1.5 select-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none text-slate-900 ${
+        isFullscreen ? 'bg-white' : 'bg-[#eef3f1]'
+      } ${
+        isMobileHidden
+          ? '-translate-y-full opacity-0 pointer-events-none'
+          : 'translate-y-0 opacity-100'
+      }`}
     >
       {/* Left: Sidebar Toggle + Month Navigator (Month click opens calendar picker) */}
       <div className="flex items-center gap-1.5 shrink-0">
@@ -204,6 +211,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onSelectView,
   outlineFilter = 'all',
   onSelectOutline,
+  isMobileHidden = false,
 }) => {
   const [isCalendarPickerOpen, setIsCalendarPickerOpen] = useState(false);
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
@@ -246,8 +254,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
-    <header className={`py-2 md:py-2.5 px-3 sm:px-4 md:px-5 border-b border-teal-800/30 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3 bg-gradient-to-r from-[#005a50] via-[#00796b] to-[#008d7c] text-white select-none shrink-0 relative z-20 transform-gpu ${
-      isFullscreen ? 'rounded-none' : 'rounded-t-[24px] md:rounded-t-[28px]'
+    <header className={`py-2 md:py-2.5 px-3 sm:px-4 md:px-5 border-b border-teal-800/30 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3 bg-gradient-to-r from-[#005a50] via-[#00796b] to-[#008d7c] text-white select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
+      isFullscreen ? 'rounded-none max-md:top-[54px]' : 'rounded-t-[24px] md:rounded-t-[28px] max-md:top-[48px]'
+    } ${
+      isMobileHidden
+        ? 'max-md:-translate-y-[calc(100%+60px)] max-md:opacity-0 max-md:pointer-events-none'
+        : 'max-md:translate-y-0 max-md:opacity-100'
     }`}>
       {/* Zone 1 (Desktop only — on Mobile rendered outside via MobileTopBar): Sidebar Toggle + Month Navigator */}
       <div className="hidden md:flex order-1 items-center gap-1.5 sm:gap-2 shrink-0">

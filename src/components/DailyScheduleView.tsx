@@ -180,7 +180,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-[#fbfcfb] overflow-hidden select-none relative h-full">
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-4 sm:px-8 py-5 sm:py-7 flex flex-col gap-6 max-w-2xl mx-auto w-full min-w-0">
+      <div className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-4 sm:px-8 max-md:pt-[116px] max-md:pb-5 md:py-7 flex flex-col gap-6 max-w-2xl mx-auto w-full min-w-0">
         
         {/* Top Header: Back Button + Title ("Planificateur de voyage" style) */}
         <div className="flex items-start gap-4 shrink-0 pt-1">

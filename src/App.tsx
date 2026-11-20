@@ -155,34 +155,47 @@ export default function App() {
     };
     setUser(fallbackProfile);
 
+    const handleListenerError = (err: Error) => {
+      if (cancelled) return;
+      setIsLoadingData(false);
+      if (isTransientOfflineError(err)) {
+        showToast('Koneksi Firebase sedang offline, menunggu sambungan pulih...');
+      } else {
+        setFirestoreError(err);
+      }
+    };
+
     // Attach real-time listeners immediately so onSnapshot handles connection/reconnection cleanly
     try {
-      unsubWorkspace = subscribeWorkspaceProfile(fallbackProfile, (profile) => {
-        if (!cancelled) {
-          setUser((prev) => ({
-            ...profile,
-            email: prev.email || savedLocalEmail,
-          }));
-        }
-      });
-      unsubTasks = subscribeTasks((liveTasks) => {
-        if (!cancelled) {
-          setEvents(liveTasks);
-          setIsLoadingData(false);
-        }
-      });
-      unsubDepts = subscribeDepartments((liveDepts) => {
-        if (!cancelled && liveDepts.length > 0) setDepartments(liveDepts);
-      });
+      unsubWorkspace = subscribeWorkspaceProfile(
+        fallbackProfile,
+        (profile) => {
+          if (!cancelled) {
+            setUser((prev) => ({
+              ...profile,
+              email: prev.email || savedLocalEmail,
+            }));
+          }
+        },
+        handleListenerError
+      );
+      unsubTasks = subscribeTasks(
+        (liveTasks) => {
+          if (!cancelled) {
+            setEvents(liveTasks);
+            setIsLoadingData(false);
+          }
+        },
+        handleListenerError
+      );
+      unsubDepts = subscribeDepartments(
+        (liveDepts) => {
+          if (!cancelled && liveDepts.length > 0) setDepartments(liveDepts);
+        },
+        handleListenerError
+      );
     } catch (err: any) {
-      if (!cancelled) {
-        setIsLoadingData(false);
-        if (isTransientOfflineError(err)) {
-          showToast('Koneksi Firebase sedang offline, menunggu sambungan pulih...');
-        } else {
-          setFirestoreError(err instanceof Error ? err : new Error(String(err)));
-        }
-      }
+      handleListenerError(err instanceof Error ? err : new Error(String(err)));
     }
 
     const offlineFallbackTimer = window.setTimeout(() => {
@@ -609,7 +622,7 @@ export default function App() {
       />
 
       {/* Content Area Wrapper: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 md:h-full gap-0">
+      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 md:h-full gap-0 relative">
         {/* Mobile Top Bar (Floating Top Bar on Mobile) */}
         <MobileTopBar
           user={user}
@@ -629,7 +642,7 @@ export default function App() {
         />
 
         {/* Main Container (Floating rounded card on mobile & desktop when not fullscreen) */}
-        <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-shadow duration-200 ${
+        <div className={`flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden transition-shadow duration-200 relative ${
           isFullscreen
             ? 'md:h-full rounded-none border-none'
             : 'md:h-full rounded-[24px] md:rounded-[28px] shadow-xl border border-slate-200/80'
@@ -651,6 +664,7 @@ export default function App() {
             outlineFilter={outlineFilter}
             onSelectOutline={setOutlineFilter}
             onOpenCreateModal={() => handleOpenCreateModal()}
+            isMobileHidden={isMobileBarsHidden}
           />
 
           {/* Main Body: Collapsible Sidebar + Schedule View */}
