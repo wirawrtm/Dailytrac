@@ -106,7 +106,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
             title="Klik untuk melihat kalender & memilih bulan"
             className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white transition-colors cursor-pointer group"
           >
-            <span className="text-xs font-bold text-slate-800 tracking-tight whitespace-nowrap group-hover:text-indigo-600">
+            <span className="text-xs font-bold text-slate-800 tracking-tight whitespace-nowrap group-hover:text-[#0ea5e9]">
               {formatMonthYear(selectedDate)}
             </span>
             <ChevronDown className="w-3 h-3 text-slate-500 stroke-[2.5] transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -253,11 +253,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'daily' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'daily' ? 'bg-sky-50 font-bold text-[#0284c7]' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
                   <span>Day (Harian)</span>
-                  {viewMode === 'daily' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                  {viewMode === 'daily' && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[2.5]" />}
                 </button>
                 <button
                   type="button"
@@ -266,11 +266,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'weekly' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'weekly' ? 'bg-sky-50 font-bold text-[#0284c7]' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
                   <span>Week (Mingguan)</span>
-                  {viewMode === 'weekly' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                  {viewMode === 'weekly' && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[2.5]" />}
                 </button>
                 <button
                   type="button"
@@ -279,11 +279,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'monthly' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'monthly' ? 'bg-sky-50 font-bold text-[#0284c7]' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
                   <span>Month (Bulanan)</span>
-                  {viewMode === 'monthly' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                  {viewMode === 'monthly' && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[2.5]" />}
                 </button>
                 <button
                   type="button"
@@ -292,11 +292,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'tasks' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'tasks' ? 'bg-sky-50 font-bold text-[#0284c7]' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
                   <span>Tasks Board</span>
-                  {viewMode === 'tasks' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                  {viewMode === 'tasks' && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[2.5]" />}
                 </button>
               </div>
             )}
@@ -345,7 +345,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
                     outlineFilter === 'all'
-                      ? 'bg-indigo-50 font-bold text-indigo-700'
+                      ? 'bg-sky-50 font-bold text-[#0284c7]'
                       : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
@@ -356,7 +356,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <span className="block text-[10px] text-slate-400 font-normal">Tampilkan semua task</span>
                     </div>
                   </span>
-                  {outlineFilter === 'all' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                  {outlineFilter === 'all' && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[2.5]" />}
                 </button>
 
                 {/* Work Outline */}

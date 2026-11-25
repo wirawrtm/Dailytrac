@@ -80,7 +80,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       <div className="px-3.5 sm:px-6 py-2 sm:py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
         <div className="flex items-center gap-2.5 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch] py-1 w-full">
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pr-3 border-r border-slate-200 shrink-0">
-            <CalendarIcon className="w-4 h-4 text-indigo-600" />
+            <CalendarIcon className="w-4 h-4 text-[#0ea5e9]" />
             <span>WEEKLY:</span>
           </div>
 
@@ -102,7 +102,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   onClick={() => handleSelectWeek(week)}
                   className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     isFocused
-                      ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-100'
+                      ? 'bg-[#38bdf8] text-white shadow-sm ring-2 ring-sky-100'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
                   }`}
                   title={`Fokus ke ${week.weekLabelId} (${week.dateRangeLabel})`}
@@ -115,7 +115,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   </span>
                   {weekEventsCount > 0 && (
                     <span className={`text-[9.5px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                      isFocused ? 'bg-white text-indigo-700' : 'bg-slate-100 text-slate-600'
+                      isFocused ? 'bg-white text-[#0284c7]' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {weekEventsCount}
                     </span>
@@ -128,7 +128,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               onClick={() => setFocusedWeekNumber('all')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 focusedWeekNumber === 'all'
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-[#38bdf8] text-white shadow-sm'
                   : 'bg-white hover:bg-slate-100 text-slate-500 border border-slate-200/80'
               }`}
             >
@@ -139,8 +139,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
         {/* Quick Pending / Done Summary Pill */}
         <div className="hidden xl:flex items-center gap-2 shrink-0 pl-3 border-l border-slate-200">
-          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+          <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]"></span>
             Highlight:
           </span>
           <div className="flex items-center gap-1.5">
@@ -170,7 +170,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               <div key={weekItem.weekNumber} className="flex flex-col">
                 {focusedWeekNumber === 'all' && (
                   <div className="mb-3 flex items-center gap-2 md:min-w-[1100px]">
-                    <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold">
+                    <span className="px-3 py-1 rounded-full bg-sky-50 text-[#0284c7] text-xs font-extrabold">
                       {weekItem.weekLabelId}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">{weekItem.dateRangeLabel}</span>
@@ -244,12 +244,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         <div
                           onClick={() => onSelectDate(day.date)}
                           className={`px-3.5 py-2.5 rounded-2xl flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                            isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 text-slate-800 border border-slate-100'
+                            isSelected ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 text-slate-800 border border-slate-100'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <span className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs ${
-                              isSelected ? 'bg-white text-indigo-700' : 'bg-white text-slate-800 border border-slate-200'
+                              isSelected ? 'bg-white text-[#0284c7]' : 'bg-white text-slate-800 border border-slate-200'
                             }`}>
                               {day.dayNumber}
                             </span>
@@ -340,7 +340,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                           key={day.iso}
                           onClick={() => onSelectDate(day.date)}
                           className={`px-4 py-3 rounded-2xl flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                            isSelected ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                            isSelected ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               {day.dayNameId}
                             </span>
                             <span className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs ${
-                              isSelected ? 'bg-white text-indigo-700' : 'bg-white text-slate-800 border border-slate-200'
+                              isSelected ? 'bg-white text-[#0284c7]' : 'bg-white text-slate-800 border border-slate-200'
                             }`}>
                               {day.dayNumber}
                             </span>
@@ -489,7 +489,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             {dayEvents.length === 0 && (
                               <div
                                 onClick={() => onOpenCreateModal(day.iso, 10)}
-                                className="h-20 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-indigo-700 transition-all cursor-pointer p-2 text-center"
+                                className="h-20 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#38bdf8] hover:bg-sky-50/30 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#0284c7] transition-all cursor-pointer p-2 text-center"
                               >
                                 <Plus className="w-4 h-4 text-slate-300" />
                                 <span className="text-[11px] font-semibold">+ Add Task</span>

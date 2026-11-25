@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -178,13 +178,25 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
     onSelectDate(d);
   };
 
-  // 7-day date ribbon around selectedDate matching IMG_1033
+  const ribbonRef = useRef<HTMLDivElement | null>(null);
+  const selectedDayRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRibbonRef = useRef(false);
+
+  // Scrollable date ribbon covering all days of the selected month
   const dateRibbon = useMemo(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const taskCountsByDate: Record<string, number> = {};
+    events.forEach((ev) => {
+      if (ev.date) {
+        taskCountsByDate[ev.date] = (taskCountsByDate[ev.date] || 0) + 1;
+      }
+    });
+
     const ribbon = [];
-    const base = new Date(selectedDate);
-    for (let i = -2; i <= 4; i++) {
-      const d = new Date(base);
-      d.setDate(base.getDate() + i);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
       const iso = formatDateToISO(d);
       const dayNum = d.getDate();
       const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
@@ -193,11 +205,26 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         iso,
         dayNum,
         dayName,
+        taskCount: taskCountsByDate[iso] || 0,
         isSelected: iso === selectedIso,
       });
     }
     return ribbon;
-  }, [selectedDate, selectedIso]);
+  }, [selectedDate, selectedIso, events]);
+
+  useEffect(() => {
+    const el = selectedDayRef.current;
+    const container = ribbonRef.current;
+    if (!el || !container) return;
+
+    const targetLeft =
+      el.offsetLeft - container.clientWidth / 2 + el.offsetWidth / 2;
+    container.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: hasMountedRibbonRef.current ? 'smooth' : 'auto',
+    });
+    hasMountedRibbonRef.current = true;
+  }, [selectedIso]);
 
   const capsuleColors = [
     'bg-[#2dd4bf] text-white shadow-teal-500/20', // Teal
@@ -222,24 +249,53 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
           </div>
         </div>
 
-        {/* Date Ribbon Pill Cards (Single 7-day row with horizontal scroll fallback on narrow phones) */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5 shrink-0 select-none pt-1 overflow-x-auto touch-pan-x">
+        {/* Date Ribbon Pill Cards (Horizontally scrollable month strip with full shadow clearance) */}
+        <div
+          ref={ribbonRef}
+          className="flex flex-row items-center gap-2 sm:gap-2.5 shrink-0 select-none pt-3 pb-6 -mb-4 -mx-2 px-2 sm:-mx-3 sm:px-3 overflow-x-auto touch-pan-x snap-x snap-proximity [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {dateRibbon.map((item) => (
             <div
               key={item.iso}
+              ref={item.isSelected ? selectedDayRef : undefined}
               onClick={() => onSelectDate(item.date)}
-              className={`flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl cursor-pointer transition-all ${
+              className={`shrink-0 snap-center flex flex-col items-center justify-center rounded-2xl cursor-pointer transition-all ${
                 item.isSelected
-                  ? 'bg-[#38bdf8] text-white shadow-lg shadow-sky-500/30 sm:scale-105 font-bold'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
+                  ? 'w-[64px] sm:w-[82px] py-3 px-1.5 sm:py-4 sm:px-2.5 bg-[#38bdf8] text-white shadow-lg shadow-sky-500/30 scale-[1.04] font-bold'
+                  : 'w-[56px] sm:w-[70px] py-2 px-1 sm:py-3 sm:px-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-xs'
               }`}
             >
-              <span className={`text-sm sm:text-xl font-black font-mono leading-tight ${item.isSelected ? 'text-white' : 'text-slate-900'}`}>
+              <span
+                className={`font-black font-mono leading-tight ${
+                  item.isSelected
+                    ? 'text-base sm:text-2xl text-white'
+                    : 'text-sm sm:text-xl text-slate-900'
+                }`}
+              >
                 {item.dayNum}
               </span>
-              <span className={`text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${item.isSelected ? 'text-sky-50' : 'text-slate-400'}`}>
-                {item.dayName}
-              </span>
+              <div className="flex items-center justify-center gap-1 mt-0.5">
+                <span
+                  className={`text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider leading-none ${
+                    item.isSelected ? 'text-sky-50' : 'text-slate-400'
+                  }`}
+                >
+                  {item.dayName}
+                </span>
+                <span
+                  className={`inline-flex items-center justify-center min-w-[14px] h-[14px] sm:min-w-[16px] sm:h-[16px] px-1 rounded-full text-[8px] sm:text-[10px] font-bold font-mono leading-none ${
+                    item.isSelected
+                      ? item.taskCount > 0
+                        ? 'bg-white/25 text-white'
+                        : 'bg-white/15 text-sky-50/85'
+                      : item.taskCount > 0
+                        ? 'bg-sky-50 text-[#0284c7]'
+                        : 'bg-slate-100 text-slate-400'
+                  }`}
+                >
+                  {item.taskCount}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -247,14 +303,14 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         {/* Timeline & Capsule Task Bars Section */}
         {isLoading && events.length === 0 ? (
           <div className="py-16 text-center flex flex-col items-center justify-center my-auto">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3.5 animate-pulse">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center mb-3.5 animate-pulse">
               <Clock className="w-6 h-6 stroke-[2.2]" />
             </div>
             <h3 className="text-base font-bold text-slate-800">Memuat data dari Firebase...</h3>
           </div>
         ) : dayEvents.length === 0 ? (
           <div className="py-10 sm:py-12 text-center flex flex-col items-center justify-center my-auto gap-4">
-            <div className="w-14 h-14 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+            <div className="w-14 h-14 rounded-3xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center shadow-xs">
               <CalendarIcon className="w-7 h-7 stroke-[2.2]" />
             </div>
             <div>
@@ -266,7 +322,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
             <button
               type="button"
               onClick={() => onOpenCreateModal(selectedIso, 10)}
-              className="mt-2 px-6 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer shadow-md"
+              className="mt-2 px-6 py-2.5 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold cursor-pointer shadow-md shadow-sky-500/20"
             >
               + Buat Tugas Baru
             </button>
@@ -332,7 +388,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         <button
           type="button"
           onClick={() => onOpenCreateModal(selectedIso, 9)}
-          className="pointer-events-auto w-full max-w-sm py-3.5 px-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+          className="pointer-events-auto w-full max-w-sm py-3.5 px-8 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white font-bold text-sm shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
         >
           <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
           <span>Buat Tugas Baru</span>

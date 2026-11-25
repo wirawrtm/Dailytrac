@@ -54,7 +54,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
               }}
               className={`min-h-[72px] sm:min-h-[96px] p-1 sm:p-2 border-b border-r border-slate-100 flex flex-col justify-between transition-colors cursor-pointer group ${
                 isSelected
-                  ? 'bg-indigo-50/40 ring-1 ring-inset ring-indigo-600'
+                  ? 'bg-sky-50/40 ring-1 ring-inset ring-[#38bdf8]'
                   : item.isCurrentMonth
                   ? 'bg-white hover:bg-slate-50/40'
                   : 'bg-slate-50/30 text-slate-300'
@@ -64,7 +64,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
                 <span
                   className={`text-[11px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center ${
                     isSelected
-                      ? 'bg-indigo-600 text-white shadow-2xs'
+                      ? 'bg-[#38bdf8] text-white shadow-2xs'
                       : item.isCurrentMonth
                       ? 'text-slate-800'
                       : 'text-slate-300'

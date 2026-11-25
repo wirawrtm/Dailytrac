@@ -119,9 +119,9 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Departments</p>
-              <h3 className="text-xl font-bold text-indigo-600 mt-0.5">{departments.length} Kategori</h3>
+              <h3 className="text-xl font-bold text-[#0ea5e9] mt-0.5">{departments.length} Kategori</h3>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#0ea5e9]">
               <Building2 className="w-4.5 h-4.5" />
             </div>
           </div>
@@ -311,7 +311,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span className="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
                 <span className="text-xs font-bold text-slate-900">
                   Firestore Collection: <code>departments</code>
                 </span>
@@ -342,7 +342,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-slate-500 text-xs">
                         <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
-                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                          <div className="w-10 h-10 rounded-2xl bg-sky-50 flex items-center justify-center text-[#0ea5e9]">
                             <Building2 className="w-5 h-5" />
                           </div>
                           <p className="font-bold text-slate-800 text-sm">Belum Ada Dokumen Departemen di Firestore</p>
