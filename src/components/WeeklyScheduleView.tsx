@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
-import { formatDateToISO, getMonthWeeks, WeekRow } from '../utils/dateUtils';
+import { formatDateToISO, formatMonthYear, getMonthWeeks, WeekRow } from '../utils/dateUtils';
 import { getTaskCapsuleClass } from '../utils/themeStyles';
 
 interface WeeklyScheduleViewProps {
@@ -46,12 +46,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   const monthWeeks = getMonthWeeks(selectedDate, selectedDate);
   const currentSelectedWeek = monthWeeks.find((w) => w.isCurrentWeek) || monthWeeks[0];
 
-  const [focusedWeekNumber, setFocusedWeekNumber] = useState<number | 'all'>(() => currentSelectedWeek?.weekNumber ?? 1);
+  const [focusedWeekNumber, setFocusedWeekNumber] = useState<number>(() => currentSelectedWeek?.weekNumber ?? 1);
   const focusedWeekBtnRef = useRef<HTMLButtonElement | null>(null);
 
   // Sync focused week whenever selectedDate changes
   useEffect(() => {
-    if (currentSelectedWeek && focusedWeekNumber !== 'all') {
+    if (currentSelectedWeek) {
       setFocusedWeekNumber(currentSelectedWeek.weekNumber);
     }
   }, [selectedIso]);
@@ -74,7 +74,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
         <div className="flex items-center gap-2.5 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch] py-1 w-full">
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pr-3 border-r border-slate-200 shrink-0">
             <CalendarIcon className="w-4 h-4 text-[#0ea5e9]" />
-            <span>WEEKLY:</span>
+            <span>{formatMonthYear(selectedDate)}</span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -83,6 +83,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               const weekEventsCount = events.filter((e) =>
                 week.days.some((d) => d.iso === e.date || (e.dueDate && d.iso >= e.date && d.iso <= e.dueDate))
               ).length;
+              const dayRangeOnly = `${week.days[0].dayNumber} - ${week.days[6].dayNumber}`;
 
               return (
                 <button
@@ -98,13 +99,13 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       ? 'bg-[#38bdf8] text-white shadow-sm ring-2 ring-sky-100'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
                   }`}
-                  title={`Fokus ke ${week.weekLabelId} (${week.dateRangeLabel})`}
+                  title={`Fokus ke ${week.weekLabelId} (${dayRangeOnly})`}
                 >
                   <span>{week.weekLabelId}</span>
                   <span className={`text-[10px] font-normal hidden lg:inline px-1 py-0.2 rounded-full ${
                     isFocused ? 'bg-white/20 text-white' : 'text-slate-400'
                   }`}>
-                    {week.dateRangeLabel}
+                    {dayRangeOnly}
                   </span>
                   {weekEventsCount > 0 && (
                     <span className={`text-[9.5px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
@@ -116,41 +117,14 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </button>
               );
             })}
-
-            <button
-              onClick={() => setFocusedWeekNumber('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                focusedWeekNumber === 'all'
-                  ? 'bg-[#38bdf8] text-white shadow-sm'
-                  : 'bg-white hover:bg-slate-100 text-slate-500 border border-slate-200/80'
-              }`}
-            >
-              Semua Minggu
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Pending / Done Summary Pill */}
-        <div className="hidden xl:flex items-center gap-2 shrink-0 pl-3 border-l border-slate-200">
-          <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]"></span>
-            Highlight:
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200/90 text-[10.5px] font-bold font-mono">
-              {events.filter((e) => e.status !== 'completed').length} Pending
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200/90 text-[10.5px] font-bold font-mono">
-              {events.filter((e) => e.status === 'completed').length} Done
-            </span>
           </div>
         </div>
       </div>
 
       {/* 3. SEAMLESS OPEN WEEKLY TIMELINE */}
-      {(focusedWeekNumber === 'all' ? monthWeeks : focusedWeek ? [focusedWeek] : []).length > 0 && (
+      {focusedWeek && (
         <div className="flex-1 min-w-0 md:min-h-0 bg-white md:overflow-x-auto md:overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] p-3.5 sm:p-6 max-md:pb-28 flex flex-col gap-8">
-          {(focusedWeekNumber === 'all' ? monthWeeks : focusedWeek ? [focusedWeek] : []).map((weekItem) => {
+          {[focusedWeek].map((weekItem) => {
             const weekStartIso = weekItem.days[0].iso;
             const weekEndIso = weekItem.days[6].iso;
             const multiDayEvents = events.filter((e) => {
@@ -161,14 +135,6 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
             return (
               <div key={weekItem.weekNumber} className="flex flex-col">
-                {focusedWeekNumber === 'all' && (
-                  <div className="mb-3 flex items-center gap-2 md:min-w-[1100px]">
-                    <span className="px-3 py-1 rounded-full bg-sky-50 text-[#0284c7] text-xs font-extrabold">
-                      {weekItem.weekLabelId}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">{weekItem.dateRangeLabel}</span>
-                  </div>
-                )}
 
                 {/* MOBILE VIEW (< md): Clean Full-Width Vertical Weekly Stack */}
                 <div className="flex md:hidden flex-col gap-4">
@@ -491,9 +457,6 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
           })}
         </div>
       )}
-
-      {/* Bottom Spacing */}
-      <div className="hidden md:block h-16 shrink-0" />
     </div>
   );
 };
