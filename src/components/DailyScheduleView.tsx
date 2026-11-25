@@ -208,53 +208,53 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-[#fbfcfb] overflow-hidden select-none relative h-full">
+    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#fbfcfb] overflow-hidden select-none relative h-full">
       {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-4 sm:px-8 max-md:pt-[116px] max-md:pb-24 md:py-7 flex flex-col gap-6 max-w-5xl mx-auto w-full min-w-0">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-3.5 sm:px-8 max-md:pt-[112px] max-md:pb-36 md:py-7 flex flex-col gap-5 sm:gap-6 max-w-5xl mx-auto w-full min-w-0">
         
         {/* Top Header: Date Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-3 shrink-0 pt-1 border-b border-slate-100 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 shrink-0 pt-1 border-b border-slate-100 pb-3.5 sm:pb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
               {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </h2>
             <ChevronDown className="w-4 h-4 text-slate-500 stroke-[2.5]" />
           </div>
         </div>
 
-        {/* Date Ribbon Pill Cards matching IMG_1033 (6 Tue, 7 Wed, 8 Thu, 9 Fri, 10 Sat, 11 Sun, 12 Mon) */}
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2.5 shrink-0 select-none pt-1">
+        {/* Date Ribbon Pill Cards (Single 7-day row with horizontal scroll fallback on narrow phones) */}
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5 shrink-0 select-none pt-1 overflow-x-auto touch-pan-x">
           {dateRibbon.map((item) => (
             <div
               key={item.iso}
               onClick={() => onSelectDate(item.date)}
-              className={`flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl cursor-pointer transition-all ${
+              className={`flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl cursor-pointer transition-all ${
                 item.isSelected
-                  ? 'bg-[#38bdf8] text-white shadow-lg shadow-sky-500/30 scale-105 font-bold'
+                  ? 'bg-[#38bdf8] text-white shadow-lg shadow-sky-500/30 sm:scale-105 font-bold'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
               }`}
             >
-              <span className={`text-lg sm:text-xl font-black font-mono leading-tight ${item.isSelected ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`text-sm sm:text-xl font-black font-mono leading-tight ${item.isSelected ? 'text-white' : 'text-slate-900'}`}>
                 {item.dayNum}
               </span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${item.isSelected ? 'text-sky-50' : 'text-slate-400'}`}>
+              <span className={`text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider mt-0.5 ${item.isSelected ? 'text-sky-50' : 'text-slate-400'}`}>
                 {item.dayName}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Timeline & Capsule Task Bars Section matching IMG_1033 */}
+        {/* Timeline & Capsule Task Bars Section */}
         {isLoading && events.length === 0 ? (
           <div className="py-16 text-center flex flex-col items-center justify-center my-auto">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3.5 animate-pulse">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3.5 animate-pulse">
               <Clock className="w-6 h-6 stroke-[2.2]" />
             </div>
             <h3 className="text-base font-bold text-slate-800">Memuat data dari Firebase...</h3>
           </div>
         ) : dayEvents.length === 0 ? (
-          <div className="py-12 text-center flex flex-col items-center justify-center my-auto gap-4">
-            <div className="w-14 h-14 rounded-3xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-xs">
+          <div className="py-10 sm:py-12 text-center flex flex-col items-center justify-center my-auto gap-4">
+            <div className="w-14 h-14 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
               <CalendarIcon className="w-7 h-7 stroke-[2.2]" />
             </div>
             <div>
@@ -283,14 +283,14 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                 <div
                   key={event.id}
                   onClick={() => onSelectEvent(event)}
-                  className={`w-full py-4 px-5 rounded-3xl shadow-md flex items-center justify-between gap-4 cursor-pointer transition-all hover:scale-[1.01] ${capsuleBg}`}
+                  className={`w-full py-3.5 px-4 sm:py-4 sm:px-5 rounded-3xl shadow-md flex items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer transition-all hover:scale-[1.01] ${capsuleBg}`}
                 >
                   {/* Left: Avatar / Icon & Title */}
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 text-white font-bold text-xs ring-2 ring-white/40 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 text-white font-bold text-xs ring-2 ring-white/40 shadow-xs">
                       {titleText.slice(0, 2).toUpperCase()}
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 pt-1 sm:pt-0">
                       <h4 className="text-sm sm:text-base font-bold text-white break-words whitespace-normal leading-snug tracking-tight">
                         {titleText}
                       </h4>
@@ -328,7 +328,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
       </div>
 
       {/* Bottom Floating Action Button */}
-      <div className={`max-md:absolute md:sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#fbfcfb] via-[#fbfcfb]/95 to-transparent shrink-0 flex justify-center z-25 pointer-events-none ${
+      <div className={`max-md:absolute md:sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#fbfcfb] via-[#fbfcfb]/95 to-transparent shrink-0 flex justify-center z-25 pointer-events-none transition-transform duration-200 ease-out ${
         isMobileBarsHidden ? 'max-md:translate-y-0' : 'max-md:-translate-y-[74px]'
       }`}>
         <button

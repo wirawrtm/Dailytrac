@@ -74,11 +74,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden select-none relative h-full">
+    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white overflow-hidden select-none relative h-full max-md:pt-[104px]">
       
       {/* 1. TOP WEEKLY SELECTOR BAR */}
-      <div className="px-4 sm:px-6 py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2.5 overflow-x-auto py-1 w-full no-scrollbar">
+      <div className="px-3.5 sm:px-6 py-2 sm:py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
+        <div className="flex items-center gap-2.5 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch] py-1 w-full">
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pr-3 border-r border-slate-200 shrink-0">
             <CalendarIcon className="w-4 h-4 text-indigo-600" />
             <span>WEEKLY:</span>
@@ -155,12 +155,21 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
       </div>
 
       {/* 3. SEAMLESS OPEN WEEKLY TIMELINE (Multi-day spanning capsule bars clamped strictly to actual dueDate using grid grid-cols-7) */}
-      {focusedWeekNumber !== 'all' && focusedWeek && (
-        <div className="flex-1 min-w-0 min-h-0 bg-white overflow-x-auto overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch] p-4 sm:p-6 flex flex-col">
-          
+      {(focusedWeekNumber === 'all' ? monthWeeks : focusedWeek ? [focusedWeek] : []).length > 0 && (
+        <div className="flex-1 min-w-0 min-h-0 bg-white overflow-x-auto overflow-y-auto touch-pan-x touch-pan-y overscroll-contain [-webkit-overflow-scrolling:touch] p-3.5 sm:p-6 max-md:pb-28 flex flex-col gap-8">
+          {(focusedWeekNumber === 'all' ? monthWeeks : focusedWeek ? [focusedWeek] : []).map((weekItem) => (
+            <div key={weekItem.weekNumber} className="flex flex-col">
+              {focusedWeekNumber === 'all' && (
+                <div className="mb-3 flex items-center gap-2 min-w-[1100px]">
+                  <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold">
+                    {weekItem.weekLabelId}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">{weekItem.dateRangeLabel}</span>
+                </div>
+              )}
           {/* Day Headers Row (Senin, Selasa, Rabu, etc.) */}
           <div className="grid grid-cols-7 gap-3 min-w-[1100px] pb-4 border-b border-slate-200 shrink-0">
-            {focusedWeek.days.map((day) => {
+            {weekItem.days.map((day) => {
               const isSelected = day.iso === selectedIso;
 
               return (
@@ -204,8 +213,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
           <div className="flex-1 min-w-[1100px] pt-4 flex flex-col gap-3">
             {/* 1. Multi-Day Spanning Tasks Grid Container */}
             {(() => {
-              const weekStartIso = focusedWeek.days[0].iso;
-              const weekEndIso = focusedWeek.days[6].iso;
+              const weekStartIso = weekItem.days[0].iso;
+              const weekEndIso = weekItem.days[6].iso;
 
               const multiDayEvents = events.filter((e) => {
                 const start = e.date;
@@ -222,8 +231,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 const dueDate = event.dueDate || event.date;
                 const endIso = dueDate > weekEndIso ? weekEndIso : dueDate;
 
-                const startIndex = focusedWeek.days.findIndex(d => d.iso === startIso);
-                const endIndex = focusedWeek.days.findIndex(d => d.iso === endIso);
+                const startIndex = weekItem.days.findIndex(d => d.iso === startIso);
+                const endIndex = weekItem.days.findIndex(d => d.iso === endIso);
 
                 const validStart = startIndex !== -1 ? startIndex : 0;
                 const validEnd = endIndex !== -1 ? endIndex : 6;
@@ -276,7 +285,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
             {/* 2. Single-Day Tasks Grid (Rendered in their respective day columns) */}
             <div className="grid grid-cols-7 gap-3 pt-2">
-              {focusedWeek.days.map((day, dayIndex) => {
+              {weekItem.days.map((day) => {
                 const dayEvents = events.filter((e) => {
                   const start = e.date;
                   const end = e.dueDate || e.date;
@@ -339,11 +348,13 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               })}
             </div>
           </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Bottom Spacing */}
-      <div className="h-16 shrink-0" />
+      <div className="hidden md:block h-16 shrink-0" />
     </div>
   );
 };

@@ -49,16 +49,11 @@ interface TopHeaderProps {
 }
 
 export const MobileTopBar: React.FC<TopHeaderProps> = ({
-  user,
-  onOpenProfileMenu,
-  isProfileMenuOpen,
-  onResetData,
   isSidebarOpen,
   onToggleSidebar,
   isFullscreen = false,
   selectedDate,
   onSelectDate,
-  onSelectView,
   isMobileHidden = false,
 }) => {
   const [isCalendarPickerOpen, setIsCalendarPickerOpen] = useState(false);
@@ -73,127 +68,71 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className={`md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-[54px] px-4 py-1.5 select-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none text-slate-900 ${
-        isFullscreen ? 'bg-white' : 'bg-[#eef3f1]'
-      } ${
+      className={`md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-[52px] px-4 select-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none text-slate-900 bg-white/95 backdrop-blur-md border-b border-slate-100 ${
         isMobileHidden
           ? '-translate-y-full opacity-0 pointer-events-none'
           : 'translate-y-0 opacity-100'
       }`}
     >
-      {/* Left: Sidebar Toggle + Month Navigator (Month click opens calendar picker) */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* Left: Sidebar Toggle + Dashboard Title */}
+      <div className="flex items-center gap-2.5 shrink-0">
         <button
           onClick={onToggleSidebar}
-          title={isSidebarOpen ? "Hide Calendar & Outlines" : "Open Calendar & Outlines"}
-          className="w-9 h-9 rounded-2xl bg-transparent hover:bg-black/5 text-slate-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+          title={isSidebarOpen ? "Hide Calendar Sidebar" : "Open Calendar Sidebar"}
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
         >
           {isSidebarOpen ? (
-            <PanelLeftClose className="w-5 h-5 stroke-[2.2]" />
+            <PanelLeftClose className="w-4 h-4 stroke-[2.2]" />
           ) : (
-            <PanelLeft className="w-5 h-5 stroke-[2.2]" />
+            <PanelLeft className="w-4 h-4 stroke-[2.2]" />
           )}
         </button>
 
-        <div className="flex items-center gap-0.5 shrink-0 relative">
-          <button
-            onClick={handlePrevMonth}
-            title="Bulan Sebelumnya"
-            className="p-1.5 rounded-xl bg-transparent text-slate-700 hover:text-slate-950 hover:bg-black/5 transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4 stroke-[2.2]" />
-          </button>
-
-          {/* Month Text (Clickable to open Calendar Picker) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsCalendarPickerOpen(!isCalendarPickerOpen)}
-              title="Klik untuk melihat kalender & memilih bulan"
-              className="flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-black/5 transition-colors cursor-pointer group"
-            >
-              <h2 className="text-sm font-extrabold text-slate-900 tracking-tight whitespace-nowrap group-hover:text-[#00796b]">
-                {formatMonthYear(selectedDate)}
-              </h2>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-600 stroke-[2.5] transition-transform duration-200 group-hover:translate-y-0.5" />
-            </button>
-
-            {isCalendarPickerOpen && (
-              <MonthCalendarPicker
-                selectedDate={selectedDate}
-                onSelectDate={onSelectDate}
-                onClose={() => setIsCalendarPickerOpen(false)}
-                align="left"
-              />
-            )}
-          </div>
-
-          <button
-            onClick={handleNextMonth}
-            title="Bulan Berikutnya"
-            className="p-1.5 rounded-xl bg-transparent text-slate-700 hover:text-slate-950 hover:bg-black/5 transition-colors cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4 stroke-[2.2]" />
-          </button>
-        </div>
+        <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">
+          Dashboard
+        </h1>
       </div>
 
-      {/* Right: Enlarged User Profile (Male Avatar Icon) */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* Right: Sleek Pill Month Navigator + Calendar Picker */}
+      <div className="flex items-center gap-0.5 shrink-0 relative bg-slate-50 border border-slate-200/80 rounded-xl p-0.5 shadow-2xs">
+        <button
+          onClick={handlePrevMonth}
+          title="Bulan Sebelumnya"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+        >
+          <ChevronLeft className="w-3.5 h-3.5 stroke-[2.4]" />
+        </button>
+
         <div className="relative">
           <button
-            onClick={onOpenProfileMenu}
-            className="flex items-center gap-1 p-1 rounded-full bg-transparent hover:bg-black/5 transition-all cursor-pointer group"
-            title="Profil Pengguna"
+            type="button"
+            onClick={() => setIsCalendarPickerOpen(!isCalendarPickerOpen)}
+            title="Klik untuk melihat kalender & memilih bulan"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white transition-colors cursor-pointer group"
           >
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-9.5 h-9.5 rounded-full object-cover ring-2 ring-[#00796b]/30 shadow-sm transition-transform group-hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <ChevronDown className="w-4 h-4 text-slate-700 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-800 tracking-tight whitespace-nowrap group-hover:text-indigo-600">
+              {formatMonthYear(selectedDate)}
+            </span>
+            <ChevronDown className="w-3 h-3 text-slate-500 stroke-[2.5] transition-transform duration-200 group-hover:translate-y-0.5" />
           </button>
 
-          {isProfileMenuOpen && (
-            <div className="absolute right-0 mt-2 w-60 bg-white rounded-3xl shadow-2xl border border-slate-100 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-[#00796b]/30 shadow-xs"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                  <span className="inline-block mt-1 text-[10px] text-[#00897b] font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
-                    {user.role} ({user.timezone})
-                  </span>
-                </div>
-              </div>
-
-              <div className="py-1">
-                <button
-                  onClick={() => {
-                    onSelectView('settings');
-                    onOpenProfileMenu();
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer font-semibold"
-                >
-                  <span>Halaman Setting</span>
-                </button>
-                <button
-                  onClick={onResetData}
-                  className="w-full text-left px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center justify-between cursor-pointer font-medium"
-                >
-                  <span>Reset Workspace Data</span>
-                </button>
-              </div>
-            </div>
+          {isCalendarPickerOpen && (
+            <MonthCalendarPicker
+              selectedDate={selectedDate}
+              onSelectDate={onSelectDate}
+              onClose={() => setIsCalendarPickerOpen(false)}
+              align="right"
+            />
           )}
         </div>
+
+        <button
+          onClick={handleNextMonth}
+          title="Bulan Berikutnya"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
+        >
+          <ChevronRight className="w-3.5 h-3.5 stroke-[2.4]" />
+        </button>
       </div>
     </div>
   );
@@ -249,7 +188,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   const currentViewLabel = 
     viewMode === 'daily' ? 'Daily' :
-    viewMode === 'monthly' ? 'Monthly' : 'Weekly';
+    viewMode === 'weekly' ? 'Weekly' :
+    viewMode === 'monthly' ? 'Monthly' :
+    viewMode === 'tasks' ? 'Tasks Board' :
+    viewMode === 'database' ? 'Database' : 'Settings';
 
   const currentOutlineLabel =
     outlineFilter === 'Work' ? 'Work' :
@@ -257,8 +199,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
-    <header className={`py-3 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 bg-white text-slate-900 select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
-      isFullscreen ? 'rounded-none max-md:top-[54px]' : 'rounded-t-[24px] md:rounded-t-[28px] max-md:top-[48px]'
+    <header className={`py-2 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 bg-white/95 max-md:backdrop-blur-md text-slate-900 select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:top-[52px] max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
+      isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
     } ${
       isMobileHidden
         ? 'max-md:-translate-y-[calc(100%+60px)] max-md:opacity-0 max-md:pointer-events-none'
@@ -411,7 +353,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
                     outlineFilter === 'all'
-                      ? 'bg-teal-50 font-bold text-[#00796b]'
+                      ? 'bg-indigo-50 font-bold text-indigo-700'
                       : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
@@ -422,7 +364,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <span className="block text-[10px] text-slate-400 font-normal">Tampilkan semua task</span>
                     </div>
                   </span>
-                  {outlineFilter === 'all' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                  {outlineFilter === 'all' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
                 </button>
 
                 {/* Work Outline */}
@@ -499,75 +441,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Zone 3 (Desktop only — on Mobile rendered outside via MobileTopBar): Fullscreen + Profile */}
-      <div className="hidden md:flex order-2 md:order-3 items-center gap-1.5 sm:gap-2 shrink-0">
-        {/* Fullscreen Button */}
+      {/* Zone 3 (Desktop only): Clean Fullscreen Button */}
+      <div className="hidden md:flex order-2 md:order-3 items-center gap-2 shrink-0">
         <button
           onClick={onToggleFullscreen}
           title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-          className="hidden sm:inline-flex p-1.5 rounded-lg text-teal-100 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+          className="inline-flex p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
-
-        {/* User Profile Pill */}
-        <div className="relative">
-          <button
-            onClick={onOpenProfileMenu}
-            className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-all cursor-pointer border border-white/20 shadow-xs"
-          >
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-8.5 h-8.5 rounded-full object-cover ring-2 ring-white/40 shadow-xs"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <span className="text-xs font-bold text-white whitespace-nowrap hidden md:inline">
-              {user.name}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-teal-100" />
-          </button>
-
-          {/* Profile Dropdown Menu */}
-          {isProfileMenuOpen && (
-            <div className="absolute right-0 mt-2 w-60 bg-white rounded-3xl shadow-2xl border border-slate-100 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-[#00796b]/30 shadow-xs"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                  <span className="inline-block mt-1 text-[10px] text-[#00897b] font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
-                    {user.role} ({user.timezone})
-                  </span>
-                </div>
-              </div>
-
-              <div className="py-1">
-                <button
-                  onClick={() => {
-                    onSelectView('settings');
-                    onOpenProfileMenu();
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center justify-between cursor-pointer font-semibold"
-                >
-                  <span>Halaman Setting</span>
-                </button>
-                <button
-                  onClick={onResetData}
-                  className="w-full text-left px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center justify-between cursor-pointer font-medium"
-                >
-                  <span>Reset Workspace Data</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </header>
   );

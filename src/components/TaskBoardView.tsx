@@ -112,7 +112,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
         {/* Capsule Task Card matching WeeklyScheduleView */}
         <div
           onClick={() => onSelectEvent(event)}
-          className={`flex-1 py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${
+          className={`flex-1 py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-start sm:items-center justify-between gap-3 ${
             isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
           }`}
         >
@@ -129,7 +129,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={(e) => {
@@ -152,7 +152,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                   onDeleteEvent(event.id);
                 }}
                 title="Hapus Tugas"
-                className="p-1.5 rounded-xl text-white/70 hover:text-white hover:bg-black/10 transition-colors cursor-pointer opacity-0 group-hover/item:opacity-100"
+                className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-black/10 transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover/item:opacity-100"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -164,12 +164,12 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 bg-white overflow-y-auto overflow-x-hidden md:overflow-hidden select-none touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 h-full bg-white overflow-hidden max-md:pt-[104px] select-none">
       
       {/* Top Weekly-style Header Bar */}
-      <div className="px-4 sm:px-6 py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pr-3 border-r border-slate-200 shrink-0">
+      <div className="px-3.5 sm:px-6 py-2.5 bg-slate-50/90 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pr-3 border-r border-slate-200 shrink-0">
             <Layers className="w-4 h-4 text-indigo-600" />
             <span>TASKS BOARD:</span>
           </div>
@@ -179,19 +179,19 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
             <button
               type="button"
               onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 border ${
+              className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 border ${
                 selectedDepartments.length > 0
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>{selectedDepartments.length === 0 ? 'Semua Departemen' : `${selectedDepartments.length} Departemen`}</span>
+              <span>{selectedDepartments.length === 0 ? 'Semua Departemen' : `${selectedDepartments.length} Dept`}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isDeptDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isDeptDropdownOpen && (
-              <div className="absolute left-0 mt-2 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 w-[310px] sm:w-[340px] animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-3 text-slate-800">
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 w-[290px] sm:w-[340px] max-w-[calc(100vw-32px)] animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-3 text-slate-800">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Filter Departemen</span>
                   <button
@@ -243,16 +243,17 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
 
         <button
           onClick={onOpenCreateModal}
-          className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Buat Tugas Baru</span>
+          <span className="hidden xs:inline">Buat Tugas Baru</span>
+          <span className="xs:hidden">Buat Tugas</span>
         </button>
       </div>
 
       {/* Main Board Columns Area */}
-      <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full items-start">
+      <div className="flex-1 min-h-0 p-3.5 pb-28 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto w-full items-start">
           {columns.map((col) => {
             const isExpanded = expandedColumns[col.status];
             const colEvents = filteredEvents.filter((e) =>

@@ -29,7 +29,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
   const selectedIso = formatDateToISO(selectedDate);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-white max-md:overflow-y-auto max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] max-md:pt-[96px] max-md:pb-24 md:overflow-hidden select-none">
+    <div className="flex-1 flex flex-col min-w-0 bg-white max-md:overflow-y-auto max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] max-md:pt-[104px] max-md:pb-24 md:overflow-hidden select-none">
 
       {/* Week days labels */}
       <div className="grid grid-cols-7 border-b border-slate-100 text-center py-2.5 bg-slate-50/50 shrink-0">
@@ -54,7 +54,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
               }}
               className={`min-h-[76px] sm:min-h-[96px] p-1 sm:p-2 border-b border-r border-slate-100 flex flex-col justify-between transition-colors cursor-pointer group ${
                 isSelected
-                  ? 'bg-slate-50/80 ring-1 ring-inset ring-[#00897b]'
+                  ? 'bg-indigo-50/40 ring-1 ring-inset ring-indigo-600'
                   : item.isCurrentMonth
                   ? 'bg-white hover:bg-slate-50/40'
                   : 'bg-slate-50/30 text-slate-300'
@@ -64,7 +64,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
                 <span
                   className={`text-[11px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center ${
                     isSelected
-                      ? 'bg-[#00897b] text-white shadow-2xs'
+                      ? 'bg-indigo-600 text-white shadow-2xs'
                       : item.isCurrentMonth
                       ? 'text-slate-800'
                       : 'text-slate-300'
