@@ -43,12 +43,22 @@ interface SettingsViewProps {
 }
 
 const COLOR_OPTIONS: { theme: EventColorTheme; dot: string; label: string }[] = [
-  { theme: 'cyan', dot: 'bg-teal-500', label: 'Teal' },
-  { theme: 'purple', dot: 'bg-purple-500', label: 'Purple' },
-  { theme: 'peach', dot: 'bg-amber-500', label: 'Amber' },
+  { theme: 'cyan', dot: 'bg-sky-500', label: 'Sky Blue' },
+  { theme: 'indigo', dot: 'bg-blue-500', label: 'Blue' },
   { theme: 'indigo', dot: 'bg-indigo-500', label: 'Indigo' },
-  { theme: 'emerald', dot: 'bg-emerald-500', label: 'Emerald' },
+  { theme: 'purple', dot: 'bg-violet-500', label: 'Violet' },
+  { theme: 'purple', dot: 'bg-purple-500', label: 'Purple' },
+  { theme: 'pink', dot: 'bg-fuchsia-500', label: 'Fuchsia' },
+  { theme: 'pink', dot: 'bg-pink-500', label: 'Pink' },
   { theme: 'pink', dot: 'bg-rose-500', label: 'Rose' },
+  { theme: 'pink', dot: 'bg-red-500', label: 'Red' },
+  { theme: 'peach', dot: 'bg-orange-500', label: 'Orange' },
+  { theme: 'peach', dot: 'bg-amber-500', label: 'Amber' },
+  { theme: 'emerald', dot: 'bg-lime-500', label: 'Lime' },
+  { theme: 'emerald', dot: 'bg-emerald-500', label: 'Emerald' },
+  { theme: 'cyan', dot: 'bg-teal-500', label: 'Teal' },
+  { theme: 'cyan', dot: 'bg-cyan-500', label: 'Cyan' },
+  { theme: 'indigo', dot: 'bg-slate-600', label: 'Slate' },
 ];
 
 const AVATAR_PRESETS = [
@@ -146,9 +156,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setEditingDeptId(dept.id);
     setEditDeptName(dept.name);
     setEditDeptOutline(dept.outline);
-    const matchedIdx = COLOR_OPTIONS.findIndex(
-      (c) => c.theme === dept.colorTheme || c.dot === dept.dotColor
-    );
+    const exactDotIdx = COLOR_OPTIONS.findIndex((c) => c.dot === dept.dotColor);
+    const matchedIdx =
+      exactDotIdx >= 0
+        ? exactDotIdx
+        : COLOR_OPTIONS.findIndex((c) => c.theme === dept.colorTheme);
     setEditDeptColorIdx(matchedIdx >= 0 ? matchedIdx : 0);
   };
 
@@ -248,8 +260,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className="w-full px-3 py-2 text-sm sm:text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                 />
 
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-end sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center flex-wrap gap-1.5 flex-1 min-w-0 py-0.5">
                     {COLOR_OPTIONS.map((col, idx) => (
                       <button
                         key={col.label}
@@ -258,12 +270,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         title={col.label}
                         className={`w-4 h-4 rounded-full transition-transform cursor-pointer ${
                           col.dot
-                        } ${editDeptColorIdx === idx ? 'scale-125 ring-2 ring-offset-1 ring-slate-800' : 'opacity-70 hover:opacity-100'}`}
+                        } ${editDeptColorIdx === idx ? 'scale-125 ring-2 ring-offset-1 ring-slate-800' : 'opacity-75 hover:opacity-100'}`}
                       />
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={cancelEditingDept}
@@ -600,8 +612,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   placeholder="e.g. Legal, Customer Success, QA..."
                   className="w-full px-3.5 py-2.5 text-sm sm:text-xs bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                 />
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-end sm:items-center justify-between gap-3">
+                  <div className="flex items-center flex-wrap gap-2 flex-1 min-w-0 py-0.5">
                     {COLOR_OPTIONS.map((col, idx) => (
                       <button
                         key={col.label}
@@ -610,14 +622,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         title={col.label}
                         className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
                           col.dot
-                        } ${selectedColorIdx === idx ? 'scale-125 ring-2 ring-offset-1 ring-slate-800' : 'opacity-70 hover:opacity-100'}`}
+                        } ${selectedColorIdx === idx ? 'scale-125 ring-2 ring-offset-1 ring-slate-800' : 'opacity-75 hover:opacity-100'}`}
                       />
                     ))}
                   </div>
 
                   <button
                     type="submit"
-                    className="flex items-center gap-1 px-4 py-2 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold shadow-sm shadow-sky-500/20 transition-all cursor-pointer active:scale-95"
+                    className="flex items-center gap-1 px-4 py-2 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold shadow-sm shadow-sky-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Add</span>

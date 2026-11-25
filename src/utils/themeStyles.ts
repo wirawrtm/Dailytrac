@@ -140,12 +140,21 @@ export const getTaskCapsuleClass = (
   if (matchedDept?.dotColor) {
     const dot = matchedDept.dotColor.toLowerCase();
     if (dot.includes('sky') || dot.includes('38bdf8')) return 'bg-[#38bdf8] text-white shadow-sky-500/20';
-    if (dot.includes('teal') || dot.includes('cyan')) return CAPSULE_BY_THEME.cyan;
-    if (dot.includes('purple') || dot.includes('violet')) return CAPSULE_BY_THEME.purple;
-    if (dot.includes('amber') || dot.includes('orange') || dot.includes('yellow')) return CAPSULE_BY_THEME.peach;
-    if (dot.includes('indigo') || dot.includes('blue')) return CAPSULE_BY_THEME.indigo;
+    if (dot.includes('blue')) return 'bg-blue-500 text-white shadow-blue-500/20';
+    if (dot.includes('indigo')) return CAPSULE_BY_THEME.indigo;
+    if (dot.includes('violet')) return 'bg-violet-500 text-white shadow-violet-500/20';
+    if (dot.includes('purple')) return CAPSULE_BY_THEME.purple;
+    if (dot.includes('fuchsia')) return 'bg-fuchsia-500 text-white shadow-fuchsia-500/20';
+    if (dot.includes('pink')) return 'bg-pink-500 text-white shadow-pink-500/20';
+    if (dot.includes('rose')) return CAPSULE_BY_THEME.pink;
+    if (dot.includes('red')) return 'bg-red-500 text-white shadow-red-500/20';
+    if (dot.includes('orange')) return 'bg-orange-500 text-white shadow-orange-500/20';
+    if (dot.includes('amber') || dot.includes('yellow')) return CAPSULE_BY_THEME.peach;
+    if (dot.includes('lime')) return 'bg-lime-600 text-white shadow-lime-500/20';
     if (dot.includes('emerald') || dot.includes('green')) return CAPSULE_BY_THEME.emerald;
-    if (dot.includes('rose') || dot.includes('pink') || dot.includes('red')) return CAPSULE_BY_THEME.pink;
+    if (dot.includes('teal')) return CAPSULE_BY_THEME.cyan;
+    if (dot.includes('cyan')) return 'bg-cyan-500 text-white shadow-cyan-500/20';
+    if (dot.includes('slate')) return 'bg-slate-600 text-white shadow-slate-500/20';
   }
 
   const theme = getTaskDepartmentTheme(event, departments);
