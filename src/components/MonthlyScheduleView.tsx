@@ -91,16 +91,16 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
                         e.stopPropagation();
                         onSelectEvent(ev);
                       }}
-                      className={`px-1 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold truncate border transition-opacity flex items-center justify-between gap-1 ${
+                      className={`px-1 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold border transition-opacity flex items-start justify-between gap-1 ${
                         isImprovement
                           ? 'bg-violet-100 text-violet-950 border-violet-300 hover:bg-violet-200/70'
                           : 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200/70'
                       }`}
                       title={ev.title}
                     >
-                      <span className="truncate">{ev.title}</span>
+                      <span className="break-words whitespace-normal leading-tight">{ev.title}</span>
                       {ev.status === 'completed' && (
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0 stroke-[2.5]" />
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0 stroke-[2.5] mt-0.5" />
                       )}
                     </div>
                   );

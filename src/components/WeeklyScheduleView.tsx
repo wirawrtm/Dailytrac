@@ -249,14 +249,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             {event.date} → {dueDate}
                           </span>
                         </div>
-                        <h4 className="text-sm sm:text-base font-bold truncate tracking-tight text-white">
+                        <h4 className="text-sm sm:text-base font-bold break-words whitespace-normal leading-snug tracking-tight text-white">
                           {titleText}
                         </h4>
-                        {event.department && (
-                          <p className="text-xs text-white/90 truncate mt-0.5 font-medium">
-                            {event.department}
-                          </p>
-                        )}
                       </div>
 
                       <button
@@ -307,14 +302,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                           }`}
                         >
                           <div className="min-w-0 flex-1">
-                            <h5 className="text-xs sm:text-sm font-bold truncate leading-snug">
+                            <h5 className="text-xs sm:text-sm font-bold break-words whitespace-normal leading-snug">
                               {titleText}
                             </h5>
-                            {event.department && (
-                              <p className="text-[10.5px] opacity-90 truncate mt-0.5">
-                                {event.department}
-                              </p>
-                            )}
                           </div>
 
                           <button

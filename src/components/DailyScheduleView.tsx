@@ -276,7 +276,6 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
             {dayEvents.map((event, index) => {
               const capsuleBg = capsuleColors[index % capsuleColors.length];
               const titleText = event.title || 'Tugas Tanpa Judul';
-              const deptName = event.department || event.subtitle || 'Business Team';
               const isCompleted = event.status === 'completed';
               const progressPct = isCompleted ? '100%' : `${70 + (index * 7) % 25}%`;
 
@@ -291,13 +290,10 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                     <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 text-white font-bold text-xs ring-2 ring-white/40 shadow-xs">
                       {titleText.slice(0, 2).toUpperCase()}
                     </div>
-                    <div className="min-w-0">
-                      <h4 className="text-sm sm:text-base font-bold text-white truncate tracking-tight">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm sm:text-base font-bold text-white break-words whitespace-normal leading-snug tracking-tight">
                         {titleText}
                       </h4>
-                      <p className="text-[11px] text-white/80 truncate font-medium">
-                        {deptName}
-                      </p>
                     </div>
                   </div>
 

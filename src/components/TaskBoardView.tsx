@@ -100,7 +100,6 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                       (event as any).name || 
                       (event.description && event.description.trim()) || 
                       'Tugas Tanpa Judul';
-    const deptName = event.department || event.subtitle || 'General';
     const isCompleted = colStatus === 'completed' || event.status === 'completed';
 
     return (
@@ -118,22 +117,16 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
           }`}
         >
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm sm:text-base font-bold text-white truncate tracking-tight">
+            <h4 className="text-sm sm:text-base font-bold text-white break-words whitespace-normal leading-snug tracking-tight">
               {titleText}
             </h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[11px] text-white/90 font-medium">
-                {deptName}
-              </span>
-              {(event.dueDate || event.date) && (
-                <>
-                  <span className="text-white/60">•</span>
-                  <span className="text-[10.5px] font-mono text-white/80">
-                    {event.dueDate || event.date}
-                  </span>
-                </>
-              )}
-            </div>
+            {(event.dueDate || event.date) && (
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10.5px] font-mono text-white/80">
+                  {event.dueDate || event.date}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
