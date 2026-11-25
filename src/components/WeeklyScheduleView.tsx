@@ -1,18 +1,12 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronDown,
   Plus, 
   Calendar as CalendarIcon,
-  Check,
-  LayoutGrid,
-  CalendarDays,
-  Clock
+  Check
 } from 'lucide-react';
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
-import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
-import { formatDateToISO, formatMonthYear, getMonthWeeks, WeekRow } from '../utils/dateUtils';
+import { DEFAULT_DEPARTMENTS } from '../data/initialData';
+import { formatDateToISO, formatMonthYear, getEventStartHour, getMonthWeeks, WeekRow } from '../utils/dateUtils';
 import { getTaskCapsuleClass } from '../utils/themeStyles';
 
 interface WeeklyScheduleViewProps {
@@ -127,74 +121,167 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
           {[focusedWeek].map((weekItem) => {
             const weekStartIso = weekItem.days[0].iso;
             const weekEndIso = weekItem.days[6].iso;
-            const multiDayEvents = events.filter((e) => {
-              const start = e.date;
-              const end = e.dueDate || e.date;
-              return end > start && start <= weekEndIso && end >= weekStartIso;
+
+            const isMultiDayEvent = (e: TaskEvent) => (e.dueDate || e.date) > e.date;
+
+            const sortEventsByTime = (list: TaskEvent[]) =>
+              [...list].sort((a, b) => {
+                const timeDiff = getEventStartHour(a) - getEventStartHour(b);
+                if (Math.abs(timeDiff) > 0.001) return timeDiff;
+                const multiDiff = Number(isMultiDayEvent(a)) - Number(isMultiDayEvent(b));
+                if (multiDiff !== 0) return multiDiff;
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                return (a.title || '').localeCompare(b.title || '');
+              });
+
+            const weekEvents = sortEventsByTime(
+              events.filter((e) => {
+                const start = e.date;
+                const end = e.dueDate || e.date;
+                return start <= weekEndIso && end >= weekStartIso;
+              })
+            );
+
+            type EmptyAddItem = {
+              type: 'empty-add';
+              key: string;
+              dayIso: string;
+              colStart: number;
+              rowStart: number;
+              rowEnd: number;
+            };
+
+            type SingleBucketItem = {
+              type: 'single-bucket';
+              key: string;
+              colIdx: number;
+              colStart: number;
+              rowStart: number;
+              rowEnd: number;
+              events: TaskEvent[];
+            };
+
+            type MultiTaskItem = {
+              type: 'multi-task';
+              key: string;
+              event: TaskEvent;
+              dueDate: string;
+              colStart: number;
+              colEnd: number;
+              rowStart: number;
+              rowEnd: number;
+            };
+
+            type PlacedDesktopItem = EmptyAddItem | SingleBucketItem | MultiTaskItem;
+
+            const desktopPlacedItems: PlacedDesktopItem[] = [];
+            const nextRowForCol = [1, 1, 1, 1, 1, 1, 1];
+            const openBucketForCol: (SingleBucketItem | null)[] = [null, null, null, null, null, null, null];
+
+            const emptyAddItems: EmptyAddItem[] = [];
+            weekItem.days.forEach((day, dayIdx) => {
+              const hasEventsForDay = weekEvents.some((e) => {
+                const start = e.date;
+                const end = e.dueDate || e.date;
+                return start <= day.iso && end >= day.iso;
+              });
+              if (!hasEventsForDay) {
+                emptyAddItems.push({
+                  type: 'empty-add',
+                  key: `empty-${day.iso}`,
+                  dayIso: day.iso,
+                  colStart: dayIdx + 1,
+                  rowStart: 1,
+                  rowEnd: 2,
+                });
+              }
             });
+
+            desktopPlacedItems.push(...emptyAddItems);
+
+            for (const event of weekEvents) {
+              const start = event.date;
+              const dueDate = event.dueDate || event.date;
+              const isMultiDay = dueDate > start;
+
+              if (isMultiDay) {
+                const clampedStartIso = start < weekStartIso ? weekStartIso : start;
+                const clampedEndIso = dueDate > weekEndIso ? weekEndIso : dueDate;
+                const startIdx = weekItem.days.findIndex((d) => d.iso === clampedStartIso);
+                const endIdx = weekItem.days.findIndex((d) => d.iso === clampedEndIso);
+                const validStart = startIdx !== -1 ? startIdx : 0;
+                const validEnd = endIdx !== -1 ? endIdx : 6;
+                const rowStart = Math.max(...nextRowForCol.slice(validStart, validEnd + 1));
+
+                for (let c = validStart; c <= validEnd; c++) {
+                  const openBucket = openBucketForCol[c];
+                  if (openBucket) {
+                    openBucket.rowEnd = rowStart;
+                    openBucketForCol[c] = null;
+                  }
+                  nextRowForCol[c] = rowStart + 1;
+                }
+
+                desktopPlacedItems.push({
+                  type: 'multi-task',
+                  key: `task-${event.id}`,
+                  event,
+                  dueDate,
+                  colStart: validStart + 1,
+                  colEnd: validEnd + 2,
+                  rowStart,
+                  rowEnd: rowStart + 1,
+                });
+              } else {
+                const dayIdx = weekItem.days.findIndex((d) => d.iso === start);
+                if (dayIdx === -1) continue;
+                const existingBucket = openBucketForCol[dayIdx];
+                if (existingBucket) {
+                  existingBucket.events.push(event);
+                } else {
+                  const rowStart = nextRowForCol[dayIdx];
+                  const newBucket: SingleBucketItem = {
+                    type: 'single-bucket',
+                    key: `bucket-${dayIdx}-r${rowStart}`,
+                    colIdx: dayIdx,
+                    colStart: dayIdx + 1,
+                    rowStart,
+                    rowEnd: rowStart + 1,
+                    events: [event],
+                  };
+                  openBucketForCol[dayIdx] = newBucket;
+                  desktopPlacedItems.push(newBucket);
+                  nextRowForCol[dayIdx] = rowStart + 1;
+                }
+              }
+            }
+
+            const maxGridEndRow = Math.max(2, ...nextRowForCol);
+            for (const item of emptyAddItems) {
+              item.rowEnd = maxGridEndRow;
+            }
+            for (let c = 0; c < 7; c++) {
+              const openBucket = openBucketForCol[c];
+              if (openBucket) {
+                openBucket.rowEnd = maxGridEndRow;
+              }
+            }
 
             return (
               <div key={weekItem.weekNumber} className="flex flex-col">
 
-                {/* MOBILE VIEW (< md): Clean Full-Width Vertical Weekly Stack */}
+                {/* MOBILE VIEW (< md): Clean Full-Width Vertical Weekly Stack sorted by time */}
                 <div className="flex md:hidden flex-col gap-4">
-                  {/* Multi-Day Spanning Tasks on Mobile */}
-                  {multiDayEvents.length > 0 && (
-                    <div className="flex flex-col gap-2.5 pb-2 border-b border-slate-100">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
-                        Agenda Lintas Hari
-                      </span>
-                      {multiDayEvents.map((event) => {
-                        const capsuleBg = getTaskCapsuleClass(event, departments);
-                        const titleText = event.title || 'Tugas Tanpa Judul';
-                        const isCompleted = event.status === 'completed';
-                        const dueDate = event.dueDate || event.date;
-
-                        return (
-                          <div
-                            key={event.id}
-                            onClick={() => onSelectEvent(event)}
-                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${capsuleBg}`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-mono uppercase bg-white/25 px-2.5 py-0.5 rounded-full font-bold">
-                                  {event.date} → {dueDate}
-                                </span>
-                              </div>
-                              <h4 className="text-sm font-bold break-words whitespace-normal leading-snug tracking-tight text-white">
-                                {titleText}
-                              </h4>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (onToggleEventStatus) {
-                                  onToggleEventStatus(event.id);
-                                }
-                              }}
-                              className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                                isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
-                              }`}
-                            >
-                              <Check className="w-4 h-4 stroke-[3]" />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
                   {/* Day-by-Day Vertical Sections */}
                   {weekItem.days.map((day) => {
                     const isSelected = day.iso === selectedIso;
-                    const dayEvents = events.filter((e) => {
-                      const start = e.date;
-                      const end = e.dueDate || e.date;
-                      return start === end && start === day.iso;
-                    });
+                    const dayEvents = sortEventsByTime(
+                      events.filter((e) => {
+                        const start = e.date;
+                        const end = e.dueDate || e.date;
+                        return start <= day.iso && end >= day.iso;
+                      })
+                    );
 
                     return (
                       <div key={day.iso} className="flex flex-col gap-2.5">
@@ -243,6 +330,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               const capsuleBg = getTaskCapsuleClass(event, departments);
                               const titleText = event.title || 'Tugas Tanpa Judul';
                               const isCompleted = event.status === 'completed';
+                              const dueDate = event.dueDate || event.date;
+                              const isMultiDay = dueDate > event.date;
 
                               return (
                                 <div
@@ -254,6 +343,13 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                   className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${capsuleBg}`}
                                 >
                                   <div className="min-w-0 flex-1">
+                                    {isMultiDay && (
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        <span className="text-[10px] font-mono uppercase bg-white/25 px-2.5 py-0.5 rounded-full font-bold text-white">
+                                          {event.date} → {dueDate}
+                                        </span>
+                                      </div>
+                                    )}
                                     <h5 className="text-sm font-bold break-words whitespace-normal leading-snug">
                                       {titleText}
                                     </h5>
@@ -283,7 +379,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   })}
                 </div>
 
-                {/* DESKTOP VIEW (>= md): 7-Column Grid with Multi-day Spanning */}
+                {/* DESKTOP VIEW (>= md): 7-Column Grid sorted chronologically by hour */}
                 <div className="hidden md:flex flex-col">
                   {/* Day Headers Row (Senin, Selasa, Rabu, etc.) */}
                   <div className="grid grid-cols-7 gap-3 min-w-[1100px] pb-2.5 border-b border-slate-200 shrink-0">
@@ -327,86 +423,46 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                     })}
                   </div>
 
-                  {/* Weekly Timeline Area with 7-column grid container */}
-                  <div className="flex-1 min-w-[1100px] pt-2.5 flex flex-col gap-3">
-                    {/* 1. Multi-Day Spanning Tasks Grid Container */}
-                    {multiDayEvents.map((event) => {
-                      const capsuleBg = getTaskCapsuleClass(event, departments);
-                      const titleText = event.title || 'Tugas Tanpa Judul';
-                      const isCompleted = event.status === 'completed';
-
-                      const startIso = event.date < weekStartIso ? weekStartIso : event.date;
-                      const dueDate = event.dueDate || event.date;
-                      const endIso = dueDate > weekEndIso ? weekEndIso : dueDate;
-
-                      const startIndex = weekItem.days.findIndex(d => d.iso === startIso);
-                      const endIndex = weekItem.days.findIndex(d => d.iso === endIso);
-
-                      const validStart = startIndex !== -1 ? startIndex : 0;
-                      const validEnd = endIndex !== -1 ? endIndex : 6;
-
-                      return (
-                        <div
-                          key={event.id}
-                          className="grid grid-cols-7 gap-3 w-full"
-                        >
-                          <div
-                            onClick={() => onSelectEvent(event)}
-                            style={{
-                              gridColumnStart: validStart + 1,
-                              gridColumnEnd: validEnd + 2,
-                            }}
-                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-mono uppercase bg-white/25 px-2.5 py-0.5 rounded-full font-bold">
-                                  {event.date} → {dueDate}
-                                </span>
-                              </div>
-                              <h4 className="text-sm sm:text-base font-bold break-words whitespace-normal leading-snug tracking-tight text-white">
-                                {titleText}
-                              </h4>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (onToggleEventStatus) {
-                                  onToggleEventStatus(event.id);
-                                }
-                              }}
-                              className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                                isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
-                              }`}
-                            >
-                              <Check className="w-4 h-4 stroke-[3]" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {/* 2. Single-Day Tasks Grid (Rendered in their respective day columns) */}
-                    <div className="grid grid-cols-7 gap-3 pt-2">
-                      {weekItem.days.map((day) => {
-                        const dayEvents = events.filter((e) => {
-                          const start = e.date;
-                          const end = e.dueDate || e.date;
-                          return start === end && start === day.iso;
-                        });
-
+                  {/* Weekly Timeline Area with unified 7-column grid (tight per-column stacks + interleaved multi-day bars) */}
+                  <div className="flex-1 min-w-[1100px] pt-2.5 grid grid-cols-7 gap-3 items-start content-start">
+                    {desktopPlacedItems.map((item) => {
+                      if (item.type === 'empty-add') {
                         return (
-                          <div key={day.iso} className="flex flex-col gap-3 min-h-[300px]">
-                            {dayEvents.map((event) => {
+                          <div
+                            key={item.key}
+                            style={{
+                              gridColumnStart: item.colStart,
+                              gridRowStart: item.rowStart,
+                              gridRowEnd: item.rowEnd,
+                            }}
+                            onClick={() => onOpenCreateModal(item.dayIso, 10)}
+                            className="h-20 self-start rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#38bdf8] hover:bg-sky-50/30 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#0284c7] transition-all cursor-pointer p-2 text-center"
+                          >
+                            <Plus className="w-4 h-4 text-slate-300" />
+                            <span className="text-[11px] font-semibold">+ Add Task</span>
+                          </div>
+                        );
+                      }
+
+                      if (item.type === 'single-bucket') {
+                        return (
+                          <div
+                            key={item.key}
+                            style={{
+                              gridColumnStart: item.colStart,
+                              gridRowStart: item.rowStart,
+                              gridRowEnd: item.rowEnd,
+                            }}
+                            className="flex flex-col gap-3 self-start min-w-0"
+                          >
+                            {item.events.map((event) => {
                               const capsuleBg = getTaskCapsuleClass(event, departments);
                               const titleText = event.title || 'Tugas Tanpa Judul';
                               const isCompleted = event.status === 'completed';
 
                               return (
                                 <div
-                                  key={event.id}
+                                  key={`task-${event.id}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     onSelectEvent(event);
@@ -414,7 +470,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                   className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
                                 >
                                   <div className="min-w-0 flex-1">
-                                    <h5 className="text-xs sm:text-sm font-bold break-words whitespace-normal leading-snug">
+                                    <h5 className="text-xs sm:text-sm font-bold break-words whitespace-normal leading-snug text-white">
                                       {titleText}
                                     </h5>
                                   </div>
@@ -436,20 +492,58 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                 </div>
                               );
                             })}
-
-                            {dayEvents.length === 0 && (
-                              <div
-                                onClick={() => onOpenCreateModal(day.iso, 10)}
-                                className="h-20 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#38bdf8] hover:bg-sky-50/30 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-[#0284c7] transition-all cursor-pointer p-2 text-center"
-                              >
-                                <Plus className="w-4 h-4 text-slate-300" />
-                                <span className="text-[11px] font-semibold">+ Add Task</span>
-                              </div>
-                            )}
                           </div>
                         );
-                      })}
-                    </div>
+                      }
+
+                      const { event, dueDate, colStart, colEnd, rowStart, rowEnd } = item;
+                      const capsuleBg = getTaskCapsuleClass(event, departments);
+                      const titleText = event.title || 'Tugas Tanpa Judul';
+                      const isCompleted = event.status === 'completed';
+
+                      return (
+                        <div
+                          key={item.key}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectEvent(event);
+                          }}
+                          style={{
+                            gridColumnStart: colStart,
+                            gridColumnEnd: colEnd,
+                            gridRowStart: rowStart,
+                            gridRowEnd: rowEnd,
+                          }}
+                          className={`w-full self-start py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-mono uppercase bg-white/25 px-2.5 py-0.5 rounded-full font-bold text-white">
+                                {event.date} → {dueDate}
+                              </span>
+                            </div>
+                            <h5 className="text-sm sm:text-base tracking-tight font-bold break-words whitespace-normal leading-snug text-white">
+                              {titleText}
+                            </h5>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onToggleEventStatus) {
+                                onToggleEventStatus(event.id);
+                              }
+                            }}
+                            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
+                            }`}
+                          >
+                            <Check className="w-4 h-4 stroke-[3]" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

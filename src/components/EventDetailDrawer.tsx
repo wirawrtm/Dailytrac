@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TaskEvent } from '../types';
 import { COLOR_THEMES } from '../utils/themeStyles';
+import { formatTaskTimeLabel } from '../utils/dateUtils';
 
 interface EventDetailDrawerProps {
   event: TaskEvent | null;
@@ -72,11 +73,15 @@ export const EventDetailDrawer: React.FC<EventDetailDrawerProps> = ({
             )}
           </h3>
 
-          {/* Date & Due Date */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 mt-3 font-mono">
+          {/* Date, Time & Due Date */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 mt-3 font-mono">
             <span className="flex items-center gap-1.5 font-semibold bg-white/70 px-2 py-0.5 rounded-md">
               <Calendar className="w-3.5 h-3.5 text-[#0ea5e9]" />
               <span>Date: {event.date}</span>
+            </span>
+            <span className="flex items-center gap-1.5 font-semibold bg-white/70 px-2 py-0.5 rounded-md">
+              <Clock className="w-3.5 h-3.5 text-[#0ea5e9]" />
+              <span>{formatTaskTimeLabel(event)}</span>
             </span>
             {event.dueDate && (
               <span className="flex items-center gap-1.5 font-semibold bg-amber-50 text-amber-800 border border-amber-200/60 px-2 py-0.5 rounded-md">

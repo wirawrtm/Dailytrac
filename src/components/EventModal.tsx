@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Building2, FileText, CheckCircle2, Trash2, ChevronDown, Check, Search, Plus } from 'lucide-react';
+import { X, Calendar, Clock, Building2, FileText, CheckCircle2, Trash2, ChevronDown, Check, Search, Plus } from 'lucide-react';
 import { TaskEvent, EventColorTheme, DepartmentItem, WorkOutline } from '../types';
 import { DEFAULT_DEPARTMENTS } from '../data/initialData';
-import { formatDateToISO } from '../utils/dateUtils';
+import { formatDateToISO, formatHourTo24Time, getEventStartHour, parseTimeToHour } from '../utils/dateUtils';
 import { TASK_FIELD_LIMITS } from '../services/firebaseDbService';
 
 interface EventModalProps {
@@ -89,10 +89,27 @@ export const EventModal: React.FC<EventModalProps> = ({
     );
     return matched ? matched.outline : 'Work';
   });
+  const getInitialTimeStrings = (ev?: Partial<TaskEvent>) => {
+    const startH = getEventStartHour(ev || {});
+    const startStr = formatHourTo24Time(startH);
+    let endH = startH + (typeof ev?.durationHours === 'number' && Number.isFinite(ev.durationHours) ? ev.durationHours : 1);
+    if (ev?.endTime && ev.endTime.trim()) {
+      const parsedEnd = parseTimeToHour(ev.endTime);
+      if (Number.isFinite(parsedEnd) && parsedEnd >= 0 && parsedEnd <= 24) {
+        endH = parsedEnd;
+      }
+    }
+    const endStr = formatHourTo24Time(Math.min(23 + 59 / 60, endH));
+    return { startStr, endStr };
+  };
+
+  const initialTimes = getInitialTimeStrings(initialEvent);
   const [task, setTask] = useState(initialEvent?.title || '');
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [date, setDate] = useState(initialEvent?.date || formatDateToISO(new Date()));
   const [dueDate, setDueDate] = useState(initialEvent?.dueDate || '');
+  const [startTime, setStartTime] = useState(initialTimes.startStr);
+  const [endTime, setEndTime] = useState(initialTimes.endStr);
 
   // Synchronize fields when modal opens or initialEvent changes
   useEffect(() => {
@@ -109,11 +126,14 @@ export const EventModal: React.FC<EventModalProps> = ({
         );
         defaultOutline = matched ? matched.outline : 'Work';
       }
+      const nextTimes = getInitialTimeStrings(initialEvent);
       setOutline(defaultOutline);
       setTask(initialEvent?.title || '');
       setDescription(initialEvent?.description || '');
       setDate(initialEvent?.date || formatDateToISO(new Date()));
       setDueDate(initialEvent?.dueDate || '');
+      setStartTime(nextTimes.startStr);
+      setEndTime(nextTimes.endStr);
       setIsDeptDropdownOpen(false);
       setDeptSearchQuery('');
     }
@@ -162,6 +182,22 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (!task.trim()) return;
 
     const theme = selectedDeptObj?.colorTheme || getDepartmentTheme(department);
+    const parsedStart = parseTimeToHour(startTime);
+    const resolvedStartHour = Number.isFinite(parsedStart)
+      ? Math.max(0, Math.min(24, Number(parsedStart.toFixed(2))))
+      : 9;
+    const parsedEnd = endTime ? parseTimeToHour(endTime) : resolvedStartHour + 1;
+    const resolvedEndHour = Number.isFinite(parsedEnd)
+      ? Math.max(0, Math.min(24, parsedEnd))
+      : resolvedStartHour + 1;
+    const resolvedDuration =
+      resolvedEndHour > resolvedStartHour
+        ? Math.min(24, Number((resolvedEndHour - resolvedStartHour).toFixed(2)))
+        : 1;
+    const resolvedStartStr = formatHourTo24Time(resolvedStartHour);
+    const resolvedEndStr = endTime.trim()
+      ? formatHourTo24Time(resolvedEndHour)
+      : formatHourTo24Time(Math.min(23 + 59 / 60, resolvedStartHour + 1));
 
     const newEvent: TaskEvent = {
       id: initialEvent?.id || `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -172,10 +208,10 @@ export const EventModal: React.FC<EventModalProps> = ({
       description: description.trim() || undefined,
       date,
       dueDate: dueDate.trim() || undefined,
-      startTime: initialEvent?.startTime || '09:00 AM',
-      endTime: initialEvent?.endTime || '10:00 AM',
-      startHour: initialEvent?.startHour || 9,
-      durationHours: initialEvent?.durationHours || 1,
+      startTime: resolvedStartStr,
+      endTime: resolvedEndStr,
+      startHour: resolvedStartHour,
+      durationHours: resolvedDuration,
       category: initialEvent?.category || 'meetings',
       colorTheme: theme,
       attendees: initialEvent?.attendees || [],
@@ -465,6 +501,39 @@ export const EventModal: React.FC<EventModalProps> = ({
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800"
+                />
+              </div>
+            </div>
+
+            {/* 6. JAM MULAI & JAM SELESAI */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#0ea5e9]" />
+                  <span>Jam Mulai *</span>
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Jam Selesai</span>
+                  </span>
+                  <span className="text-[10px] font-normal text-slate-400">Optional</span>
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800"
                 />
               </div>

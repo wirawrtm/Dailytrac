@@ -268,3 +268,47 @@ export function formatHourToString(hour: number): string {
   const displayMinutes = String(minutes).padStart(2, '0');
   return `${String(displayHour).padStart(2, '0')}:${displayMinutes} ${period}`;
 }
+
+export function getEventStartHour(event: { startTime?: string; startHour?: number }): number {
+  if (event.startTime && event.startTime.trim()) {
+    const parsed = parseTimeToHour(event.startTime);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 24) {
+      return parsed;
+    }
+  }
+  if (typeof event.startHour === 'number' && Number.isFinite(event.startHour)) {
+    return Math.max(0, Math.min(24, event.startHour));
+  }
+  return 9;
+}
+
+export function formatHourTo24Time(hour: number): string {
+  const clamped = Math.max(0, Math.min(23 + 59 / 60, Number.isFinite(hour) ? hour : 9));
+  let wholeHour = Math.floor(clamped);
+  let minutes = Math.round((clamped - wholeHour) * 60);
+  if (minutes >= 60) {
+    wholeHour = Math.min(23, wholeHour + 1);
+    minutes = 0;
+  }
+  return `${String(wholeHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+export function formatTaskTimeLabel(event: {
+  startTime?: string;
+  endTime?: string;
+  startHour?: number;
+  durationHours?: number;
+}): string {
+  const startH = getEventStartHour(event);
+  const startStr = formatHourTo24Time(startH);
+  if (event.endTime && event.endTime.trim()) {
+    const endParsed = parseTimeToHour(event.endTime);
+    if (Number.isFinite(endParsed) && endParsed >= 0 && endParsed <= 24) {
+      return `${startStr} - ${formatHourTo24Time(endParsed)}`;
+    }
+  }
+  if (typeof event.durationHours === 'number' && Number.isFinite(event.durationHours) && event.durationHours > 0) {
+    return `${startStr} - ${formatHourTo24Time(Math.min(23 + 59 / 60, startH + event.durationHours))}`;
+  }
+  return startStr;
+}
