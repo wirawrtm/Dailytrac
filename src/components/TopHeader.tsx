@@ -68,14 +68,14 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className="md:hidden relative z-30 flex items-center justify-between h-[52px] px-4 select-none text-slate-900 bg-white border-b border-slate-100 shrink-0"
+      className="md:hidden relative z-30 flex items-center justify-between gap-2 min-h-[52px] pt-3 pb-2 px-4 select-none text-slate-900 bg-white shrink-0"
     >
       {/* Left: Sidebar Toggle + Dashboard Title */}
-      <div className="flex items-center gap-2.5 shrink-0">
+      <div className="flex items-center gap-2 min-w-0">
         <button
           onClick={onToggleSidebar}
           title={isSidebarOpen ? "Hide Calendar Sidebar" : "Open Calendar Sidebar"}
-          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+          className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
         >
           {isSidebarOpen ? (
             <PanelLeftClose className="w-4 h-4 stroke-[2.2]" />
@@ -84,7 +84,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
           )}
         </button>
 
-        <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-[17px] font-extrabold text-slate-900 tracking-tight truncate">
           Dashboard
         </h1>
       </div>
@@ -104,9 +104,9 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
             type="button"
             onClick={() => setIsCalendarPickerOpen(!isCalendarPickerOpen)}
             title="Klik untuk melihat kalender & memilih bulan"
-            className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white transition-colors cursor-pointer group"
+            className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-white transition-colors cursor-pointer group"
           >
-            <span className="text-xs font-bold text-slate-800 tracking-tight whitespace-nowrap group-hover:text-[#0ea5e9]">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-800 tracking-tight whitespace-nowrap group-hover:text-[#0ea5e9]">
               {formatMonthYear(selectedDate)}
             </span>
             <ChevronDown className="w-3 h-3 text-slate-500 stroke-[2.5] transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -195,7 +195,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
-    <header className={`py-2.5 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 bg-white text-slate-900 select-none shrink-0 relative z-20 ${
+    <header className={`pt-1.5 pb-3 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 bg-white text-slate-900 select-none shrink-0 relative z-20 ${
       isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
     }`}>
       {/* Left: Sidebar Toggle & Dashboard Title */}

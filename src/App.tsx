@@ -649,7 +649,7 @@ export default function App() {
         />
 
         {/* Main Container (Flows naturally on mobile, floating rounded card on desktop) */}
-        <div className={`flex-1 flex flex-col min-w-0 md:min-h-0 md:h-full bg-white max-md:overflow-visible md:overflow-hidden transition-shadow duration-200 relative ${
+        <div className={`max-md:flex-auto md:flex-1 flex flex-col min-w-0 md:min-h-0 md:h-full bg-white max-md:overflow-visible md:overflow-hidden transition-shadow duration-200 relative ${
           isFullscreen
             ? 'rounded-none border-none'
             : 'rounded-none md:rounded-[28px] shadow-none md:shadow-xl border-none md:border md:border-slate-200/80'
@@ -675,7 +675,7 @@ export default function App() {
           />
 
           {/* Main Body: Collapsible Sidebar + Schedule View */}
-          <div className="flex-1 flex flex-row min-w-0 md:min-h-0 md:overflow-hidden md:h-full relative max-md:overflow-visible">
+          <div className="max-md:flex-auto md:flex-1 flex flex-row min-w-0 md:min-h-0 md:overflow-hidden md:h-full relative max-md:overflow-visible">
             {/* Mobile Backdrop when Sidebar is open on Phone */}
             {isSidebarOpen && viewMode !== 'settings' && (
               <div

@@ -235,9 +235,9 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 md:min-h-0 bg-[#fbfcfb] max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
+    <div className="max-md:flex-auto md:flex-1 flex flex-col min-w-0 md:min-h-0 bg-[#fbfcfb] max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
       {/* Scrollable Container */}
-      <div className="flex-1 md:min-h-0 md:overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-3.5 sm:px-8 max-md:pt-4 max-md:pb-4 md:py-7 flex flex-col gap-5 sm:gap-6 max-w-5xl mx-auto w-full min-w-0">
+      <div className="max-md:flex-auto md:flex-1 md:min-h-0 md:overflow-y-auto md:overflow-x-hidden max-md:overflow-visible overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-3.5 sm:px-8 max-md:pt-4 max-md:pb-4 md:py-7 flex flex-col gap-5 sm:gap-6 max-w-5xl mx-auto w-full min-w-0">
         
         {/* Top Header: Date Selector */}
         <div className="flex flex-wrap items-center justify-between gap-3 shrink-0 pt-1 border-b border-slate-100 pb-3.5 sm:pb-4">
