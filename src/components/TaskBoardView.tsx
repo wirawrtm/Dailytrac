@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { TaskEvent, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
+import { getTaskCapsuleClass } from '../utils/themeStyles';
 
 interface TaskBoardViewProps {
   events: TaskEvent[];
@@ -85,16 +86,8 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
     { status: 'completed', title: 'Complete', badge: 'bg-emerald-100 text-emerald-800' },
   ];
 
-  const capsuleColors = [
-    'bg-[#2dd4bf] text-white shadow-teal-500/20', // Teal
-    'bg-[#f87171] text-white shadow-rose-500/20', // Pink/Red
-    'bg-[#38bdf8] text-white shadow-sky-500/20',  // Blue
-    'bg-[#fbbf24] text-white shadow-amber-500/20', // Orange
-    'bg-[#818cf8] text-white shadow-indigo-500/20',// Purple
-  ];
-
-  const renderTaskCard = (event: TaskEvent, index: number, colStatus: 'pending' | 'completed') => {
-    const capsuleBg = capsuleColors[(event.id.charCodeAt(0) + index) % capsuleColors.length];
+  const renderTaskCard = (event: TaskEvent, _index: number, colStatus: 'pending' | 'completed') => {
+    const capsuleBg = getTaskCapsuleClass(event, departments);
     const titleText = (event.title && event.title.trim()) || 
                       (event as any).task || 
                       (event as any).name || 
@@ -112,9 +105,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
         {/* Capsule Task Card matching WeeklyScheduleView */}
         <div
           onClick={() => onSelectEvent(event)}
-          className={`flex-1 py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-start sm:items-center justify-between gap-3 ${
-            isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
-          }`}
+          className={`flex-1 py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-start sm:items-center justify-between gap-3 ${capsuleBg}`}
         >
           <div className="min-w-0 flex-1">
             <h4 className="text-sm sm:text-base font-bold text-white break-words whitespace-normal leading-snug tracking-tight">

@@ -161,7 +161,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     e.preventDefault();
     if (!task.trim()) return;
 
-    const theme = initialEvent?.colorTheme || getDepartmentTheme(department);
+    const theme = selectedDeptObj?.colorTheme || getDepartmentTheme(department);
 
     const newEvent: TaskEvent = {
       id: initialEvent?.id || `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -190,280 +190,289 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain animate-in fade-in duration-150">
-      <div 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[88dvh] my-auto overflow-x-hidden min-w-0"
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain animate-in fade-in duration-150"
+    >
+      <div
+        className="w-full max-w-lg bg-white rounded-[28px] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[88dvh] my-auto min-w-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">
-              {initialEvent?.id ? 'Edit Task' : 'Create New Task'}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Schedule tasks under Work, Improvement, or Buy departments.
-            </p>
+        <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-white shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight truncate">
+                {initialEvent?.id ? 'Edit Task' : 'Create New Task'}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
+                Atur tugas berdasarkan outline &amp; departemen
+              </p>
+            </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+            aria-label="Close modal"
+            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/70 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 stroke-[2.4]" />
           </button>
         </div>
 
-        {/* Form Body - Department, Task, Description, Date, Due Date (optional) */}
-        <form 
-          onSubmit={handleSubmit} 
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-5 sm:p-6 space-y-4 text-xs text-slate-700 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] min-w-0 w-full box-border"
+        {/* Form with scrollable body + pinned footer */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          
-          {/* 1. DEPARTMENT DROPDOWN (Filtered by Selected Outline: Work, Improvement, Buy) */}
-          <div className="relative" ref={deptDropdownRef}>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#00897b]" />
-                <span>Department & Outline *</span>
-              </label>
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-6 py-4 sm:py-5 space-y-4 text-xs text-slate-700 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] min-w-0 w-full box-border">
+            {/* 1. DEPARTMENT DROPDOWN (Filtered by Selected Outline: Work, Improvement, Buy) */}
+            <div className="relative" ref={deptDropdownRef}>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#0ea5e9]" />
+                  <span>Department &amp; Outline *</span>
+                </label>
 
-              {/* Outline Switcher: Work | Improvement | Buy (No numbers!) */}
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
-                {(['Work', 'Improvement', 'Buy'] as const).map((ot) => (
-                  <button
-                    key={ot}
-                    type="button"
-                    onClick={() => handleSwitchOutline(ot)}
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                      outline === ot
-                        ? ot === 'Work'
-                          ? 'bg-white text-amber-900 shadow-2xs font-extrabold ring-1 ring-amber-200'
-                          : ot === 'Improvement'
-                          ? 'bg-white text-purple-900 shadow-2xs font-extrabold ring-1 ring-purple-200'
-                          : 'bg-white text-emerald-900 shadow-2xs font-extrabold ring-1 ring-emerald-200'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {ot}
-                  </button>
-                ))}
+                {/* Outline Switcher: Work | Improvement | Buy */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full">
+                  {(['Work', 'Improvement', 'Buy'] as const).map((ot) => (
+                    <button
+                      key={ot}
+                      type="button"
+                      onClick={() => handleSwitchOutline(ot)}
+                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer ${
+                        outline === ot
+                          ? ot === 'Work'
+                            ? 'bg-white text-amber-800 shadow-2xs font-extrabold ring-1 ring-amber-200'
+                            : ot === 'Improvement'
+                            ? 'bg-white text-violet-800 shadow-2xs font-extrabold ring-1 ring-violet-200'
+                            : 'bg-white text-emerald-800 shadow-2xs font-extrabold ring-1 ring-emerald-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      {ot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Interactive Dropdown Selector */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
+                  className={`w-full px-3.5 py-2.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
+                    isDeptDropdownOpen
+                      ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]/20 bg-white shadow-xs'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/60 hover:bg-white shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                        selectedDeptObj?.dotColor || 'bg-[#38bdf8]'
+                      }`}
+                    />
+                    <div className="flex items-center gap-2 min-w-0 truncate">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                        {department || 'Pilih Departemen'}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          outline === 'Improvement'
+                            ? 'bg-violet-100 text-violet-800 border border-violet-200'
+                            : outline === 'Buy'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : 'bg-amber-100 text-amber-800 border border-amber-200'
+                        }`}
+                      >
+                        {outline}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
+                    <span className="text-[10.5px] font-semibold text-slate-400 hidden sm:inline">
+                      {activeDepartments.length} opsi
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
+                        isDeptDropdownOpen ? 'rotate-180 text-[#0ea5e9]' : ''
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {/* Dropdown Menu Popover */}
+                {isDeptDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-40 animate-in fade-in zoom-in-95 duration-100 max-h-60 flex flex-col overflow-hidden">
+                    {/* Search box inside dropdown */}
+                    <div className="px-3 pb-2 border-b border-slate-100">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={deptSearchQuery}
+                          onChange={(e) => setDeptSearchQuery(e.target.value)}
+                          placeholder="Cari atau ketik departemen..."
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* List of departments under current outline */}
+                    <div className="flex-1 overflow-y-auto p-1.5 flex flex-col gap-0.5">
+                      {filteredDropdownDepts.length > 0 ? (
+                        filteredDropdownDepts.map((d) => {
+                          const isSelected = department.toLowerCase() === d.name.toLowerCase();
+                          return (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => handleSelectDept(d)}
+                              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                                isSelected
+                                  ? 'bg-sky-50 text-[#0284c7] font-bold'
+                                  : 'text-slate-700 hover:bg-slate-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${d.dotColor}`} />
+                                <span className="font-semibold text-slate-800 break-words whitespace-normal text-left">{d.name}</span>
+                              </div>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-[#0ea5e9] stroke-[3] shrink-0" />}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="p-3 text-center text-xs text-slate-500">
+                          <p>Tidak ada departemen &quot;{deptSearchQuery}&quot; di {outline}</p>
+                          {deptSearchQuery.trim() && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDepartment(deptSearchQuery.trim());
+                                setIsDeptDropdownOpen(false);
+                                setDeptSearchQuery('');
+                              }}
+                              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-sky-50 text-[#0284c7] font-bold text-xs hover:bg-sky-100 transition-colors cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>Gunakan &quot;{deptSearchQuery.trim()}&quot;</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer shortcut to switch outline */}
+                    <div className="px-3 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="font-medium">Pilihan Outline:</span>
+                      <div className="flex items-center gap-1.5">
+                        {(['Work', 'Improvement', 'Buy'] as const).map((ot) => (
+                          <button
+                            key={ot}
+                            type="button"
+                            onClick={() => handleSwitchOutline(ot)}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                              outline === ot ? 'bg-[#38bdf8] text-white' : 'hover:text-slate-800'
+                            }`}
+                          >
+                            {ot}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Red Box converted into Interactive Dropdown Selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
-                className={`w-full px-3.5 py-2.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
-                  isDeptDropdownOpen
-                    ? 'border-[#00897b] ring-2 ring-[#00897b]/20 bg-white shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-white shadow-2xs'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                      selectedDeptObj?.dotColor || 'bg-slate-400'
-                    }`}
-                  />
-                  <div className="flex items-center gap-2 min-w-0 truncate">
-                    <span className="text-xs font-bold text-slate-800 truncate">
-                      {department || 'Pilih Departemen'}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                        outline === 'Improvement'
-                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                          : outline === 'Buy'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          : 'bg-amber-100 text-amber-800 border border-amber-200'
-                      }`}
-                    >
-                      {outline}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
-                  <span className="text-[10.5px] font-semibold text-slate-400 hidden sm:inline">
-                    {activeDepartments.length} opsi
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
-                      isDeptDropdownOpen ? 'rotate-180 text-[#00897b]' : ''
-                    }`}
-                  />
-                </div>
-              </button>
-
-              {/* Dropdown Menu Popover */}
-              {isDeptDropdownOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-40 animate-in fade-in zoom-in-95 duration-100 max-h-64 flex flex-col overflow-hidden">
-                  {/* Search box inside dropdown */}
-                  <div className="px-3 pb-2 border-b border-slate-100">
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        autoFocus
-                        value={deptSearchQuery}
-                        onChange={(e) => setDeptSearchQuery(e.target.value)}
-                        placeholder="Cari atau ketik departemen..."
-                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00897b] focus:border-[#00897b]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* List of departments under current outline */}
-                  <div className="flex-1 overflow-y-auto p-1.5 flex flex-col gap-0.5">
-                    {filteredDropdownDepts.length > 0 ? (
-                      filteredDropdownDepts.map((d) => {
-                        const isSelected = department.toLowerCase() === d.name.toLowerCase();
-                        return (
-                          <button
-                            key={d.id}
-                            type="button"
-                            onClick={() => handleSelectDept(d)}
-                            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
-                              isSelected
-                                ? 'bg-teal-50 text-[#00796b] font-bold'
-                                : 'text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <span className={`w-2 h-2 rounded-full shrink-0 ${d.dotColor}`} />
-                              <span className="font-semibold text-slate-800 break-words whitespace-normal text-left">{d.name}</span>
-                            </div>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[3] shrink-0" />}
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="p-3 text-center text-xs text-slate-500">
-                        <p>Tidak ada departemen &quot;{deptSearchQuery}&quot; di {outline}</p>
-                        {deptSearchQuery.trim() && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDepartment(deptSearchQuery.trim());
-                              setIsDeptDropdownOpen(false);
-                              setDeptSearchQuery('');
-                            }}
-                            className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 text-[#00796b] font-bold text-xs hover:bg-teal-100 transition-colors cursor-pointer"
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Gunakan &quot;{deptSearchQuery.trim()}&quot;</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer shortcut to switch outline */}
-                  <div className="px-3 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="font-medium">Pilihan Outline:</span>
-                    <div className="flex items-center gap-1.5">
-                      {(['Work', 'Improvement', 'Buy'] as const).map((ot) => (
-                        <button
-                          key={ot}
-                          type="button"
-                          onClick={() => handleSwitchOutline(ot)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer ${
-                            outline === ot ? 'bg-teal-700 text-white' : 'hover:text-slate-800'
-                          }`}
-                        >
-                          {ot}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 2. TASK (Title) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-[#00897b]" />
-              <span>Task *</span>
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={TASK_FIELD_LIMITS.TITLE_MAX}
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              placeholder="e.g. Standup Meeting, UX Audit Sync, Client Presentation..."
-              className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00897b]/20 focus:border-[#00897b] transition-all bg-white"
-            />
-          </div>
-
-          {/* 3. DESCRIPTION */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              <span>Description</span>
-            </label>
-            <textarea
-              rows={3}
-              maxLength={TASK_FIELD_LIMITS.DESCRIPTION_MAX}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add detailed task description, agenda, or notes..."
-              className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00897b]/20 focus:border-[#00897b] transition-all bg-white resize-none"
-            />
-          </div>
-
-          {/* 4 & 5. DATE & DUE DATE (OPTIONAL) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* 4. Date */}
+            {/* 2. TASK (Title) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#00897b]" />
-                <span>Date *</span>
+              <label className="text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#0ea5e9]" />
+                <span>Task *</span>
               </label>
               <input
-                type="date"
+                type="text"
                 required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00897b]/20 focus:border-[#00897b] transition-all bg-white"
+                maxLength={TASK_FIELD_LIMITS.TITLE_MAX}
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                placeholder="e.g. Standup Meeting, UX Audit Sync, Client Presentation..."
+                className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800 placeholder:text-slate-400"
               />
             </div>
 
-            {/* 5. Due Date (optional) */}
+            {/* 3. DESCRIPTION */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Due Date</span>
-                </span>
-                <span className="text-[10px] font-normal text-slate-400">Optional</span>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                <span>Description</span>
               </label>
-              <div className="relative">
+              <textarea
+                rows={3}
+                maxLength={TASK_FIELD_LIMITS.DESCRIPTION_MAX}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add detailed task description, agenda, or notes..."
+                className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800 placeholder:text-slate-400 resize-none"
+              />
+            </div>
+
+            {/* 4 & 5. DATE & DUE DATE (OPTIONAL) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* 4. Date */}
+              <div>
+                <label className="text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#0ea5e9]" />
+                  <span>Date *</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800"
+                />
+              </div>
+
+              {/* 5. Due Date (optional) */}
+              <div>
+                <label className="text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Due Date</span>
+                  </span>
+                  {dueDate ? (
+                    <button
+                      type="button"
+                      onClick={() => setDueDate('')}
+                      className="text-[10.5px] font-bold text-[#0ea5e9] hover:text-[#0284c7] cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-normal text-slate-400">Optional</span>
+                  )}
+                </label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00897b]/20 focus:border-[#00897b] transition-all bg-white"
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all bg-slate-50/60 focus:bg-white text-slate-800"
                 />
-                {dueDate && (
-                  <button
-                    type="button"
-                    onClick={() => setDueDate('')}
-                    title="Clear due date"
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Modal Footer Buttons */}
-          <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-100">
+          {/* Pinned Modal Footer Buttons */}
+          <div className="px-5 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2 shrink-0">
             {initialEvent?.id && onDelete ? (
               <button
                 type="button"
@@ -471,7 +480,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                   onDelete(initialEvent.id!);
                   onClose();
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Hapus Task</span>
@@ -482,15 +491,15 @@ export const EventModal: React.FC<EventModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-full text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold bg-[#f6c445] hover:bg-[#eab32f] text-slate-900 shadow-xs hover:shadow transition-all duration-150 active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold bg-[#38bdf8] hover:bg-[#0ea5e9] text-white shadow-md shadow-sky-500/25 transition-all duration-150 active:scale-95 cursor-pointer"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>{initialEvent?.id ? 'Save Changes' : 'Create Task'}</span>
               </button>
             </div>

@@ -13,6 +13,7 @@ import {
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
 import { formatDateToISO, getMonthWeeks, WeekRow } from '../utils/dateUtils';
+import { getTaskCapsuleClass } from '../utils/themeStyles';
 
 interface WeeklyScheduleViewProps {
   selectedDate: Date;
@@ -64,14 +65,6 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
   };
 
   const focusedWeek = monthWeeks.find((w) => w.weekNumber === focusedWeekNumber) || currentSelectedWeek;
-
-  const capsuleColors = [
-    'bg-[#2dd4bf] text-white shadow-teal-500/20', // Teal
-    'bg-[#f87171] text-white shadow-rose-500/20', // Pink/Red
-    'bg-[#38bdf8] text-white shadow-sky-500/20',  // Blue
-    'bg-[#fbbf24] text-white shadow-amber-500/20', // Orange
-    'bg-[#818cf8] text-white shadow-indigo-500/20',// Purple
-  ];
 
   return (
     <div className="flex-1 flex flex-col min-w-0 md:min-h-0 bg-white max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
@@ -185,8 +178,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
                         Agenda Lintas Hari
                       </span>
-                      {multiDayEvents.map((event, eventIdx) => {
-                        const capsuleBg = capsuleColors[(event.id.charCodeAt(0) + eventIdx) % capsuleColors.length];
+                      {multiDayEvents.map((event) => {
+                        const capsuleBg = getTaskCapsuleClass(event, departments);
                         const titleText = event.title || 'Tugas Tanpa Judul';
                         const isCompleted = event.status === 'completed';
                         const dueDate = event.dueDate || event.date;
@@ -195,9 +188,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                           <div
                             key={event.id}
                             onClick={() => onSelectEvent(event)}
-                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${
-                              isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
-                            }`}
+                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${capsuleBg}`}
                           >
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 mb-1">
@@ -282,8 +273,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                         {dayEvents.length > 0 && (
                           <div className="flex flex-col gap-2.5 pl-1">
-                            {dayEvents.map((event, eventIdx) => {
-                              const capsuleBg = capsuleColors[(event.id.charCodeAt(0) + eventIdx) % capsuleColors.length];
+                            {dayEvents.map((event) => {
+                              const capsuleBg = getTaskCapsuleClass(event, departments);
                               const titleText = event.title || 'Tugas Tanpa Judul';
                               const isCompleted = event.status === 'completed';
 
@@ -294,9 +285,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                     e.stopPropagation();
                                     onSelectEvent(event);
                                   }}
-                                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${
-                                    isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
-                                  }`}
+                                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all flex items-start justify-between gap-3 ${capsuleBg}`}
                                 >
                                   <div className="min-w-0 flex-1">
                                     <h5 className="text-sm font-bold break-words whitespace-normal leading-snug">
@@ -375,8 +364,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   {/* Weekly Timeline Area with 7-column grid container */}
                   <div className="flex-1 min-w-[1100px] pt-4 flex flex-col gap-3">
                     {/* 1. Multi-Day Spanning Tasks Grid Container */}
-                    {multiDayEvents.map((event, eventIdx) => {
-                      const capsuleBg = capsuleColors[(event.id.charCodeAt(0) + eventIdx) % capsuleColors.length];
+                    {multiDayEvents.map((event) => {
+                      const capsuleBg = getTaskCapsuleClass(event, departments);
                       const titleText = event.title || 'Tugas Tanpa Judul';
                       const isCompleted = event.status === 'completed';
 
@@ -401,9 +390,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               gridColumnStart: validStart + 1,
                               gridColumnEnd: validEnd + 2,
                             }}
-                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${
-                              isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
-                            }`}
+                            className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
                           >
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 mb-1">
@@ -446,8 +433,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
                         return (
                           <div key={day.iso} className="flex flex-col gap-3 min-h-[300px]">
-                            {dayEvents.map((event, eventIdx) => {
-                              const capsuleBg = capsuleColors[(event.id.charCodeAt(0) + eventIdx) % capsuleColors.length];
+                            {dayEvents.map((event) => {
+                              const capsuleBg = getTaskCapsuleClass(event, departments);
                               const titleText = event.title || 'Tugas Tanpa Judul';
                               const isCompleted = event.status === 'completed';
 
@@ -458,9 +445,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                     e.stopPropagation();
                                     onSelectEvent(event);
                                   }}
-                                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${
-                                    isCompleted ? 'bg-[#38bdf8] text-white shadow-sky-500/20' : capsuleBg
-                                  }`}
+                                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
                                 >
                                   <div className="min-w-0 flex-1">
                                     <h5 className="text-xs sm:text-sm font-bold break-words whitespace-normal leading-snug">

@@ -21,6 +21,7 @@ import {
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
 import { formatDateToISO } from '../utils/dateUtils';
+import { getTaskCapsuleClass } from '../utils/themeStyles';
 
 interface DailyScheduleViewProps {
   selectedDate: Date;
@@ -226,14 +227,6 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
     hasMountedRibbonRef.current = true;
   }, [selectedIso]);
 
-  const capsuleColors = [
-    'bg-[#2dd4bf] text-white shadow-teal-500/20', // Teal
-    'bg-[#f87171] text-white shadow-rose-500/20', // Pink/Red
-    'bg-[#38bdf8] text-white shadow-sky-500/20',  // Blue
-    'bg-[#fbbf24] text-white shadow-amber-500/20', // Orange
-    'bg-[#818cf8] text-white shadow-indigo-500/20',// Purple
-  ];
-
   return (
     <div className="max-md:flex-auto md:flex-1 flex flex-col min-w-0 md:min-h-0 bg-[#fbfcfb] max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
       {/* Scrollable Container */}
@@ -330,7 +323,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         ) : (
           <div className="flex flex-col gap-3.5 py-2">
             {dayEvents.map((event, index) => {
-              const capsuleBg = capsuleColors[index % capsuleColors.length];
+              const capsuleBg = getTaskCapsuleClass(event, departments);
               const titleText = event.title || 'Tugas Tanpa Judul';
               const isCompleted = event.status === 'completed';
               const progressPct = isCompleted ? '100%' : `${70 + (index * 7) % 25}%`;
@@ -370,13 +363,14 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
           </div>
         )}
 
-        {/* Bottom Team Legend matching IMG_1033 */}
+        {/* Bottom Department Legend */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-6 pb-2 border-t border-slate-100 text-xs font-semibold text-slate-600 shrink-0 select-none">
-          <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#2dd4bf]"></span><span>Business Team</span></div>
-          <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f87171]"></span><span>Creative Team</span></div>
-          <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span><span>Technology Team</span></div>
-          <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></span><span>Startup Team</span></div>
-          <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#818cf8]"></span><span>Finance Team</span></div>
+          {departments.map((dept) => (
+            <div key={dept.id} className="flex items-center gap-1.5">
+              <span className={`w-2.5 h-2.5 rounded-full ${dept.dotColor}`}></span>
+              <span>{dept.name}</span>
+            </div>
+          ))}
         </div>
 
         {/* Bottom Spacing (Desktop only) */}

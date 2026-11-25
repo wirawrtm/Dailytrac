@@ -1,7 +1,8 @@
 import React from 'react';
 import { Clock, CheckCircle2 } from 'lucide-react';
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
-import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
+import { DEFAULT_DEPARTMENTS } from '../data/initialData';
+import { COLOR_THEMES, getTaskDepartmentTheme } from '../utils/themeStyles';
 import { 
   generateMonthGrid, 
   DAYS_SHORT, 
@@ -83,7 +84,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
               {/* Event indicators / pills */}
               <div className="flex flex-col gap-0.5 sm:gap-1 mt-1 overflow-hidden">
                 {dayEvents.slice(0, 2).map((ev) => {
-                  const isImprovement = getEventOutline(ev, departments) === 'Improvement';
+                  const deptTheme = COLOR_THEMES[getTaskDepartmentTheme(ev, departments)] || COLOR_THEMES.indigo;
                   return (
                     <div
                       key={ev.id}
@@ -91,11 +92,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
                         e.stopPropagation();
                         onSelectEvent(ev);
                       }}
-                      className={`px-1 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold border transition-opacity flex items-start justify-between gap-1 ${
-                        isImprovement
-                          ? 'bg-violet-100 text-violet-950 border-violet-300 hover:bg-violet-200/70'
-                          : 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200/70'
-                      }`}
+                      className={`px-1 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold border transition-opacity flex items-start justify-between gap-1 ${deptTheme.bg} ${deptTheme.text} ${deptTheme.border} ${deptTheme.hoverBg}`}
                       title={ev.title}
                     >
                       <span className="break-words whitespace-normal leading-tight">{ev.title}</span>

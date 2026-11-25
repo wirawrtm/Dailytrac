@@ -1,4 +1,4 @@
-import { EventColorTheme } from '../types';
+import { DepartmentItem, EventColorTheme, TaskEvent } from '../types';
 
 export interface ThemeConfig {
   bg: string;
@@ -72,4 +72,82 @@ export const COLOR_THEMES: Record<EventColorTheme, ThemeConfig> = {
     badgeText: 'text-[#094d2e]',
     accent: '#059669',
   },
+};
+
+const CAPSULE_BY_THEME: Record<EventColorTheme, string> = {
+  cyan: 'bg-[#14b8a6] text-white shadow-teal-500/20',
+  purple: 'bg-[#a855f7] text-white shadow-purple-500/20',
+  peach: 'bg-[#f59e0b] text-white shadow-amber-500/20',
+  indigo: 'bg-[#6366f1] text-white shadow-indigo-500/20',
+  emerald: 'bg-[#10b981] text-white shadow-emerald-500/20',
+  pink: 'bg-[#f43f5e] text-white shadow-rose-500/20',
+};
+
+const inferThemeFromDepartmentName = (departmentName: string): EventColorTheme => {
+  const norm = departmentName.toLowerCase().trim();
+  if (norm.includes('eng') || norm.includes('tech') || norm.includes('dev') || norm.includes('it')) {
+    return 'cyan';
+  }
+  if (norm.includes('design') || norm.includes('product') || norm.includes('ux') || norm.includes('ui')) {
+    return 'purple';
+  }
+  if (norm.includes('market') || norm.includes('sales') || norm.includes('growth') || norm.includes('procure') || norm.includes('buy')) {
+    return 'peach';
+  }
+  if (norm.includes('operat') || norm.includes('manage') || norm.includes('support')) {
+    return 'indigo';
+  }
+  if (norm.includes('finan') || norm.includes('legal') || norm.includes('acc')) {
+    return 'emerald';
+  }
+  if (norm.includes('hr') || norm.includes('human') || norm.includes('people') || norm.includes('talent')) {
+    return 'pink';
+  }
+  return 'indigo';
+};
+
+export const getTaskDepartmentTheme = (
+  event: TaskEvent,
+  departments: DepartmentItem[] = []
+): EventColorTheme => {
+  const deptKey = (event.department || event.subtitle || '').toLowerCase().trim();
+  const matchedDept = departments.find(
+    (d) =>
+      d.name.toLowerCase().trim() === deptKey ||
+      d.id.toLowerCase().trim() === deptKey
+  );
+
+  if (matchedDept?.colorTheme) {
+    return matchedDept.colorTheme;
+  }
+  if (event.colorTheme && CAPSULE_BY_THEME[event.colorTheme]) {
+    return event.colorTheme;
+  }
+  return inferThemeFromDepartmentName(deptKey);
+};
+
+export const getTaskCapsuleClass = (
+  event: TaskEvent,
+  departments: DepartmentItem[] = []
+): string => {
+  const deptKey = (event.department || event.subtitle || '').toLowerCase().trim();
+  const matchedDept = departments.find(
+    (d) =>
+      d.name.toLowerCase().trim() === deptKey ||
+      d.id.toLowerCase().trim() === deptKey
+  );
+
+  if (matchedDept?.dotColor) {
+    const dot = matchedDept.dotColor.toLowerCase();
+    if (dot.includes('sky') || dot.includes('38bdf8')) return 'bg-[#38bdf8] text-white shadow-sky-500/20';
+    if (dot.includes('teal') || dot.includes('cyan')) return CAPSULE_BY_THEME.cyan;
+    if (dot.includes('purple') || dot.includes('violet')) return CAPSULE_BY_THEME.purple;
+    if (dot.includes('amber') || dot.includes('orange') || dot.includes('yellow')) return CAPSULE_BY_THEME.peach;
+    if (dot.includes('indigo') || dot.includes('blue')) return CAPSULE_BY_THEME.indigo;
+    if (dot.includes('emerald') || dot.includes('green')) return CAPSULE_BY_THEME.emerald;
+    if (dot.includes('rose') || dot.includes('pink') || dot.includes('red')) return CAPSULE_BY_THEME.pink;
+  }
+
+  const theme = getTaskDepartmentTheme(event, departments);
+  return CAPSULE_BY_THEME[theme] || 'bg-[#38bdf8] text-white shadow-sky-500/20';
 };

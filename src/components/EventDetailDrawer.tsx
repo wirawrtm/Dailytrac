@@ -37,9 +37,12 @@ export const EventDetailDrawer: React.FC<EventDetailDrawerProps> = ({
   const departmentName = event.department || event.subtitle || 'General';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain animate-in fade-in duration-150">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain animate-in fade-in duration-150"
+    >
       <div 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] my-auto overflow-x-hidden min-w-0"
+        className="w-full max-w-lg bg-white rounded-[28px] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[88dvh] my-auto overflow-x-hidden min-w-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Banner with Department Theme */}
@@ -72,7 +75,7 @@ export const EventDetailDrawer: React.FC<EventDetailDrawerProps> = ({
           {/* Date & Due Date */}
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 mt-3 font-mono">
             <span className="flex items-center gap-1.5 font-semibold bg-white/70 px-2 py-0.5 rounded-md">
-              <Calendar className="w-3.5 h-3.5 text-[#00897b]" />
+              <Calendar className="w-3.5 h-3.5 text-[#0ea5e9]" />
               <span>Date: {event.date}</span>
             </span>
             {event.dueDate && (
@@ -99,7 +102,7 @@ export const EventDetailDrawer: React.FC<EventDetailDrawerProps> = ({
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 isCompleted
                   ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                  : 'bg-[#f6c445] text-slate-900 hover:bg-[#eab32f]'
+                  : 'bg-[#38bdf8] text-white hover:bg-[#0ea5e9] shadow-sm shadow-sky-500/20'
               }`}
             >
               {isCompleted ? (
@@ -182,14 +185,14 @@ export const EventDetailDrawer: React.FC<EventDetailDrawerProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEdit(event)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-[#0284c7] text-xs font-bold rounded-full transition-colors cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Task</span>
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-full transition-colors cursor-pointer"
             >
               Tutup
             </button>

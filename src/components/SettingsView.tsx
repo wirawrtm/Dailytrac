@@ -153,7 +153,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           return (
             <div
               key={dept.id}
-              className="flex items-center justify-between p-2 px-3 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-slate-50 transition-colors"
+              className="flex items-center justify-between p-2.5 px-3.5 rounded-2xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dept.dotColor}`} />
@@ -161,7 +161,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">
                   {taskCount} tasks
                 </span>
                 {departments.length > 1 && (
@@ -186,24 +186,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     <div className="flex-1 flex flex-col min-w-0 bg-slate-50/40 max-md:overflow-visible md:overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] p-4 max-md:pb-28 sm:p-6 md:p-8 select-none">
       <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
         {/* Top Page Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-[28px] border border-slate-200/80 shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#00796b] border border-teal-200">
+              <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-[#0284c7] border border-sky-200">
                 Workspace Settings
               </span>
             </div>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 mt-1">
-              Settings & Main Outlines Configuration
+            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+              Settings &amp; Main Outlines Configuration
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Manage your profile, timezone, and departments organized under Work and Improvement.
+              Manage your profile, timezone, and departments organized under Work, Improvement, and Buy.
             </p>
           </div>
 
           <button
-            onClick={() => onChangeView('weekly')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+            onClick={() => onChangeView('daily')}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Schedule</span>
@@ -216,11 +216,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* 1. User Profile Card */}
             <form
               onSubmit={handleSaveProfile}
-              className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col gap-4"
+              className="bg-white p-5 sm:p-6 rounded-[28px] border border-slate-200/80 shadow-2xs flex flex-col gap-4"
             >
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                <User className="w-4 h-4 text-[#00796b]" />
-                <h2 className="text-sm font-bold text-slate-900">Profile & Timezone</h2>
+                <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center">
+                  <User className="w-4 h-4 stroke-[2.2]" />
+                </div>
+                <h2 className="text-sm font-extrabold text-slate-900">Profile &amp; Timezone</h2>
               </div>
 
               {/* Avatar Picker */}
@@ -228,7 +230,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-14 h-14 rounded-2xl object-cover ring-2 ring-[#00796b]/30 shrink-0"
+                  className="w-14 h-14 rounded-2xl object-cover ring-2 ring-[#38bdf8]/40 shrink-0"
                 />
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-slate-700">Choose Profile Avatar</span>
@@ -240,7 +242,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onClick={() => onUpdateUser({ avatar: avUrl })}
                         className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
                           user.avatar === avUrl
-                            ? 'border-[#00796b] scale-110 shadow-xs'
+                            ? 'border-[#38bdf8] scale-110 shadow-xs'
                             : 'border-transparent opacity-75 hover:opacity-100'
                         }`}
                       >
@@ -253,52 +255,52 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00796b]/20 focus:border-[#00796b]"
+                    className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Role / Position
                   </label>
                   <input
                     type="text"
                     value={roleInput}
                     onChange={(e) => setRoleInput(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00796b]/20 focus:border-[#00796b]"
+                    className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Work Email
                   </label>
                   <input
                     type="email"
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00796b]/20 focus:border-[#00796b]"
+                    className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                    <Globe className="w-3.5 h-3.5 text-[#00796b]" />
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <Globe className="w-3.5 h-3.5 text-[#0ea5e9]" />
                     <span>Schedule Timezone</span>
                   </label>
                   <select
                     value={timezoneInput}
                     onChange={(e) => setTimezoneInput(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00796b]/20 focus:border-[#00796b] bg-white font-medium"
+                    className="w-full px-3.5 py-2.5 text-sm sm:text-xs border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] bg-slate-50/60 focus:bg-white font-medium transition-all"
                   >
                     {timezones.map((tz) => (
                       <option key={tz} value={tz.split(' ')[0]}>
@@ -312,24 +314,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#00796b] hover:bg-[#00695c] text-white text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-95"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer active:scale-95"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 stroke-[2.5]" />
                   <span>Save Profile</span>
                 </button>
               </div>
             </form>
 
             {/* 2. Display & Data Management Card */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col gap-4">
+            <div className="bg-white p-5 sm:p-6 rounded-[28px] border border-slate-200/80 shadow-2xs flex flex-col gap-4">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                <Layout className="w-4 h-4 text-[#00796b]" />
-                <h2 className="text-sm font-bold text-slate-900">Display & Data Backup</h2>
+                <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center">
+                  <Layout className="w-4 h-4 stroke-[2.2]" />
+                </div>
+                <h2 className="text-sm font-extrabold text-slate-900">Display &amp; Data Backup</h2>
               </div>
 
-              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+              <div className="flex items-center justify-between gap-3 py-2 border-b border-slate-100">
                 <div>
-                  <p className="text-xs font-bold text-slate-800">Left Calendar & Filter Panel</p>
+                  <p className="text-xs font-bold text-slate-800">Left Calendar &amp; Filter Panel</p>
                   <p className="text-[11px] text-slate-500">
                     Show or hide the mini calendar and Work / Improvement filter sidebar.
                   </p>
@@ -337,9 +341,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <button
                   type="button"
                   onClick={onToggleSidebar}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
                     isSidebarOpen
-                      ? 'bg-teal-50 text-[#00796b] border border-teal-200'
+                      ? 'bg-sky-50 text-[#0284c7] border border-sky-200'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -351,7 +355,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div>
                   <p className="text-xs font-bold text-slate-800">Backup or Restore Demo Schedule</p>
                   <p className="text-[11px] text-slate-500">
-                    Total {events.length} tasks stored locally in your browser.
+                    Total {events.length} tasks stored in workspace.
                   </p>
                 </div>
 
@@ -359,7 +363,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={handleExportData}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Export JSON</span>
@@ -368,7 +372,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={onResetData}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset Demo Data</span>
@@ -378,15 +382,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Two Main Outlines & Department Management (5 cols) */}
+          {/* Right Column: Three Main Outlines & Department Management (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col gap-4">
+            <div className="bg-white p-5 sm:p-6 rounded-[28px] border border-slate-200/80 shadow-2xs flex flex-col gap-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-[#00796b]" />
-                  <h2 className="text-sm font-bold text-slate-900">Main Outlines & Departments</h2>
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0ea5e9] flex items-center justify-center">
+                    <Building2 className="w-4 h-4 stroke-[2.2]" />
+                  </div>
+                  <h2 className="text-sm font-extrabold text-slate-900">Main Outlines &amp; Departments</h2>
                 </div>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#00796b]">
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-50 text-[#0284c7]">
                   {departments.length} Depts
                 </span>
               </div>
@@ -402,13 +408,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </label>
 
                 {/* Select Outline: Work vs Improvement vs Buy */}
-                <div className="grid grid-cols-3 gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-white rounded-full border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setNewDeptOutline('Work')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-1.5 px-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       newDeptOutline === 'Work'
-                        ? 'bg-[#00796b] text-white shadow-2xs'
+                        ? 'bg-[#38bdf8] text-white shadow-2xs'
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -418,9 +424,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setNewDeptOutline('Improvement')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-1.5 px-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       newDeptOutline === 'Improvement'
-                        ? 'bg-[#00796b] text-white shadow-2xs'
+                        ? 'bg-[#38bdf8] text-white shadow-2xs'
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -430,9 +436,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setNewDeptOutline('Buy')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-1.5 px-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       newDeptOutline === 'Buy'
-                        ? 'bg-[#00796b] text-white shadow-2xs'
+                        ? 'bg-[#38bdf8] text-white shadow-2xs'
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -446,7 +452,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   value={newDeptName}
                   onChange={(e) => setNewDeptName(e.target.value)}
                   placeholder="e.g. Legal, Customer Success, QA..."
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00796b]/20 focus:border-[#00796b]"
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-xs bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
                 />
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
@@ -465,7 +471,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                   <button
                     type="submit"
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#f6c445] hover:bg-[#eab32f] text-slate-900 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                    className="flex items-center gap-1 px-4 py-2 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold shadow-sm shadow-sky-500/20 transition-all cursor-pointer active:scale-95"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Add</span>
@@ -478,7 +484,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {renderDeptGroup(
                   'Work',
                   'Routine & Daily Operations',
-                  <Briefcase className="w-3.5 h-3.5 text-indigo-600" />,
+                  <Briefcase className="w-3.5 h-3.5 text-[#0ea5e9]" />,
                   workDepts
                 )}
 
@@ -486,7 +492,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {renderDeptGroup(
                     'Improvement',
                     'Continuous Upgrade & Innovation',
-                    <TrendingUp className="w-3.5 h-3.5 text-[#00796b]" />,
+                    <TrendingUp className="w-3.5 h-3.5 text-violet-600" />,
                     improvementDepts
                   )}
                 </div>
