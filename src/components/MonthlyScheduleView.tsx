@@ -29,7 +29,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
   const selectedIso = formatDateToISO(selectedDate);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-white max-md:overflow-y-auto max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] max-md:pt-[104px] max-md:pb-24 md:overflow-hidden select-none">
+    <div className="flex-1 flex flex-col min-w-0 bg-white max-md:overflow-visible max-md:pb-28 md:overflow-hidden select-none">
 
       {/* Week days labels */}
       <div className="grid grid-cols-7 border-b border-slate-100 text-center py-2.5 bg-slate-50/50 shrink-0">
@@ -41,7 +41,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
       </div>
 
       {/* Days Grid */}
-      <div className="md:flex-1 grid grid-cols-7 grid-rows-5 md:overflow-y-auto">
+      <div className="md:flex-1 grid grid-cols-7 auto-rows-fr md:overflow-y-auto">
         {monthGrid.map((item, idx) => {
           const isSelected = item.iso === selectedIso;
           const dayEvents = events.filter((e) => e.date === item.iso);
@@ -52,7 +52,7 @@ export const MonthlyScheduleView: React.FC<MonthlyScheduleViewProps> = ({
               onClick={() => {
                 onSelectDate(item.date);
               }}
-              className={`min-h-[76px] sm:min-h-[96px] p-1 sm:p-2 border-b border-r border-slate-100 flex flex-col justify-between transition-colors cursor-pointer group ${
+              className={`min-h-[72px] sm:min-h-[96px] p-1 sm:p-2 border-b border-r border-slate-100 flex flex-col justify-between transition-colors cursor-pointer group ${
                 isSelected
                   ? 'bg-indigo-50/40 ring-1 ring-inset ring-indigo-600'
                   : item.isCurrentMonth

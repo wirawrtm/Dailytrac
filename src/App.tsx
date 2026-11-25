@@ -621,9 +621,16 @@ export default function App() {
         isMobileHidden={isMobileBarsHidden}
       />
 
-      {/* Content Area Wrapper: Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 h-full gap-0 relative">
-        {/* Mobile Top Bar (Floating Top Bar on Mobile) */}
+      {/* Content Area Wrapper: Order 1 on Mobile (Top, Unified Scroll), Order 2 on Desktop (Right) */}
+      <div
+        onScrollCapture={handleMobileScrollCapture}
+        onTouchStart={handleMobileTouchStart}
+        onTouchMove={handleMobileTouchMove}
+        onTouchEnd={handleMobileTouchEnd}
+        onTouchCancel={handleMobileTouchEnd}
+        className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 h-full gap-0 relative max-md:overflow-y-auto max-md:overflow-x-hidden max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] md:overflow-hidden"
+      >
+        {/* Mobile Top Bar (Scrolls naturally with mobile page) */}
         <MobileTopBar
           user={user}
           isProfileMenuOpen={isProfileMenuOpen}
@@ -641,8 +648,8 @@ export default function App() {
           isMobileHidden={isMobileBarsHidden}
         />
 
-        {/* Main Container (Floating rounded card on mobile & desktop when not fullscreen) */}
-        <div className={`flex-1 flex flex-col min-w-0 min-h-0 h-full bg-white overflow-hidden transition-shadow duration-200 relative ${
+        {/* Main Container (Flows naturally on mobile, floating rounded card on desktop) */}
+        <div className={`flex-1 flex flex-col min-w-0 md:min-h-0 md:h-full bg-white max-md:overflow-visible md:overflow-hidden transition-shadow duration-200 relative ${
           isFullscreen
             ? 'rounded-none border-none'
             : 'rounded-none md:rounded-[28px] shadow-none md:shadow-xl border-none md:border md:border-slate-200/80'
@@ -668,14 +675,7 @@ export default function App() {
           />
 
           {/* Main Body: Collapsible Sidebar + Schedule View */}
-          <div
-            onScrollCapture={handleMobileScrollCapture}
-            onTouchStart={handleMobileTouchStart}
-            onTouchMove={handleMobileTouchMove}
-            onTouchEnd={handleMobileTouchEnd}
-            onTouchCancel={handleMobileTouchEnd}
-            className="flex-1 flex flex-row min-w-0 min-h-0 overflow-hidden h-full relative"
-          >
+          <div className="flex-1 flex flex-row min-w-0 md:min-h-0 md:overflow-hidden md:h-full relative max-md:overflow-visible">
             {/* Mobile Backdrop when Sidebar is open on Phone */}
             {isSidebarOpen && viewMode !== 'settings' && (
               <div

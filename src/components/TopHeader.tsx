@@ -68,11 +68,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 
   return (
     <div
-      className={`md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-[52px] px-4 select-none transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none text-slate-900 bg-white/95 backdrop-blur-md border-b border-slate-100 ${
-        isMobileHidden
-          ? '-translate-y-full opacity-0 pointer-events-none'
-          : 'translate-y-0 opacity-100'
-      }`}
+      className="md:hidden relative z-30 flex items-center justify-between h-[52px] px-4 select-none text-slate-900 bg-white border-b border-slate-100 shrink-0"
     >
       {/* Left: Sidebar Toggle + Dashboard Title */}
       <div className="flex items-center gap-2.5 shrink-0">
@@ -199,12 +195,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
-    <header className={`py-2 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 bg-white/95 max-md:backdrop-blur-md text-slate-900 select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:top-[52px] max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
+    <header className={`py-2.5 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 bg-white text-slate-900 select-none shrink-0 relative z-20 ${
       isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
-    } ${
-      isMobileHidden
-        ? 'max-md:-translate-y-[calc(100%+60px)] max-md:opacity-0 max-md:pointer-events-none'
-        : 'max-md:translate-y-0 max-md:opacity-100'
     }`}>
       {/* Left: Sidebar Toggle & Dashboard Title */}
       <div className="hidden md:flex items-center gap-3 shrink-0">

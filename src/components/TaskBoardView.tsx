@@ -164,7 +164,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 min-h-0 h-full bg-white overflow-hidden max-md:pt-[104px] select-none">
+    <div className="flex-1 flex flex-col w-full max-w-full min-w-0 md:min-h-0 md:h-full bg-white max-md:overflow-visible md:overflow-hidden select-none">
       
       {/* Top Weekly-style Header Bar */}
       <div className="px-3.5 sm:px-6 py-2.5 bg-slate-50/90 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0">
@@ -252,7 +252,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
       </div>
 
       {/* Main Board Columns Area */}
-      <div className="flex-1 min-h-0 p-3.5 pb-28 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
+      <div className="flex-1 md:min-h-0 p-3.5 pb-28 sm:p-6 md:p-8 md:overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-6xl mx-auto w-full items-start">
           {columns.map((col) => {
             const isExpanded = expandedColumns[col.status];

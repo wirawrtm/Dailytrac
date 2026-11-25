@@ -208,9 +208,9 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#fbfcfb] overflow-hidden select-none relative h-full">
+    <div className="flex-1 flex flex-col min-w-0 md:min-h-0 bg-[#fbfcfb] max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
       {/* Scrollable Container */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-3.5 sm:px-8 max-md:pt-[112px] max-md:pb-36 md:py-7 flex flex-col gap-5 sm:gap-6 max-w-5xl mx-auto w-full min-w-0">
+      <div className="flex-1 md:min-h-0 md:overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-3.5 sm:px-8 max-md:pt-4 max-md:pb-4 md:py-7 flex flex-col gap-5 sm:gap-6 max-w-5xl mx-auto w-full min-w-0">
         
         {/* Top Header: Date Selector */}
         <div className="flex flex-wrap items-center justify-between gap-3 shrink-0 pt-1 border-b border-slate-100 pb-3.5 sm:pb-4">
@@ -323,14 +323,12 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
           <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#818cf8]"></span><span>Finance Team</span></div>
         </div>
 
-        {/* Bottom Spacing */}
-        <div className="h-20 shrink-0" />
+        {/* Bottom Spacing (Desktop only) */}
+        <div className="hidden md:block h-20 shrink-0" />
       </div>
 
-      {/* Bottom Floating Action Button */}
-      <div className={`max-md:absolute md:sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#fbfcfb] via-[#fbfcfb]/95 to-transparent shrink-0 flex justify-center z-25 pointer-events-none transition-transform duration-200 ease-out ${
-        isMobileBarsHidden ? 'max-md:translate-y-0' : 'max-md:-translate-y-[74px]'
-      }`}>
+      {/* Bottom Action Button (In-flow above bottom nav on Mobile, Sticky on Desktop) */}
+      <div className="max-md:relative md:sticky bottom-0 left-0 right-0 px-4 pt-2 max-md:pb-24 md:p-4 md:bg-gradient-to-t md:from-[#fbfcfb] md:via-[#fbfcfb]/95 md:to-transparent shrink-0 flex justify-center z-25 pointer-events-none">
         <button
           type="button"
           onClick={() => onOpenCreateModal(selectedIso, 9)}
