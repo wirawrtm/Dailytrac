@@ -12,7 +12,9 @@ import {
   ArrowLeft,
   Briefcase,
   TrendingUp,
-  ShoppingCart
+  ShoppingCart,
+  Pencil,
+  X
 } from 'lucide-react';
 import { UserProfile, DepartmentItem, EventColorTheme, TaskEvent, ViewMode, WorkOutline } from '../types';
 import { getAvatarUrl } from '../data/initialData';
@@ -22,6 +24,15 @@ interface SettingsViewProps {
   onUpdateUser: (updated: Partial<UserProfile>) => void;
   departments: DepartmentItem[];
   onAddDepartment: (dept: DepartmentItem) => void;
+  onUpdateDepartment?: (
+    deptId: string,
+    updates: {
+      name: string;
+      outline: WorkOutline;
+      colorTheme: EventColorTheme;
+      dotColor: string;
+    }
+  ) => void;
   onRemoveDepartment: (deptId: string) => void;
   events: TaskEvent[];
   onResetData: () => void;
@@ -53,6 +64,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateUser,
   departments,
   onAddDepartment,
+  onUpdateDepartment,
   onRemoveDepartment,
   events,
   onResetData,
@@ -69,6 +81,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptOutline, setNewDeptOutline] = useState<WorkOutline>('Work');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+
+  const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
+  const [editDeptName, setEditDeptName] = useState('');
+  const [editDeptOutline, setEditDeptOutline] = useState<WorkOutline>('Work');
+  const [editDeptColorIdx, setEditDeptColorIdx] = useState(0);
 
   const timezones = [
     'GMT+07 (WIB - Jakarta)',
@@ -125,6 +142,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     onShowToast?.('Schedule data exported to JSON!');
   };
 
+  const startEditingDept = (dept: DepartmentItem) => {
+    setEditingDeptId(dept.id);
+    setEditDeptName(dept.name);
+    setEditDeptOutline(dept.outline);
+    const matchedIdx = COLOR_OPTIONS.findIndex(
+      (c) => c.theme === dept.colorTheme || c.dot === dept.dotColor
+    );
+    setEditDeptColorIdx(matchedIdx >= 0 ? matchedIdx : 0);
+  };
+
+  const cancelEditingDept = () => {
+    setEditingDeptId(null);
+    setEditDeptName('');
+  };
+
+  const saveEditingDept = (dept: DepartmentItem) => {
+    const trimmed = editDeptName.trim();
+    if (!trimmed) {
+      onShowToast?.('Nama departemen tidak boleh kosong.');
+      return;
+    }
+
+    const duplicate = departments.some(
+      (d) => d.id !== dept.id && d.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (duplicate) {
+      onShowToast?.(`Departemen "${trimmed}" sudah ada!`);
+      return;
+    }
+
+    const chosenColor = COLOR_OPTIONS[editDeptColorIdx] || COLOR_OPTIONS[0];
+    onUpdateDepartment?.(dept.id, {
+      name: trimmed,
+      outline: editDeptOutline,
+      colorTheme: chosenColor.theme,
+      dotColor: chosenColor.dot,
+    });
+    setEditingDeptId(null);
+  };
+
   const workDepts = departments.filter((d) => d.outline === 'Work');
   const improvementDepts = departments.filter((d) => d.outline === 'Improvement');
   const buyDepts = departments.filter((d) => d.outline === 'Buy');
@@ -150,6 +207,87 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             (e) => (e.department || e.subtitle || 'Engineering').toLowerCase() === dept.name.toLowerCase()
           ).length;
 
+          if (editingDeptId === dept.id) {
+            return (
+              <div
+                key={dept.id}
+                className="p-3 rounded-2xl border border-[#38bdf8] bg-sky-50/40 flex flex-col gap-2.5 animate-in fade-in duration-150"
+              >
+                <div className="grid grid-cols-3 gap-1 p-1 bg-white rounded-full border border-slate-200">
+                  {(['Work', 'Improvement', 'Buy'] as WorkOutline[]).map((outlineOpt) => (
+                    <button
+                      key={outlineOpt}
+                      type="button"
+                      onClick={() => setEditDeptOutline(outlineOpt)}
+                      className={`py-1 px-2 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                        editDeptOutline === outlineOpt
+                          ? 'bg-[#38bdf8] text-white shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {outlineOpt}
+                    </button>
+                  ))}
+                </div>
+
+                <input
+                  type="text"
+                  value={editDeptName}
+                  onChange={(e) => setEditDeptName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      saveEditingDept(dept);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      cancelEditingDept();
+                    }
+                  }}
+                  autoFocus
+                  placeholder="Nama departemen..."
+                  className="w-full px-3 py-2 text-sm sm:text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/25 focus:border-[#38bdf8] transition-all"
+                />
+
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {COLOR_OPTIONS.map((col, idx) => (
+                      <button
+                        key={col.label}
+                        type="button"
+                        onClick={() => setEditDeptColorIdx(idx)}
+                        title={col.label}
+                        className={`w-4 h-4 rounded-full transition-transform cursor-pointer ${
+                          col.dot
+                        } ${editDeptColorIdx === idx ? 'scale-125 ring-2 ring-offset-1 ring-slate-800' : 'opacity-70 hover:opacity-100'}`}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={cancelEditingDept}
+                      title="Batal"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition-colors cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Batal</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => saveEditingDept(dept)}
+                      title="Simpan Perubahan"
+                      className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-[11px] font-bold shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Check className="w-3 h-3 stroke-[2.5]" />
+                      <span>Simpan</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div
               key={dept.id}
@@ -160,16 +298,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <span className="text-xs font-bold text-slate-800 truncate">{dept.name}</span>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600 mr-0.5">
                   {taskCount} tasks
                 </span>
+                <button
+                  type="button"
+                  onClick={() => startEditingDept(dept)}
+                  title={`Edit ${dept.name}`}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#0ea5e9] hover:bg-sky-50 transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
                 {departments.length > 1 && (
                   <button
                     type="button"
                     onClick={() => onRemoveDepartment(dept.id)}
                     title={`Remove ${dept.name}`}
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

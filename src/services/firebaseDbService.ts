@@ -593,6 +593,39 @@ export async function saveDepartmentToFirestore(
   }
 }
 
+export async function updateDepartmentAndTasksInFirestore(
+  updatedDept: DepartmentItem,
+  oldDeptName: string,
+  relatedTasks: TaskEvent[]
+): Promise<void> {
+  const savedDept = await saveDepartmentToFirestore(updatedDept);
+  const activeRelatedTasks = relatedTasks.filter((t) => t.status !== 'cancelled');
+  if (activeRelatedTasks.length === 0) return;
+
+  const path = `workspaces/${PERMANENT_WORKSPACE_ID}/tasks`;
+  const CHUNK_SIZE = 400;
+
+  try {
+    for (let i = 0; i < activeRelatedTasks.length; i += CHUNK_SIZE) {
+      const batch = writeBatch(db);
+      for (const task of activeRelatedTasks.slice(i, i + CHUNK_SIZE)) {
+        const safeTaskId = sanitizeFirestoreId(task.id, 'evt');
+        const taskRef = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID, 'tasks', safeTaskId);
+        batch.update(taskRef, {
+          department: savedDept.name,
+          subtitle: savedDept.name,
+          outline: savedDept.outline,
+          colorTheme: savedDept.colorTheme,
+          updatedAt: serverTimestamp(),
+        });
+      }
+      await batch.commit();
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `${path} (${oldDeptName} -> ${savedDept.name})`);
+  }
+}
+
 export async function deleteDepartmentAndTasksFromFirestore(
   deptId: string,
   deptName: string,

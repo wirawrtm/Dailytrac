@@ -4,7 +4,9 @@ import {
   FilterState, 
   ViewMode, 
   UserProfile,
-  DepartmentItem
+  DepartmentItem,
+  WorkOutline,
+  EventColorTheme
 } from './types';
 import { 
   INITIAL_FILTERS, 
@@ -37,6 +39,7 @@ import {
   updateTaskSubtasksInFirestore,
   deleteTaskFromFirestore,
   saveDepartmentToFirestore,
+  updateDepartmentAndTasksInFirestore,
   deleteDepartmentAndTasksFromFirestore,
   resetWorkspaceDataInFirestore,
   sanitizeFirestoreId,
@@ -301,6 +304,81 @@ export default function App() {
       setFirestoreError(err instanceof Error ? err : new Error(String(err)));
     });
     showToast(`Departemen "${safeDept.name}" berhasil disimpan ke Firebase Firestore!`);
+  };
+
+  const handleUpdateDepartment = (
+    deptId: string,
+    updates: {
+      name: string;
+      outline: WorkOutline;
+      colorTheme: EventColorTheme;
+      dotColor: string;
+    }
+  ) => {
+    const targetDept = departments.find((d) => d.id === deptId || d.name === deptId);
+    if (!targetDept) return;
+
+    const oldName = targetDept.name;
+    const updatedDept: DepartmentItem = {
+      ...targetDept,
+      name: updates.name.trim() || targetDept.name,
+      outline: updates.outline,
+      colorTheme: updates.colorTheme,
+      dotColor: updates.dotColor,
+    };
+
+    const normalizedOldName = oldName.toLowerCase().trim();
+    const relatedTasks = events.filter(
+      (e) => (e.department || e.subtitle || '').toLowerCase().trim() === normalizedOldName
+    );
+
+    setDepartments((prev) =>
+      prev.map((d) => (d.id === targetDept.id ? updatedDept : d))
+    );
+
+    if (oldName !== updatedDept.name) {
+      setFilters((prev) => {
+        const next = { ...prev };
+        const wasChecked = Boolean(next[oldName]);
+        delete next[oldName];
+        next[updatedDept.name] = wasChecked;
+        return next;
+      });
+    }
+
+    setEvents((prev) =>
+      prev.map((e) => {
+        if ((e.department || e.subtitle || '').toLowerCase().trim() !== normalizedOldName) {
+          return e;
+        }
+        return {
+          ...e,
+          department: updatedDept.name,
+          subtitle: updatedDept.name,
+          outline: updatedDept.outline,
+          colorTheme: updatedDept.colorTheme,
+        };
+      })
+    );
+
+    if (
+      selectedEventDetails &&
+      (selectedEventDetails.department || selectedEventDetails.subtitle || '').toLowerCase().trim() === normalizedOldName
+    ) {
+      setSelectedEventDetails({
+        ...selectedEventDetails,
+        department: updatedDept.name,
+        subtitle: updatedDept.name,
+        outline: updatedDept.outline,
+        colorTheme: updatedDept.colorTheme,
+      });
+    }
+
+    updateDepartmentAndTasksInFirestore(updatedDept, oldName, relatedTasks).catch((err) => {
+      setFirestoreError(err instanceof Error ? err : new Error(String(err)));
+    });
+
+    showToast(`Departemen "${updatedDept.name}" berhasil diperbarui!`);
   };
 
   const handleRemoveDepartment = (deptId: string) => {
@@ -767,6 +845,7 @@ export default function App() {
                 onUpdateUser={handleUpdateUser}
                 departments={departments}
                 onAddDepartment={handleAddDepartment}
+                onUpdateDepartment={handleUpdateDepartment}
                 onRemoveDepartment={handleRemoveDepartment}
                 events={events}
                 onResetData={handleResetData}
