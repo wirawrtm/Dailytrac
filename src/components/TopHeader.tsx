@@ -12,7 +12,10 @@ import {
   Layers,
   Clock,
   CalendarDays,
-  LayoutGrid
+  LayoutGrid,
+  Search,
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 import { UserProfile, ViewMode, WorkOutline } from '../types';
 import { formatMonthYear, getMonthWeeks } from '../utils/dateUtils';
@@ -254,83 +257,38 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     outlineFilter === 'Buy' ? 'Buy' : 'Semua Outline';
 
   return (
-    <header className={`py-2 md:py-2.5 px-3 sm:px-4 md:px-5 border-b border-teal-800/30 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3 bg-gradient-to-r from-[#005a50] via-[#00796b] to-[#008d7c] text-white select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
+    <header className={`py-3 md:py-4 px-4 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 bg-white text-slate-900 select-none shrink-0 max-md:absolute max-md:left-0 max-md:right-0 max-md:min-h-[48px] max-md:z-20 md:relative md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
       isFullscreen ? 'rounded-none max-md:top-[54px]' : 'rounded-t-[24px] md:rounded-t-[28px] max-md:top-[48px]'
     } ${
       isMobileHidden
         ? 'max-md:-translate-y-[calc(100%+60px)] max-md:opacity-0 max-md:pointer-events-none'
         : 'max-md:translate-y-0 max-md:opacity-100'
     }`}>
-      {/* Zone 1 (Desktop only — on Mobile rendered outside via MobileTopBar): Sidebar Toggle + Month Navigator */}
-      <div className="hidden md:flex order-1 items-center gap-1.5 sm:gap-2 shrink-0">
-        {/* Toggle Sidebar Button */}
+      {/* Left: Sidebar Toggle & Dashboard Title */}
+      <div className="hidden md:flex items-center gap-3 shrink-0">
         <button
           onClick={onToggleSidebar}
-          title={isSidebarOpen ? "Hide Calendar" : "Open Calendar"}
-          className={`w-8 h-8 sm:w-auto sm:h-auto sm:p-2 rounded-2xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
-            isSidebarOpen 
-              ? 'bg-white/15 border-white/25 text-white hover:bg-white/25' 
-              : 'bg-white text-[#00796b] border-white shadow-2xs hover:bg-teal-50'
-          }`}
+          title={isSidebarOpen ? "Hide Calendar Sidebar" : "Open Calendar Sidebar"}
+          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
         >
           {isSidebarOpen ? (
-            <PanelLeftClose className="w-4 h-4" />
+            <PanelLeftClose className="w-4 h-4 stroke-[2.2]" />
           ) : (
-            <PanelLeft className="w-4 h-4" />
+            <PanelLeft className="w-4 h-4 stroke-[2.2]" />
           )}
         </button>
 
-        {/* Date Switcher */}
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 relative">
-          <button
-            onClick={handlePrevMonth}
-            title="Previous Month"
-            className="p-1.5 rounded-xl text-teal-100 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          
-          <div className="relative flex items-center gap-1.5 px-0.5 sm:px-1">
-            <button
-              type="button"
-              onClick={() => setIsCalendarPickerOpen(!isCalendarPickerOpen)}
-              title="Klik untuk melihat kalender & memilih bulan"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl hover:bg-white/15 transition-colors cursor-pointer group"
-            >
-              <h2 className="text-sm font-extrabold text-white tracking-tight whitespace-nowrap">
-                {formatMonthYear(selectedDate)}
-              </h2>
-              <ChevronDown className="w-3.5 h-3.5 text-teal-100 transition-transform duration-200 group-hover:translate-y-0.5" />
-            </button>
-
-            <span className="hidden lg:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white border border-white/25">
-              {monthWeeks.length} Weeks
-            </span>
-
-            {isCalendarPickerOpen && (
-              <MonthCalendarPicker
-                selectedDate={selectedDate}
-                onSelectDate={onSelectDate}
-                onClose={() => setIsCalendarPickerOpen(false)}
-                align="left"
-              />
-            )}
-          </div>
-
-          <button
-            onClick={handleNextMonth}
-            title="Next Month"
-            className="p-1.5 rounded-xl text-teal-100 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          Dashboard
+        </h1>
       </div>
+
+
 
       {/* Zone 2 (Full-Width on Mobile inside green bar, Center-Left on Desktop): View Dropdown & Outline Dropdown */}
       <div className="order-1 md:order-2 w-full md:w-auto flex items-center justify-between md:justify-start gap-2 md:mr-auto">
         <div className="flex items-center gap-2">
-          {/* 1. Dropdown View Mode: Daily, Weekly, Monthly */}
+          {/* 1. View Mode Dropdown */}
           <div className="relative" ref={viewDropdownRef}>
             <button
               type="button"
@@ -338,32 +296,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 setIsViewDropdownOpen((prev) => !prev);
                 setIsOutlineDropdownOpen(false);
               }}
-              title="Pilih tampilan jadwal (Daily, Weekly, Monthly)"
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap border ${
+              title="Pilih Tampilan (Day, Week, Month)"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs whitespace-nowrap border ${
                 isViewDropdownOpen 
-                  ? 'bg-white text-[#00796b] border-white shadow-md' 
-                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                  : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border-slate-200/80'
               }`}
             >
-              {viewMode === 'daily' ? (
-                <Clock className="w-3.5 h-3.5" />
-              ) : viewMode === 'monthly' ? (
-                <LayoutGrid className="w-3.5 h-3.5" />
-              ) : (
-                <CalendarDays className="w-3.5 h-3.5" />
-              )}
+              <CalendarDays className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{currentViewLabel}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isViewDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
-
-            {/* View Mode Popover Dropdown */}
             {isViewDropdownOpen && (
               <div className="absolute left-0 mt-1.5 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800">
                 <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Tampilan Jadwal
+                  Mode Tampilan
                 </div>
-
-                {/* Daily option */}
                 <button
                   type="button"
                   onClick={() => {
@@ -371,22 +319,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'daily'
-                      ? 'bg-teal-50 font-bold text-[#00796b]'
-                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'daily' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    <div>
-                      <span className="block font-bold">Daily</span>
-                      <span className="block text-[10px] text-slate-400 font-normal">Tampilan per jam harian</span>
-                    </div>
-                  </span>
-                  {viewMode === 'daily' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                  <span>Day (Harian)</span>
+                  {viewMode === 'daily' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
                 </button>
-
-                {/* Weekly option */}
                 <button
                   type="button"
                   onClick={() => {
@@ -394,22 +332,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'weekly'
-                      ? 'bg-teal-50 font-bold text-[#00796b]'
-                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'weekly' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
-                    <div>
-                      <span className="block font-bold">Weekly</span>
-                      <span className="block text-[10px] text-slate-400 font-normal">Tampilan matriks mingguan</span>
-                    </div>
-                  </span>
-                  {viewMode === 'weekly' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                  <span>Week (Mingguan)</span>
+                  {viewMode === 'weekly' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
                 </button>
-
-                {/* Monthly option */}
                 <button
                   type="button"
                   onClick={() => {
@@ -417,19 +345,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsViewDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
-                    viewMode === 'monthly'
-                      ? 'bg-teal-50 font-bold text-[#00796b]'
-                      : 'hover:bg-slate-50 font-medium text-slate-700'
+                    viewMode === 'monthly' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <LayoutGrid className="w-3.5 h-3.5 text-slate-500" />
-                    <div>
-                      <span className="block font-bold">Monthly</span>
-                      <span className="block text-[10px] text-slate-400 font-normal">Kalender agenda bulanan</span>
-                    </div>
-                  </span>
-                  {viewMode === 'monthly' && <Check className="w-3.5 h-3.5 text-[#00796b] stroke-[2.5]" />}
+                  <span>Month (Bulanan)</span>
+                  {viewMode === 'monthly' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectView('tasks');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left cursor-pointer transition-colors ${
+                    viewMode === 'tasks' ? 'bg-indigo-50 font-bold text-indigo-700' : 'hover:bg-slate-50 font-medium text-slate-700'
+                  }`}
+                >
+                  <span>Tasks Board</span>
+                  {viewMode === 'tasks' && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[2.5]" />}
                 </button>
               </div>
             )}
@@ -444,10 +377,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 setIsViewDropdownOpen(false);
               }}
               title="Pilih filter Outline (Work, Improvement, Buy)"
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap border ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs whitespace-nowrap border ${
                 isOutlineDropdownOpen 
-                  ? 'bg-white text-[#00796b] border-white shadow-md' 
-                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                  : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border-slate-200/80'
               }`}
             >
               {outlineFilter === 'Work' ? (
@@ -457,12 +390,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               ) : outlineFilter === 'Buy' ? (
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/60 shrink-0" />
               ) : (
-                <Layers className="w-3.5 h-3.5 text-teal-100 shrink-0" />
+                <Layers className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               )}
               <span>{currentOutlineLabel}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOutlineDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
-
             {/* Outline Popover Dropdown */}
             {isOutlineDropdownOpen && (
               <div className="absolute left-0 mt-1.5 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800">
