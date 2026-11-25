@@ -171,20 +171,20 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
               type="button"
               onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
               className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 border ${
-                selectedDepartments.length > 0
-                  ? 'bg-[#38bdf8] text-white border-[#38bdf8] shadow-sm'
-                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80'
+                isDeptDropdownOpen
+                  ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] ring-2 ring-sky-200 shadow-md shadow-sky-500/20'
+                  : 'bg-[#38bdf8] hover:bg-[#0ea5e9] text-white border-[#38bdf8] shadow-sm shadow-sky-500/20'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-3.5 h-3.5 text-white" />
               <span>{selectedDepartments.length === 0 ? 'Semua Departemen' : `${selectedDepartments.length} Dept`}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isDeptDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${isDeptDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isDeptDropdownOpen && (
-              <div className="absolute left-0 mt-2 z-50 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 w-[290px] sm:w-[340px] max-w-[calc(100vw-32px)] animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-3 text-slate-800">
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-3xl shadow-2xl shadow-sky-500/10 border border-sky-100 p-4 w-[290px] sm:w-[340px] max-w-[calc(100vw-32px)] animate-in fade-in zoom-in-95 duration-150 flex flex-col gap-3 text-slate-800">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Filter Departemen</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0284c7]">Filter Departemen</span>
                   <button
                     type="button"
                     onClick={() => setSelectedDepartments([])}
@@ -222,7 +222,7 @@ export const TaskBoardView: React.FC<TaskBoardViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsDeptDropdownOpen(false)}
-                    className="px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-[#38bdf8] hover:bg-[#0ea5e9] text-white text-xs font-bold shadow-sm shadow-sky-500/20 transition-colors cursor-pointer"
                   >
                     Selesai
                   </button>

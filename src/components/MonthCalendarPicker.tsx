@@ -58,7 +58,7 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
 
   return (
     <div 
-      className={`absolute top-full mt-2 z-50 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-3.5 text-slate-800 animate-in fade-in zoom-in-95 duration-150 ${alignClass}`}
+      className={`absolute top-full mt-2 z-50 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl shadow-sky-500/10 border border-sky-100 p-3.5 text-slate-800 animate-in fade-in zoom-in-95 duration-150 ${alignClass}`}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Popover Header */}
@@ -66,11 +66,11 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
         <button
           type="button"
           onClick={() => setPickerMode(pickerMode === 'days' ? 'months' : 'days')}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-900 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl hover:bg-sky-50 text-xs font-bold text-slate-900 transition-colors cursor-pointer"
         >
-          <CalendarIcon className="w-3.5 h-3.5 text-[#00796b]" />
+          <CalendarIcon className="w-3.5 h-3.5 text-[#0ea5e9]" />
           <span>{MONTH_NAMES[currentMonthIdx]} {currentYear}</span>
-          <span className="text-[10px] text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full font-semibold">
+          <span className="text-[10px] text-[#0284c7] bg-sky-50 px-1.5 py-0.5 rounded-full font-semibold">
             {pickerMode === 'days' ? 'Pilih Bulan' : 'Kalender'}
           </span>
         </button>
@@ -79,7 +79,7 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1 rounded-xl text-slate-500 hover:text-[#0284c7] hover:bg-sky-50 transition-colors cursor-pointer"
             title="Bulan Sebelumnya"
           >
             <ChevronLeft className="w-4 h-4 stroke-[2.2]" />
@@ -87,7 +87,7 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1 rounded-xl text-slate-500 hover:text-[#0284c7] hover:bg-sky-50 transition-colors cursor-pointer"
             title="Bulan Berikutnya"
           >
             <ChevronRight className="w-4 h-4 stroke-[2.2]" />
@@ -107,8 +107,8 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
                 onClick={() => handleSelectMonthIdx(idx)}
                 className={`py-2 px-1 rounded-2xl text-xs font-bold transition-all cursor-pointer text-center ${
                   isSelectedMonth
-                    ? 'bg-[#00796b] text-white shadow-md'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
+                    ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20'
+                    : 'text-slate-700 hover:bg-sky-50 hover:text-[#0284c7]'
                 }`}
               >
                 {mName}
@@ -138,11 +138,11 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
                   onClick={() => handleSelectDay(dayItem.date)}
                   className={`h-8 w-8 mx-auto rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer relative ${
                     isSelected
-                      ? 'bg-[#00796b] text-white font-bold shadow-md ring-2 ring-teal-200'
+                      ? 'bg-[#38bdf8] text-white font-bold shadow-md shadow-sky-500/25 ring-2 ring-sky-200'
                       : dayItem.isToday
                       ? 'bg-amber-100 text-amber-900 font-bold border border-amber-300'
                       : dayItem.isCurrentMonth
-                      ? 'text-slate-700 hover:bg-teal-50 hover:text-[#00796b]'
+                      ? 'text-slate-700 hover:bg-sky-50 hover:text-[#0284c7]'
                       : 'text-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -162,7 +162,7 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
         <button
           type="button"
           onClick={handleJumpToToday}
-          className="text-[11px] font-bold text-[#00796b] hover:text-teal-800 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-teal-50 transition-colors cursor-pointer"
+          className="text-[11px] font-bold text-[#0ea5e9] hover:text-[#0284c7] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-sky-50 transition-colors cursor-pointer"
         >
           <RotateCcw className="w-3 h-3" />
           <span>Hari Ini</span>

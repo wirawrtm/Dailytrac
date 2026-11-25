@@ -303,8 +303,8 @@ export const EventModal: React.FC<EventModalProps> = ({
                   onClick={() => setIsDeptDropdownOpen((prev) => !prev)}
                   className={`w-full px-3.5 py-2.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                     isDeptDropdownOpen
-                      ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]/20 bg-white shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/60 hover:bg-white shadow-2xs'
+                      ? 'border-[#38bdf8] ring-2 ring-[#38bdf8]/20 bg-sky-50/70 shadow-xs'
+                      : 'border-sky-200/80 hover:border-[#38bdf8] bg-sky-50/40 hover:bg-sky-50/70 shadow-2xs'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -331,13 +331,13 @@ export const EventModal: React.FC<EventModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
-                    <span className="text-[10.5px] font-semibold text-slate-400 hidden sm:inline">
+                  <div className="flex items-center gap-1.5 shrink-0 text-[#0ea5e9]">
+                    <span className="text-[10.5px] font-semibold text-[#0284c7] hidden sm:inline">
                       {activeDepartments.length} opsi
                     </span>
                     <ChevronDown
-                      className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
-                        isDeptDropdownOpen ? 'rotate-180 text-[#0ea5e9]' : ''
+                      className={`w-4 h-4 text-[#0ea5e9] transition-transform duration-200 ${
+                        isDeptDropdownOpen ? 'rotate-180' : ''
                       }`}
                     />
                   </div>
@@ -345,7 +345,7 @@ export const EventModal: React.FC<EventModalProps> = ({
 
                 {/* Dropdown Menu Popover */}
                 {isDeptDropdownOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-40 animate-in fade-in zoom-in-95 duration-100 max-h-60 flex flex-col overflow-hidden">
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-sky-200 shadow-xl shadow-sky-500/10 py-2 z-40 animate-in fade-in zoom-in-95 duration-100 max-h-60 flex flex-col overflow-hidden">
                     {/* Search box inside dropdown */}
                     <div className="px-3 pb-2 border-b border-slate-100">
                       <div className="relative">
