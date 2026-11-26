@@ -72,7 +72,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
           )}
         </button>
 
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight truncate">
+        <h1 className="text-2xl font-normal text-slate-900 tracking-tight truncate">
           Task Review
         </h1>
       </div>
