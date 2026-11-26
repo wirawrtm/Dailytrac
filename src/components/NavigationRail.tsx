@@ -32,26 +32,29 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 md:w-[60px] md:h-full shrink-0 bg-white/70 md:bg-white/80 backdrop-blur-xl backdrop-saturate-150 flex flex-row md:flex-col items-center px-3 max-md:py-2 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:fixed max-md:h-16 max-md:z-30 md:z-20 ${
-      isFullscreen
-        ? 'max-md:bottom-0 max-md:left-0 max-md:right-0 border-t border-white/60 ring-1 ring-slate-900/5 md:ring-0 md:border-t-0 md:border-r md:border-slate-100 rounded-none'
-        : 'max-md:bottom-4 max-md:left-5 max-md:right-5 max-md:max-w-[360px] max-md:mx-auto border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[32px] md:shadow-xl'
+    <div className={`max-md:fixed max-md:z-30 max-md:inset-x-4 max-md:max-w-[440px] max-md:mx-auto max-md:flex max-md:items-center max-md:gap-3 max-md:pointer-events-none md:contents ${
+      isFullscreen ? 'max-md:bottom-3' : 'max-md:bottom-4'
     }`}>
-      {/* Top Branding Logo Box & Create Button */}
-      <div className="contents md:flex md:flex-col items-center md:gap-3.5">
-        {/* Brand Logo Box */}
-        <div className="hidden md:flex items-center justify-center w-8 h-8 rounded-xl bg-[#38bdf8] text-white shadow-md shadow-sky-500/30 cursor-pointer hover:scale-105 transition-transform" title="Tasklio Dashboard">
-          <span className="text-base font-black">?</span>
-        </div>
+      <aside className={`pointer-events-auto order-1 md:w-[60px] md:h-full shrink-0 bg-white/70 md:bg-white/80 backdrop-blur-xl backdrop-saturate-150 flex flex-row md:flex-col items-center px-3 max-md:py-2 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:flex-1 max-md:h-16 md:z-20 ${
+        isFullscreen
+          ? 'border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y-0 md:border-l-0 md:border-r md:border-slate-100 md:rounded-none md:shadow-none'
+          : 'border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[32px] md:shadow-xl'
+      }`}>
+        {/* Top Branding Logo Box & Create Button */}
+        <div className="contents md:flex md:flex-col items-center md:gap-3.5">
+          {/* Brand Logo Box */}
+          <div className="hidden md:flex items-center justify-center w-8 h-8 rounded-xl bg-[#38bdf8] text-white shadow-md shadow-sky-500/30 cursor-pointer hover:scale-105 transition-transform" title="Tasklio Dashboard">
+            <span className="text-base font-black">?</span>
+          </div>
 
-        <button 
-          onClick={onOpenCreateModal}
-          title="Create New Task (+)"
-          className="group relative flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full md:rounded-2xl bg-[#38bdf8] hover:bg-[#0ea5e9] text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 stroke-[2.75] text-white transition-transform group-hover:rotate-90 duration-300" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-300 ring-2 ring-white"></span>
-        </button>
+          <button 
+            onClick={onOpenCreateModal}
+            title="Create New Task (+)"
+            className="hidden md:flex group relative items-center justify-center w-9 h-9 rounded-2xl bg-[#38bdf8] hover:bg-[#0ea5e9] text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4 stroke-[2.75] text-white transition-transform group-hover:rotate-90 duration-300" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-300 ring-2 ring-white"></span>
+          </button>
 
         {/* Navigation Items */}
         <nav className="contents md:flex md:flex-col items-center md:gap-1.5">
@@ -132,8 +135,20 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         >
           <HelpCircle className="w-4 h-4 stroke-[2]" />
         </button>
-      </div>
-    </aside>
+        </div>
+      </aside>
+
+      {/* Standalone Create New Task (+) Button on Mobile Right */}
+      <button
+        type="button"
+        onClick={onOpenCreateModal}
+        title="Create New Task (+)"
+        className="md:hidden order-2 pointer-events-auto group relative flex items-center justify-center w-16 h-16 rounded-full bg-linear-30 from-[#38bdf8] to-[#0ea5e9] text-white shadow-xl shadow-sky-500/30 ring-2 ring-white/75 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+      >
+        <Plus className="w-6 h-6 stroke-[2.75] text-white transition-transform group-hover:rotate-90 duration-300" />
+        <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-amber-300 ring-2 ring-white"></span>
+      </button>
+    </div>
   );
 };
 
