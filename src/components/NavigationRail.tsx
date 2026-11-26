@@ -32,14 +32,10 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   isMobileHidden = false,
 }) => {
   return (
-    <aside className={`order-2 md:order-1 md:w-[60px] md:h-full shrink-0 bg-white flex flex-row md:flex-col items-center px-3 max-md:py-0 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:fixed max-md:h-12 max-md:z-30 md:z-20 max-md:transition-[transform,opacity] max-md:duration-200 max-md:ease-out motion-reduce:transition-none ${
-      isMobileHidden
-        ? 'max-md:translate-y-[calc(100%+32px)] max-md:opacity-0 max-md:pointer-events-none'
-        : 'max-md:translate-y-0 max-md:opacity-100'
-    } ${
+    <aside className={`order-2 md:order-1 md:w-[60px] md:h-full shrink-0 bg-white/70 md:bg-white/80 backdrop-blur-xl backdrop-saturate-150 flex flex-row md:flex-col items-center px-3 max-md:py-2 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:fixed max-md:h-16 max-md:z-30 md:z-20 ${
       isFullscreen
-        ? 'max-md:bottom-0 max-md:left-0 max-md:right-0 border-t md:border-t-0 md:border-r border-slate-100 rounded-none'
-        : 'max-md:bottom-5 max-md:left-6 max-md:right-6 max-md:max-w-[340px] max-md:mx-auto border border-slate-200/80 rounded-full shadow-lg md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[32px] md:shadow-xl'
+        ? 'max-md:bottom-0 max-md:left-0 max-md:right-0 border-t border-white/60 ring-1 ring-slate-900/5 md:ring-0 md:border-t-0 md:border-r md:border-slate-100 rounded-none'
+        : 'max-md:bottom-4 max-md:left-5 max-md:right-5 max-md:max-w-[360px] max-md:mx-auto border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[32px] md:shadow-xl'
     }`}>
       {/* Top Branding Logo Box & Create Button */}
       <div className="contents md:flex md:flex-col items-center md:gap-3.5">

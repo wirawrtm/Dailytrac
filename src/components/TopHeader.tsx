@@ -55,7 +55,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
 }) => {
   return (
     <div
-      className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-3 min-h-[56px] pt-2.5 pb-3 px-4 mb-2 select-none text-slate-900 bg-white/95 backdrop-blur-md border-b border-slate-100 shrink-0"
+      className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-3 min-h-[56px] pt-2.5 pb-3 px-4 mb-2 select-none text-slate-900 bg-white/75 backdrop-blur-xl backdrop-saturate-150 border-b border-slate-200/60 shrink-0"
     >
       {/* Left: Sidebar Toggle + App Title */}
       <div className="flex items-center gap-3 min-w-0">
@@ -72,7 +72,7 @@ export const MobileTopBar: React.FC<TopHeaderProps> = ({
           )}
         </button>
 
-        <h1 className="text-2xl font-normal text-slate-900 tracking-tight truncate">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight truncate">
           Task Review
         </h1>
       </div>

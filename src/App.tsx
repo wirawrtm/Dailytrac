@@ -93,31 +93,6 @@ export default function App() {
     return true;
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMobileBarsHidden, setIsMobileBarsHidden] = useState(false);
-
-  const mobileScrollRef = useRef<{
-    activeTarget: HTMLElement | null;
-    lastTop: number;
-    accumulatedDelta: number;
-    lastDirection: 'up' | 'down' | null;
-    lockUntil: number;
-    touchStartY: number | null;
-  }>({
-    activeTarget: null,
-    lastTop: 0,
-    accumulatedDelta: 0,
-    lastDirection: null,
-    lockUntil: 0,
-    touchStartY: null,
-  });
-
-  // Always show mobile bars when switching views, dates, or opening sidebar
-  useEffect(() => {
-    setIsMobileBarsHidden(false);
-    mobileScrollRef.current.activeTarget = null;
-    mobileScrollRef.current.accumulatedDelta = 0;
-    mobileScrollRef.current.lastDirection = null;
-  }, [viewMode, selectedDate, isSidebarOpen]);
 
   // Modals & Drawers state
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -573,109 +548,6 @@ export default function App() {
     return () => window.removeEventListener('scroll', preventWindowScroll);
   }, []);
 
-  const handleMobileScrollCapture = (e: React.UIEvent<HTMLDivElement>) => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
-    if (isSidebarOpen || isProfileMenuOpen) return;
-
-    const target = e.target as HTMLElement | null;
-    if (!target) return;
-
-    // Ignore horizontal-only or barely overflowing containers
-    if (target.scrollHeight <= target.clientHeight + 24) return;
-
-    const maxScroll = Math.max(0, target.scrollHeight - target.clientHeight);
-    const currentTop = Math.max(0, Math.min(target.scrollTop, maxScroll));
-    const state = mobileScrollRef.current;
-
-    if (state.activeTarget !== target) {
-      state.activeTarget = target;
-      state.lastTop = currentTop;
-      state.accumulatedDelta = 0;
-      state.lastDirection = null;
-      return;
-    }
-
-    const prevTop = state.lastTop;
-    state.lastTop = currentTop;
-
-    const now = Date.now();
-    if (now < state.lockUntil) {
-      state.accumulatedDelta = 0;
-      state.lastDirection = null;
-      return;
-    }
-
-    // Reveal bars smoothly when scrolled back to the top
-    if (currentTop <= 16 && isMobileBarsHidden) {
-      state.accumulatedDelta = 0;
-      state.lastDirection = null;
-      state.lockUntil = now + 420;
-      setIsMobileBarsHidden(false);
-      return;
-    }
-
-    // Require ample overflow before hiding so collapsing bars (~128px) never clamps scrollTop
-    if (maxScroll < 240 && !isMobileBarsHidden) return;
-
-    // Ignore rubber-band / overscroll bounce near the bottom edge
-    if (maxScroll > 60 && currentTop >= maxScroll - 24) return;
-
-    const delta = currentTop - prevTop;
-    if (Math.abs(delta) < 2) return;
-
-    const dir: 'up' | 'down' = delta > 0 ? 'down' : 'up';
-    if (state.lastDirection !== dir) {
-      state.accumulatedDelta = delta;
-      state.lastDirection = dir;
-    } else {
-      state.accumulatedDelta += delta;
-    }
-
-    if (dir === 'down' && state.accumulatedDelta > 90 && currentTop > 72 && !isMobileBarsHidden) {
-      state.accumulatedDelta = 0;
-      state.lastDirection = null;
-      state.lockUntil = now + 420;
-      setIsMobileBarsHidden(true);
-    } else if (dir === 'up' && state.accumulatedDelta < -75 && isMobileBarsHidden) {
-      state.accumulatedDelta = 0;
-      state.lastDirection = null;
-      state.lockUntil = now + 420;
-      setIsMobileBarsHidden(false);
-    }
-  };
-
-  const handleMobileTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
-    mobileScrollRef.current.touchStartY = e.touches[0]?.clientY ?? null;
-  };
-
-  const handleMobileTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
-    if (!isMobileBarsHidden || isSidebarOpen || isProfileMenuOpen) return;
-    const startY = mobileScrollRef.current.touchStartY;
-    if (startY === null) return;
-    const currentY = e.touches[0]?.clientY;
-    if (currentY === undefined) return;
-    const now = Date.now();
-    if (now < mobileScrollRef.current.lockUntil) return;
-
-    const diffY = currentY - startY;
-    // Deliberate downward pull reveals hidden bars even when scroll container is already at top
-    if (diffY > 85) {
-      mobileScrollRef.current.touchStartY = currentY;
-      mobileScrollRef.current.accumulatedDelta = 0;
-      mobileScrollRef.current.lastDirection = null;
-      mobileScrollRef.current.lockUntil = now + 420;
-      setIsMobileBarsHidden(false);
-    }
-  };
-
-  const handleMobileTouchEnd = () => {
-    mobileScrollRef.current.touchStartY = null;
-    mobileScrollRef.current.accumulatedDelta = 0;
-    mobileScrollRef.current.lastDirection = null;
-  };
-
   return (
     <div className={`h-full max-h-full w-full font-sans transition-colors duration-200 overflow-hidden flex flex-col md:flex-row items-stretch select-none ${
       isFullscreen 
@@ -696,16 +568,10 @@ export default function App() {
         onSelectView={(v) => setViewMode(v)}
         onOpenSettings={() => setViewMode('settings')}
         onOpenCreateModal={() => handleOpenCreateModal()}
-        isMobileHidden={isMobileBarsHidden}
       />
 
       {/* Content Area Wrapper: Order 1 on Mobile (Top, Unified Scroll), Order 2 on Desktop (Right) */}
       <div
-        onScrollCapture={handleMobileScrollCapture}
-        onTouchStart={handleMobileTouchStart}
-        onTouchMove={handleMobileTouchMove}
-        onTouchEnd={handleMobileTouchEnd}
-        onTouchCancel={handleMobileTouchEnd}
         className="order-1 md:order-2 flex-1 flex flex-col min-w-0 min-h-0 h-full gap-0 relative max-md:overflow-y-auto max-md:overflow-x-hidden max-md:overscroll-y-contain max-md:touch-pan-y max-md:[-webkit-overflow-scrolling:touch] md:overflow-hidden"
       >
         {/* Mobile Top Bar (Scrolls naturally with mobile page) */}
@@ -723,7 +589,6 @@ export default function App() {
           viewMode={viewMode}
           onSelectView={setViewMode}
           onOpenCreateModal={() => handleOpenCreateModal()}
-          isMobileHidden={isMobileBarsHidden}
         />
 
         {/* Main Container (Flows naturally on mobile, floating rounded card on desktop) */}
@@ -749,7 +614,6 @@ export default function App() {
             outlineFilter={outlineFilter}
             onSelectOutline={setOutlineFilter}
             onOpenCreateModal={() => handleOpenCreateModal()}
-            isMobileHidden={isMobileBarsHidden}
           />
 
           {/* Main Body: Collapsible Sidebar + Schedule View */}
@@ -806,7 +670,7 @@ export default function App() {
                 events={filteredEvents}
                 totalEventsCount={events.length}
                 isLoading={isLoadingData}
-                isMobileBarsHidden={isMobileBarsHidden}
+                isMobileBarsHidden={false}
                 onResetOutlineFilter={() => setOutlineFilter('all')}
                 departments={departments}
                 onOpenCreateModal={handleOpenCreateModal}
