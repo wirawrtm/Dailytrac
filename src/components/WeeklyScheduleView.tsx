@@ -79,8 +79,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
     <div className="flex-1 flex flex-col min-w-0 md:min-h-0 bg-white max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
       
       {/* 1. TOP WEEKLY SELECTOR BAR */}
-      <div className="px-3.5 sm:px-4 xl:px-6 py-1 sm:py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 relative z-30">
-        <div className="flex items-center gap-2.5 py-0.5 w-full min-w-0">
+      <div className="px-3.5 sm:px-4 xl:px-6 py-1 sm:py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 relative z-10">
+        <div className="flex items-center gap-2.5 w-full min-w-0">
           <div ref={calendarPickerRef} className="relative hidden sm:flex items-center pr-3 border-r border-slate-200 shrink-0">
             <div
               role="button"
@@ -109,7 +109,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 xl:gap-2 flex-1 min-w-0 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
+          <div className="flex items-center gap-1.5 xl:gap-2 flex-1 min-w-0 py-1.5 px-1.5 -mx-1.5 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
             {monthWeeks.map((week) => {
               const isFocused = focusedWeekNumber === week.weekNumber;
               const weekEventsCount = events.filter((e) =>
@@ -155,7 +155,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. SEAMLESS OPEN WEEKLY TIMELINE */}
       {focusedWeek && (
-        <div className={`flex-1 min-w-0 md:min-h-0 bg-white ${isSidebarOpen ? 'md:overflow-x-auto xl:overflow-x-hidden' : 'md:overflow-x-hidden'} md:overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] px-3.5 py-2.5 sm:px-4 xl:px-6 sm:pt-3 sm:pb-4 max-md:pb-28 flex flex-col gap-6`}>
+        <div className={`flex-1 min-w-0 md:min-h-0 bg-white ${isSidebarOpen ? 'md:overflow-x-auto xl:overflow-x-hidden' : 'md:overflow-x-hidden'} md:overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] px-3.5 pt-3.5 pb-2.5 sm:px-4 xl:px-6 sm:pt-3.5 sm:pb-4 max-md:pb-28 flex flex-col gap-6`}>
           {[focusedWeek].map((weekItem) => {
             const weekStartIso = weekItem.days[0].iso;
             const weekEndIso = weekItem.days[6].iso;
@@ -294,8 +294,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         onToggleEventStatus(event.id);
                       }
                     }}
-                    className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
+                    className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-red-500 hover:bg-red-600 text-white shadow-xs ring-1 ring-white/45'
                     }`}
                   >
                     <Check className="w-3 xl:w-3.5 h-3 xl:h-3.5 stroke-[3]" />
@@ -338,8 +338,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         onToggleEventStatus(event.id);
                       }
                     }}
-                    className={`w-6 h-6 xl:w-7 xl:h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
+                    className={`w-6 h-6 xl:w-7 xl:h-7 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-red-500 hover:bg-red-600 text-white shadow-xs ring-1 ring-white/45'
                     }`}
                   >
                     <Check className="w-3.5 xl:w-4 h-3.5 xl:h-4 stroke-[3]" />
@@ -900,8 +900,8 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                                         onToggleEventStatus(event.id);
                                       }
                                     }}
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                                      isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-red-500 hover:bg-red-600 text-white shadow-xs ring-1 ring-white/45'
                                     }`}
                                   >
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />

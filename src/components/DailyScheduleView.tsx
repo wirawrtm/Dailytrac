@@ -245,7 +245,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
         {/* Date Ribbon Pill Cards (Horizontally scrollable month strip with full shadow clearance) */}
         <div
           ref={ribbonRef}
-          className="flex flex-row items-center gap-2 sm:gap-2.5 shrink-0 select-none pt-3 pb-6 -mb-4 -mx-2 px-2 sm:-mx-3 sm:px-3 overflow-x-auto touch-pan-x snap-x snap-proximity [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex flex-row items-center gap-2 sm:gap-2.5 shrink-0 select-none pt-4 pb-8 -mb-6 -mx-3.5 px-4 sm:-mx-5 sm:px-5 overflow-x-auto touch-pan-x snap-x snap-proximity [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {dateRibbon.map((item) => (
             <div
@@ -277,13 +277,11 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                 </span>
                 <span
                   className={`inline-flex items-center justify-center min-w-[14px] h-[14px] sm:min-w-[16px] sm:h-[16px] px-1 rounded-full text-[8px] sm:text-[10px] font-bold font-mono leading-none ${
-                    item.isSelected
-                      ? item.taskCount > 0
+                    item.taskCount === 0
+                      ? 'bg-red-100 text-red-600'
+                      : item.isSelected
                         ? 'bg-white/25 text-white'
-                        : 'bg-white/15 text-sky-50/85'
-                      : item.taskCount > 0
-                        ? 'bg-sky-50 text-[#0284c7]'
-                        : 'bg-slate-100 text-slate-400'
+                        : 'bg-sky-50 text-[#0284c7]'
                   }`}
                 >
                   {item.taskCount}
@@ -321,7 +319,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3.5 py-2">
+          <div className="flex flex-col gap-3.5 py-3">
             {dayEvents.map((event, index) => {
               const capsuleBg = getTaskCapsuleClass(event, departments);
               const titleText = event.title || 'Tugas Tanpa Judul';
@@ -378,7 +376,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
       </div>
 
       {/* Bottom Action Button (In-flow above bottom nav on Mobile, Sticky on Desktop) */}
-      <div className="max-md:relative md:sticky bottom-0 left-0 right-0 px-4 pt-2 max-md:pb-24 md:p-4 md:bg-gradient-to-t md:from-[#fbfcfb] md:via-[#fbfcfb]/95 md:to-transparent shrink-0 flex justify-center z-25 pointer-events-none">
+      <div className="max-md:relative md:sticky bottom-0 left-0 right-0 px-4 pt-2 max-md:pb-24 md:px-4 md:pt-3 md:pb-7 md:bg-gradient-to-t md:from-[#fbfcfb] md:via-[#fbfcfb]/95 md:to-transparent shrink-0 flex justify-center z-25 pointer-events-none">
         <button
           type="button"
           onClick={() => onOpenCreateModal(selectedIso, 9)}

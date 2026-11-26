@@ -155,7 +155,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const shortMonthYear = `${MONTH_NAMES[selectedDate.getMonth()].slice(0, 3)} ${selectedDate.getFullYear()}`;
 
   return (
-    <header className={`py-2.5 md:py-4 px-3.5 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-3 bg-slate-50/70 md:bg-white text-slate-900 select-none shrink-0 relative z-20 ${
+    <header className={`py-2.5 md:py-4 px-3.5 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-3 bg-slate-50/70 md:bg-white text-slate-900 select-none shrink-0 relative z-25 md:z-30 ${
       isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
     }`}>
       {/* Left: Sidebar Toggle & Dashboard Title */}
