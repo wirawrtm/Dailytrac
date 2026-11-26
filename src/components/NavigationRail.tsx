@@ -35,7 +35,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
     <div className={`max-md:fixed max-md:z-30 max-md:inset-x-4 max-md:max-w-[440px] max-md:mx-auto max-md:flex max-md:items-center max-md:gap-3 max-md:pointer-events-none md:contents ${
       isFullscreen ? 'max-md:bottom-3' : 'max-md:bottom-4'
     }`}>
-      <aside className={`pointer-events-auto order-1 md:w-[60px] md:h-full shrink-0 bg-white/70 md:bg-white/80 backdrop-blur-xl backdrop-saturate-150 flex flex-row md:flex-col items-center px-3 max-md:py-2 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:flex-1 max-md:h-16 md:z-20 ${
+      <aside className={`pointer-events-auto order-1 md:w-[60px] md:h-full shrink-0 bg-white/70 md:bg-white/80 backdrop-blur-xl backdrop-saturate-150 flex flex-row md:flex-col items-center px-3 max-md:py-1.5 md:px-0 md:py-4 justify-around md:justify-between select-none max-md:flex-1 max-md:h-14 md:z-20 ${
         isFullscreen
           ? 'border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y-0 md:border-l-0 md:border-r md:border-slate-100 md:rounded-none md:shadow-none'
           : 'border border-white/60 ring-1 ring-slate-900/5 rounded-full shadow-xl shadow-slate-900/10 md:ring-0 md:border-y md:border-r md:border-l-0 md:border-slate-200/80 md:rounded-l-none md:rounded-r-[32px] md:shadow-xl'
@@ -143,10 +143,10 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         type="button"
         onClick={onOpenCreateModal}
         title="Create New Task (+)"
-        className="md:hidden order-2 pointer-events-auto group relative flex items-center justify-center w-16 h-16 rounded-full bg-linear-30 from-[#38bdf8] to-[#0ea5e9] text-white shadow-xl shadow-sky-500/30 ring-2 ring-white/75 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+        className="md:hidden order-2 pointer-events-auto group relative flex items-center justify-center w-14 h-14 rounded-full bg-linear-30 from-[#38bdf8] to-[#0ea5e9] text-white shadow-xl shadow-sky-500/30 ring-2 ring-white/75 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
       >
-        <Plus className="w-6 h-6 stroke-[2.75] text-white transition-transform group-hover:rotate-90 duration-300" />
-        <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-amber-300 ring-2 ring-white"></span>
+        <Plus className="w-5 h-5 stroke-[2.75] text-white transition-transform group-hover:rotate-90 duration-300" />
+        <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-300 ring-2 ring-white"></span>
       </button>
     </div>
   );
