@@ -79,7 +79,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
     <div className="flex-1 flex flex-col min-w-0 md:min-h-0 bg-white max-md:overflow-visible md:overflow-hidden select-none relative md:h-full">
       
       {/* 1. TOP WEEKLY SELECTOR BAR */}
-      <div className="px-3.5 sm:px-6 py-1 sm:py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 relative z-30">
+      <div className="px-3.5 sm:px-4 xl:px-6 py-1 sm:py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-3 shrink-0 relative z-30">
         <div className="flex items-center gap-2.5 py-0.5 w-full min-w-0">
           <div ref={calendarPickerRef} className="relative hidden sm:flex items-center pr-3 border-r border-slate-200 shrink-0">
             <div
@@ -109,7 +109,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
+          <div className="flex items-center gap-1.5 xl:gap-2 flex-1 min-w-0 overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
             {monthWeeks.map((week) => {
               const isFocused = focusedWeekNumber === week.weekNumber;
               const weekEventsCount = events.filter((e) =>
@@ -126,7 +126,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                     }
                   }}
                   onClick={() => handleSelectWeek(week)}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     isFocused
                       ? 'bg-[#38bdf8] text-white shadow-sm ring-2 ring-sky-100'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
@@ -134,7 +134,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   title={`Fokus ke ${week.weekLabelId} (${dayRangeOnly})`}
                 >
                   <span>{week.weekLabelId}</span>
-                  <span className={`text-[10px] font-normal hidden lg:inline px-1 py-0.2 rounded-full ${
+                  <span className={`text-[10px] font-normal hidden xl:inline px-1 py-0.2 rounded-full ${
                     isFocused ? 'bg-white/20 text-white' : 'text-slate-400'
                   }`}>
                     {dayRangeOnly}
@@ -155,7 +155,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
       {/* 3. SEAMLESS OPEN WEEKLY TIMELINE */}
       {focusedWeek && (
-        <div className="flex-1 min-w-0 md:min-h-0 bg-white md:overflow-x-auto md:overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] px-3.5 py-2.5 sm:px-6 sm:pt-3 sm:pb-4 max-md:pb-28 flex flex-col gap-6">
+        <div className={`flex-1 min-w-0 md:min-h-0 bg-white ${isSidebarOpen ? 'md:overflow-x-auto xl:overflow-x-hidden' : 'md:overflow-x-hidden'} md:overflow-y-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] px-3.5 py-2.5 sm:px-4 xl:px-6 sm:pt-3 sm:pb-4 max-md:pb-28 flex flex-col gap-6`}>
           {[focusedWeek].map((weekItem) => {
             const weekStartIso = weekItem.days[0].iso;
             const weekEndIso = weekItem.days[6].iso;
@@ -278,10 +278,10 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                     e.stopPropagation();
                     onSelectEvent(event);
                   }}
-                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
+                  className={`w-full py-3 xl:py-3.5 px-3 xl:px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-2 xl:gap-3 ${capsuleBg}`}
                 >
                   <div className="min-w-0 flex-1">
-                    <h5 className="text-xs sm:text-sm font-bold break-words whitespace-normal leading-snug text-white">
+                    <h5 className="text-xs xl:text-sm font-bold break-words whitespace-normal leading-snug text-white">
                       {titleText}
                     </h5>
                   </div>
@@ -294,11 +294,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         onToggleEventStatus(event.id);
                       }
                     }}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
                       isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
                     }`}
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-3 xl:w-3.5 h-3 xl:h-3.5 stroke-[3]" />
                   </button>
                 </div>
               );
@@ -317,7 +317,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                     e.stopPropagation();
                     onSelectEvent(event);
                   }}
-                  className={`w-full py-3.5 px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-3 ${capsuleBg}`}
+                  className={`w-full py-3 xl:py-3.5 px-3 xl:px-4 rounded-3xl shadow-md cursor-pointer transition-all hover:scale-[1.01] flex items-center justify-between gap-2 xl:gap-3 ${capsuleBg}`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -325,7 +325,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         {event.date} → {dueDate}
                       </span>
                     </div>
-                    <h5 className="text-sm sm:text-base tracking-tight font-bold break-words whitespace-normal leading-snug text-white">
+                    <h5 className="text-xs xl:text-base tracking-tight font-bold break-words whitespace-normal leading-snug text-white">
                       {titleText}
                     </h5>
                   </div>
@@ -338,11 +338,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         onToggleEventStatus(event.id);
                       }
                     }}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    className={`w-6 h-6 xl:w-7 xl:h-7 rounded-full flex items-center justify-center shrink-0 transition-all ${
                       isCompleted ? 'bg-white text-emerald-700 shadow-xs' : 'bg-white/30 hover:bg-white/50 text-white'
                     }`}
                   >
-                    <Check className="w-4 h-4 stroke-[3]" />
+                    <Check className="w-3.5 xl:w-4 h-3.5 xl:h-4 stroke-[3]" />
                   </button>
                 </div>
               );
@@ -457,7 +457,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               }
 
               return (
-                <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-3 items-start content-start`}>
+                <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-2 xl:gap-3 items-start content-start`}>
                   {cells.map((cell) => {
                     if (cell.type === 'empty-add') {
                       return (
@@ -483,7 +483,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             gridRowStart: cell.rowStart,
                             gridRowEnd: cell.rowEnd,
                           }}
-                          className="flex flex-col gap-3 self-start min-w-0"
+                          className="flex flex-col gap-2 xl:gap-3 self-start min-w-0"
                         >
                           {cell.events.map(renderSingleTaskCard)}
                         </div>
@@ -525,7 +525,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   return null;
                 }
                 return (
-                  <div key={keyPrefix} className="flex flex-col gap-3 min-w-0">
+                  <div key={keyPrefix} className="flex flex-col gap-2 xl:gap-3 min-w-0">
                     {regionEvents.map((ev) =>
                       isMultiDayEvent(ev) ? renderMultiTaskCard(ev) : renderSingleTaskCard(ev)
                     )}
@@ -544,7 +544,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
 
               if (multiSpanItems.length === 0) {
                 return (
-                  <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-3 items-start`}>
+                  <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-2 xl:gap-3 items-start`}>
                     {Array.from({ length: span }, (_, offset) => {
                       const c = colStartIdx + offset;
                       const dayIso = weekItem.days[c].iso;
@@ -571,7 +571,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         <div
                           key={`${keyPrefix}-c${c}`}
                           style={{ gridColumnStart: offset + 1 }}
-                          className="flex flex-col gap-3 min-w-0"
+                          className="flex flex-col gap-2 xl:gap-3 min-w-0"
                         >
                           {colEvs.map((ev) =>
                             isMultiDayEvent(ev) ? renderMultiTaskCard(ev) : renderSingleTaskCard(ev)
@@ -618,7 +618,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 if (compEnd < colEndIdx) slices.push({ s: compEnd + 1, e: colEndIdx });
 
                 return (
-                  <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-3 items-start`}>
+                  <div key={keyPrefix} className={`grid ${GRID_COLS_CLASS[span]} gap-2 xl:gap-3 items-start`}>
                     {slices.map((slice) => {
                       const sliceEvs = regionEvents.filter((ev) => {
                         if (isMultiDayEvent(ev)) {
@@ -772,7 +772,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
               const finalBelow = sortEventsByTime(belowEvents);
 
               return (
-                <div key={keyPrefix} className="flex flex-col gap-3 min-w-0">
+                <div key={keyPrefix} className="flex flex-col gap-2 xl:gap-3 min-w-0">
                   {finalAbove.length > 0 &&
                     renderDesktopRegion(colStartIdx, colEndIdx, finalAbove, `${keyPrefix}-above`, false)}
                   {renderMultiTaskCard(primary.event)}
@@ -895,9 +895,9 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </div>
 
                 {/* DESKTOP VIEW (>= md): 7-Column Grid sorted chronologically by hour */}
-                <div className="hidden md:flex flex-col">
+                <div className="hidden md:flex flex-col w-full min-w-0">
                   {/* Day Headers Row (Senin, Selasa, Rabu, etc.) */}
-                  <div className="grid grid-cols-7 gap-3 min-w-[1100px] pb-2.5 border-b border-slate-200 shrink-0">
+                  <div className={`grid grid-cols-7 gap-2 xl:gap-3 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'} pb-2.5 border-b border-slate-200 shrink-0`}>
                     {weekItem.days.map((day) => {
                       const isSelected = day.iso === selectedIso;
 
@@ -905,15 +905,15 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         <div
                           key={day.iso}
                           onClick={() => onSelectDate(day.date)}
-                          className={`px-3.5 py-2 rounded-2xl flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                          className={`px-2 xl:px-3.5 py-1.5 xl:py-2 rounded-2xl flex items-center justify-between gap-1 xl:gap-2 min-w-0 cursor-pointer transition-all ${
                             isSelected ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-sm capitalize">
+                          <div className="flex items-center gap-1 xl:gap-2 min-w-0">
+                            <span className="font-extrabold text-xs xl:text-sm capitalize truncate">
                               {day.dayNameId}
                             </span>
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs ${
+                            <span className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center font-extrabold text-[11px] xl:text-xs shadow-2xs shrink-0 ${
                               isSelected ? 'bg-white text-[#0284c7]' : 'bg-white text-slate-800 border border-slate-200'
                             }`}>
                               {day.dayNumber}
@@ -927,11 +927,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                               onOpenCreateModal(day.iso, 10);
                             }}
                             title={`Tambah tugas pada ${day.dayNameId} ${day.dayNumber}`}
-                            className={`p-1 rounded-xl transition-all cursor-pointer ${
+                            className={`p-0.5 xl:p-1 rounded-xl transition-all cursor-pointer shrink-0 ${
                               isSelected ? 'hover:bg-white/20 text-white' : 'hover:bg-slate-200/80 text-slate-500'
                             }`}
                           >
-                            <Plus className="w-4 h-4 stroke-[2.5]" />
+                            <Plus className="w-3.5 h-3.5 xl:w-4 xl:h-4 stroke-[2.5]" />
                           </button>
                         </div>
                       );
@@ -939,7 +939,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   </div>
 
                   {/* Weekly Timeline Area with recursive column-slice & pocket-filling layout */}
-                  <div className="flex-1 min-w-[1100px] pt-2.5">
+                  <div className={`flex-1 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'} pt-2.5`}>
                     {renderDesktopRegion(0, 6, weekEvents, `w${weekItem.weekNumber}`, true)}
                   </div>
                 </div>
