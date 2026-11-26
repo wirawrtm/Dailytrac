@@ -783,13 +783,14 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
             };
 
             return (
-              <div key={weekItem.weekNumber} className="flex flex-col">
+              <div key={weekItem.weekNumber} className="flex flex-col flex-1">
 
                 {/* MOBILE VIEW (< md): Clean Full-Width Vertical Weekly Stack sorted by time */}
                 <div className="flex md:hidden flex-col gap-4">
                   {/* Day-by-Day Vertical Sections */}
                   {weekItem.days.map((day) => {
                     const isSelected = day.iso === selectedIso;
+                    const isToday = day.isToday;
                     const dayEvents = sortEventsByTime(
                       events.filter((e) => {
                         const start = e.date;
@@ -803,18 +804,35 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                         <div
                           onClick={() => onSelectDate(day.date)}
                           className={`px-3.5 py-2.5 rounded-2xl flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                            isSelected ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 text-slate-800 border border-slate-100'
+                            isSelected
+                              ? isToday
+                                ? 'bg-linear-30 from-[#0ea5e9] to-[#2563eb] text-white shadow-md shadow-blue-500/25 ring-2 ring-sky-200'
+                                : 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20'
+                              : isToday
+                                ? 'bg-sky-100/90 text-[#0369a1] border-2 border-[#38bdf8]'
+                                : 'bg-slate-50 text-slate-800 border border-slate-100'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <span className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-xs shadow-2xs ${
-                              isSelected ? 'bg-white text-[#0284c7]' : 'bg-white text-slate-800 border border-slate-200'
+                              isSelected
+                                ? 'bg-white text-[#0284c7]'
+                                : isToday
+                                  ? 'bg-[#0ea5e9] text-white'
+                                  : 'bg-white text-slate-800 border border-slate-200'
                             }`}>
                               {day.dayNumber}
                             </span>
                             <span className="font-extrabold text-sm capitalize">
                               {day.dayNameId}
                             </span>
+                            {isToday && (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                isSelected ? 'bg-white/25 text-white' : 'bg-sky-200/80 text-[#0369a1]'
+                              }`}>
+                                Hari ini
+                              </span>
+                            )}
                             {dayEvents.length > 0 && (
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                 isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-slate-600'
@@ -832,7 +850,11 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                             }}
                             title={`Tambah tugas pada ${day.dayNameId} ${day.dayNumber}`}
                             className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                              isSelected ? 'hover:bg-white/20 text-white' : 'hover:bg-slate-200/80 text-slate-500'
+                              isSelected
+                                ? 'hover:bg-white/20 text-white'
+                                : isToday
+                                  ? 'hover:bg-sky-200/80 text-[#0284c7]'
+                                  : 'hover:bg-slate-200/80 text-slate-500'
                             }`}
                           >
                             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -895,51 +917,80 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </div>
 
                 {/* DESKTOP VIEW (>= md): 7-Column Grid sorted chronologically by hour */}
-                <div className="hidden md:flex flex-col w-full min-w-0">
-                  {/* Day Headers Row (Senin, Selasa, Rabu, etc.) */}
-                  <div className={`grid grid-cols-7 gap-2 xl:gap-3 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'} pb-2.5 border-b border-slate-200 shrink-0`}>
+                <div className={`hidden md:flex flex-col flex-1 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'}`}>
+                  {/* Day Headers Row (Senin, Selasa, Rabu, etc.) right above tasks */}
+                  <div className="grid grid-cols-7 gap-2 xl:gap-3 w-full pb-2.5 border-b border-slate-200 shrink-0">
                     {weekItem.days.map((day) => {
                       const isSelected = day.iso === selectedIso;
+                      const isToday = day.isToday;
 
                       return (
-                        <div
-                          key={day.iso}
-                          onClick={() => onSelectDate(day.date)}
-                          className={`px-2 xl:px-3.5 py-1.5 xl:py-2 rounded-2xl flex items-center justify-between gap-1 xl:gap-2 min-w-0 cursor-pointer transition-all ${
-                            isSelected ? 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1 xl:gap-2 min-w-0">
-                            <span className="font-extrabold text-xs xl:text-sm capitalize truncate">
-                              {day.dayNameId}
-                            </span>
-                            <span className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center font-extrabold text-[11px] xl:text-xs shadow-2xs shrink-0 ${
-                              isSelected ? 'bg-white text-[#0284c7]' : 'bg-white text-slate-800 border border-slate-200'
-                            }`}>
-                              {day.dayNumber}
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenCreateModal(day.iso, 10);
-                            }}
-                            title={`Tambah tugas pada ${day.dayNameId} ${day.dayNumber}`}
-                            className={`p-0.5 xl:p-1 rounded-xl transition-all cursor-pointer shrink-0 ${
-                              isSelected ? 'hover:bg-white/20 text-white' : 'hover:bg-slate-200/80 text-slate-500'
+                        <div key={day.iso} className="relative min-w-0">
+                          <div
+                            onClick={() => onSelectDate(day.date)}
+                            className={`px-2 xl:px-3.5 py-1.5 xl:py-2 rounded-2xl flex items-center justify-between gap-1 xl:gap-2 min-w-0 cursor-pointer transition-all ${
+                              isSelected
+                                ? isToday
+                                  ? 'bg-linear-30 from-[#0ea5e9] to-[#2563eb] text-white shadow-md shadow-blue-500/25 ring-2 ring-sky-200'
+                                  : 'bg-[#38bdf8] text-white shadow-md shadow-sky-500/20'
+                                : isToday
+                                  ? 'bg-sky-100/90 hover:bg-sky-200/70 text-[#0369a1] border-2 border-[#38bdf8] shadow-xs'
+                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
                             }`}
                           >
-                            <Plus className="w-3.5 h-3.5 xl:w-4 xl:h-4 stroke-[2.5]" />
-                          </button>
+                            <div className="flex items-center gap-1 xl:gap-2 min-w-0">
+                              {isToday && (
+                                <span
+                                  title="Hari berjalan"
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                    isSelected ? 'bg-white' : 'bg-[#0ea5e9]'
+                                  }`}
+                                />
+                              )}
+                              <span className="font-extrabold text-xs xl:text-sm capitalize truncate">
+                                {day.dayNameId}
+                              </span>
+                              <span className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full flex items-center justify-center font-extrabold text-[11px] xl:text-xs shadow-2xs shrink-0 ${
+                                isSelected
+                                  ? 'bg-white text-[#0284c7]'
+                                  : isToday
+                                    ? 'bg-[#0ea5e9] text-white'
+                                    : 'bg-white text-slate-800 border border-slate-200'
+                              }`}>
+                                {day.dayNumber}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenCreateModal(day.iso, 10);
+                              }}
+                              title={`Tambah tugas pada ${day.dayNameId} ${day.dayNumber}`}
+                              className={`p-0.5 xl:p-1 rounded-xl transition-all cursor-pointer shrink-0 ${
+                                isSelected
+                                  ? 'hover:bg-white/20 text-white'
+                                  : isToday
+                                    ? 'hover:bg-sky-200/80 text-[#0284c7]'
+                                    : 'hover:bg-slate-200/80 text-slate-500'
+                              }`}
+                            >
+                              <Plus className="w-3.5 h-3.5 xl:w-4 xl:h-4 stroke-[2.5]" />
+                            </button>
+                          </div>
+
+                          {/* Accent bar right at the top edge above today's tasks */}
+                          {isToday && (
+                            <div className="pointer-events-none absolute inset-x-1 -bottom-[11px] h-[3px] rounded-full bg-linear-30 from-[#38bdf8] to-[#2563eb]" />
+                          )}
                         </div>
                       );
                     })}
                   </div>
 
                   {/* Weekly Timeline Area with recursive column-slice & pocket-filling layout */}
-                  <div className={`flex-1 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'} pt-2.5`}>
+                  <div className="flex-1 w-full pt-2.5 pb-2">
                     {renderDesktopRegion(0, 6, weekEvents, `w${weekItem.weekNumber}`, true)}
                   </div>
                 </div>

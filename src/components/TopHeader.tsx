@@ -51,29 +51,41 @@ interface TopHeaderProps {
 export const MobileTopBar: React.FC<TopHeaderProps> = ({
   isSidebarOpen,
   onToggleSidebar,
+  onSelectDate,
 }) => {
   return (
     <div
-      className="md:hidden relative z-30 flex items-center justify-between gap-2 min-h-[46px] pt-3 pb-1.5 px-3 sm:px-4 select-none text-slate-900 bg-white shrink-0"
+      className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-3 min-h-[56px] pt-2.5 pb-3 px-4 mb-2 select-none text-slate-900 bg-white/95 backdrop-blur-md border-b border-slate-100 shrink-0"
     >
-      {/* Left: Sidebar Toggle + Dashboard Title */}
-      <div className="flex items-center gap-2 min-w-0">
+      {/* Left: Sidebar Toggle + App Title */}
+      <div className="flex items-center gap-3 min-w-0">
         <button
+          type="button"
           onClick={onToggleSidebar}
           title={isSidebarOpen ? "Hide Calendar Sidebar" : "Open Calendar Sidebar"}
-          className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 transition-all cursor-pointer flex items-center justify-center shrink-0"
         >
           {isSidebarOpen ? (
-            <PanelLeftClose className="w-4 h-4 stroke-[2.2]" />
+            <PanelLeftClose className="w-[18px] h-[18px] stroke-[2.2]" />
           ) : (
-            <PanelLeft className="w-4 h-4 stroke-[2.2]" />
+            <PanelLeft className="w-[18px] h-[18px] stroke-[2.2]" />
           )}
         </button>
 
-        <h1 className="text-[17px] font-extrabold text-slate-900 tracking-tight truncate">
-          Dashboard
+        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight truncate">
+          Task Review
         </h1>
       </div>
+
+      {/* Right: Quick Jump to Today */}
+      <button
+        type="button"
+        onClick={() => onSelectDate(new Date())}
+        title="Kembali ke Hari Ini"
+        className="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 active:scale-95 text-[#0284c7] border border-sky-200/80 text-xs font-bold transition-all cursor-pointer shrink-0"
+      >
+        Hari Ini
+      </button>
     </div>
   );
 };
@@ -143,7 +155,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const shortMonthYear = `${MONTH_NAMES[selectedDate.getMonth()].slice(0, 3)} ${selectedDate.getFullYear()}`;
 
   return (
-    <header className={`pt-1.5 pb-2.5 md:py-4 px-3 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-3 bg-white text-slate-900 select-none shrink-0 relative z-20 ${
+    <header className={`py-2.5 md:py-4 px-3.5 sm:px-6 md:px-8 border-b border-slate-100 flex flex-wrap md:flex-nowrap items-center justify-between gap-2 sm:gap-3 bg-slate-50/70 md:bg-white text-slate-900 select-none shrink-0 relative z-20 ${
       isFullscreen ? 'rounded-none' : 'rounded-none md:rounded-t-[28px]'
     }`}>
       {/* Left: Sidebar Toggle & Dashboard Title */}
@@ -171,7 +183,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Mobile Month Navigator + Calendar Picker (Left of Weekly button, 1 row) */}
           <div
             ref={calendarPickerRef}
-            className={`md:hidden flex items-center gap-0.5 shrink-0 relative rounded-xl p-0.5 border transition-all ${
+            className={`md:hidden h-9 flex items-center gap-0.5 shrink-0 relative rounded-xl px-0.5 sm:px-1 border transition-all ${
               isCalendarPickerOpen
                 ? 'bg-[#0ea5e9] border-[#0ea5e9] ring-2 ring-sky-200 shadow-md shadow-sky-500/25 text-white'
                 : 'bg-[#38bdf8] border-[#38bdf8] shadow-sm shadow-sky-500/20 text-white'
@@ -181,7 +193,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               type="button"
               onClick={handlePrevMonth}
               title="Bulan Sebelumnya"
-              className="p-1 rounded-lg text-white/90 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className="w-6 h-7 sm:w-7 flex items-center justify-center rounded-lg text-white/90 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
@@ -194,22 +206,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 setIsOutlineDropdownOpen(false);
               }}
               title="Klik untuk melihat kalender & memilih bulan"
-              className="flex items-center gap-0.5 px-1 py-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+              className="flex items-center gap-0.5 sm:gap-1 px-1 py-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
             >
-              <span className="text-[11px] font-bold text-white tracking-tight whitespace-nowrap sm:hidden">
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap sm:hidden">
                 {shortMonthYear}
               </span>
               <span className="text-xs font-bold text-white tracking-tight whitespace-nowrap hidden sm:inline">
                 {formatMonthYear(selectedDate)}
               </span>
-              <ChevronDown className={`w-3 h-3 text-white stroke-[2.5] transition-transform duration-200 ${isCalendarPickerOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-white stroke-[2.5] transition-transform duration-200 ${isCalendarPickerOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <button
               type="button"
               onClick={handleNextMonth}
               title="Bulan Berikutnya"
-              className="p-1 rounded-lg text-white/90 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className="w-6 h-7 sm:w-7 flex items-center justify-center rounded-lg text-white/90 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
@@ -234,7 +246,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 setIsCalendarPickerOpen(false);
               }}
               title="Pilih Tampilan (Day, Week, Month)"
-              className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
+              className={`h-9 md:h-auto flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
                 isViewDropdownOpen 
                   ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] ring-2 ring-sky-200 shadow-md shadow-sky-500/25' 
                   : 'bg-[#38bdf8] hover:bg-[#0ea5e9] text-white border-[#38bdf8] shadow-sm shadow-sky-500/20'
@@ -315,7 +327,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 setIsCalendarPickerOpen(false);
               }}
               title="Pilih filter Outline (Work, Improvement, Buy)"
-              className={`w-full md:w-auto flex items-center justify-between md:justify-start gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
+              className={`h-9 md:h-auto w-full md:w-auto flex items-center justify-between md:justify-start gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
                 isOutlineDropdownOpen 
                   ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] ring-2 ring-sky-200 shadow-md shadow-sky-500/25' 
                   : 'bg-[#38bdf8] hover:bg-[#0ea5e9] text-white border-[#38bdf8] shadow-sm shadow-sky-500/20'
