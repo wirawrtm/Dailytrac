@@ -800,7 +800,12 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                     );
 
                     return (
-                      <div key={day.iso} className="flex flex-col gap-2.5">
+                      <div
+                        key={day.iso}
+                        className={`flex flex-col gap-2.5 ${
+                          isToday ? 'bg-sky-50/70 ring-1 ring-inset ring-sky-200/60 rounded-3xl p-2' : ''
+                        }`}
+                      >
                         <div
                           onClick={() => onSelectDate(day.date)}
                           className={`px-3.5 py-2.5 rounded-2xl flex items-center justify-between gap-2 cursor-pointer transition-all ${
@@ -917,9 +922,20 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                 </div>
 
                 {/* DESKTOP VIEW (>= md): 7-Column Grid sorted chronologically by hour */}
-                <div className={`hidden md:flex flex-col flex-1 w-full ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'}`}>
+                <div className={`hidden md:flex flex-col flex-1 w-full relative ${isSidebarOpen ? 'min-w-[780px] xl:min-w-0' : 'min-w-0'}`}>
+                  {/* Subtle full-column highlight for today's running date */}
+                  <div className="pointer-events-none absolute -top-1.5 bottom-0 inset-x-0 grid grid-cols-7 gap-2 xl:gap-3 z-0">
+                    {weekItem.days.map((day) => (
+                      <div key={`col-hl-${day.iso}`} className="relative h-full">
+                        {day.isToday && (
+                          <div className="h-full -mx-1 rounded-2xl bg-sky-50/75 ring-1 ring-inset ring-sky-200/60" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
                   {/* Day Headers Row (Senin, Selasa, Rabu, etc.) right above tasks */}
-                  <div className="grid grid-cols-7 gap-2 xl:gap-3 w-full pb-2.5 border-b border-slate-200 shrink-0">
+                  <div className="relative z-10 grid grid-cols-7 gap-2 xl:gap-3 w-full pb-2.5 border-b border-slate-200 shrink-0">
                     {weekItem.days.map((day) => {
                       const isSelected = day.iso === selectedIso;
                       const isToday = day.isToday;
@@ -990,7 +1006,7 @@ export const WeeklyScheduleView: React.FC<WeeklyScheduleViewProps> = ({
                   </div>
 
                   {/* Weekly Timeline Area with recursive column-slice & pocket-filling layout */}
-                  <div className="flex-1 w-full pt-2.5 pb-2">
+                  <div className="relative z-10 flex-1 w-full pt-2.5 pb-2">
                     {renderDesktopRegion(0, 6, weekEvents, `w${weekItem.weekNumber}`, true)}
                   </div>
                 </div>
