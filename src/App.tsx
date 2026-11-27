@@ -588,6 +588,8 @@ export default function App() {
           onSelectDate={setSelectedDate}
           viewMode={viewMode}
           onSelectView={setViewMode}
+          outlineFilter={outlineFilter}
+          onSelectOutline={setOutlineFilter}
           onOpenCreateModal={() => handleOpenCreateModal()}
         />
 
