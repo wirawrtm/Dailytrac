@@ -11,9 +11,11 @@ import {
   TrendingUp,
   Layers,
   Sparkles,
-  ShoppingCart
+  ShoppingCart,
+  BarChart3,
+  Settings
 } from 'lucide-react';
-import { FilterState, DepartmentItem, TaskEvent, WorkOutline } from '../types';
+import { FilterState, DepartmentItem, TaskEvent, WorkOutline, ViewMode } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
 import { 
   formatMonthYear, 
@@ -31,6 +33,8 @@ interface SidebarProps {
   departments?: DepartmentItem[];
   events?: TaskEvent[];
   onClose?: () => void;
+  currentView?: ViewMode;
+  onSelectView?: (view: ViewMode) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -42,6 +46,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   departments = DEFAULT_DEPARTMENTS,
   events = [],
   onClose,
+  currentView,
+  onSelectView,
 }) => {
   // Navigation state for the mini calendar
   const [viewDate, setViewDate] = useState<Date>(new Date(selectedDate));
@@ -265,6 +271,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Calendar ({formatMonthYear(viewDate)})</span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/calcollapsed:text-[#00897b]" />
           </span>
+        </div>
+      )}
+
+      {/* 2. Database & Settings Menu below Mini Calendar */}
+      {onSelectView && (
+        <div className="flex flex-col gap-1.5 pt-3 border-t border-slate-100 shrink-0">
+          <span className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Menu Lainnya
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              onSelectView('database');
+              if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                onClose?.();
+              }
+            }}
+            title="Database & Analytics"
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              currentView === 'database'
+                ? 'bg-[#38bdf8] text-white shadow-sm shadow-sky-500/20'
+                : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
+            }`}
+          >
+            <BarChart3 className={`w-4 h-4 stroke-[2.2] shrink-0 ${currentView === 'database' ? 'text-white' : 'text-slate-400'}`} />
+            <span className="truncate">Database</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onSelectView('settings');
+              if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                onClose?.();
+              }
+            }}
+            title="Settings"
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              currentView === 'settings'
+                ? 'bg-[#38bdf8] text-white shadow-sm shadow-sky-500/20'
+                : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
+            }`}
+          >
+            <Settings className={`w-4 h-4 stroke-[2.2] shrink-0 ${currentView === 'settings' ? 'text-white' : 'text-slate-400'}`} />
+            <span className="truncate">Settings</span>
+          </button>
         </div>
       )}
 

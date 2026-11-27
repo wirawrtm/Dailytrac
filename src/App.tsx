@@ -619,7 +619,7 @@ export default function App() {
           {/* Main Body: Collapsible Sidebar + Schedule View */}
           <div className="max-md:flex-auto md:flex-1 flex flex-row min-w-0 md:min-h-0 md:overflow-hidden md:h-full relative max-md:overflow-visible">
             {/* Mobile Backdrop when Sidebar is open on Phone */}
-            {isSidebarOpen && viewMode !== 'settings' && (
+            {isSidebarOpen && (
               <div
                 onClick={() => setIsSidebarOpen(false)}
                 className="fixed inset-0 z-30 bg-slate-900/35 backdrop-blur-[1px] md:hidden animate-in fade-in duration-150"
@@ -627,7 +627,7 @@ export default function App() {
             )}
 
             {/* Collapsible Sidebar (Slide-over Drawer on Phone, Inline Panel on Desktop) */}
-            {isSidebarOpen && viewMode !== 'settings' && (
+            {isSidebarOpen && (
               <Sidebar
                 selectedDate={selectedDate}
                 onSelectDate={(d) => {
@@ -642,6 +642,8 @@ export default function App() {
                 departments={departments}
                 events={events}
                 onClose={() => setIsSidebarOpen(false)}
+                currentView={viewMode}
+                onSelectView={setViewMode}
               />
             )}
 
