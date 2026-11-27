@@ -20,8 +20,15 @@ import {
 } from 'lucide-react';
 import { TaskEvent, ViewMode, DepartmentItem } from '../types';
 import { DEFAULT_DEPARTMENTS, getEventOutline } from '../data/initialData';
-import { formatDateToISO } from '../utils/dateUtils';
+import { formatDateToISO, getEventStartHour } from '../utils/dateUtils';
 import { getTaskCapsuleClass } from '../utils/themeStyles';
+
+const isEventOnDate = (ev: TaskEvent, targetIso: string): boolean => {
+  const start = ev.date;
+  if (!start) return false;
+  const end = ev.dueDate && ev.dueDate >= start ? ev.dueDate : start;
+  return (start <= targetIso && end >= targetIso) || ev.dueDate === targetIso;
+};
 
 interface DailyScheduleViewProps {
   selectedDate: Date;
@@ -117,7 +124,13 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
   const selectedIso = formatDateToISO(selectedDate);
   const allCount = totalEventsCount ?? events.length;
   const dayEvents = useMemo(() => {
-    return events.filter((e) => e.date === selectedIso);
+    return events
+      .filter((e) => isEventOnDate(e, selectedIso))
+      .sort((a, b) => {
+        const startDiff = getEventStartHour(a) - getEventStartHour(b);
+        if (startDiff !== 0) return startDiff;
+        return (a.date || '').localeCompare(b.date || '') || (a.title || '').localeCompare(b.title || '');
+      });
   }, [events, selectedIso]);
 
   const nearestDateInfo = useMemo(() => {
@@ -136,7 +149,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
     if (!targetIso || targetIso === selectedIso) return null;
     const [y, m, day] = targetIso.split('-').map(Number);
     const targetDate = new Date(y, m - 1, day);
-    const tasksOnDate = events.filter((e) => e.date === targetIso);
+    const tasksOnDate = events.filter((e) => isEventOnDate(e, targetIso));
     return {
       iso: targetIso,
       date: targetDate,
@@ -154,7 +167,7 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
       d.setDate(base.getDate() + i);
       const iso = formatDateToISO(d);
       const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-      const count = events.filter((e) => e.date === iso).length;
+      const count = events.filter((e) => isEventOnDate(e, iso)).length;
       tabs.push({
         date: d,
         iso,
@@ -188,12 +201,6 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const taskCountsByDate: Record<string, number> = {};
-    events.forEach((ev) => {
-      if (ev.date) {
-        taskCountsByDate[ev.date] = (taskCountsByDate[ev.date] || 0) + 1;
-      }
-    });
 
     const ribbon = [];
     for (let day = 1; day <= daysInMonth; day++) {
@@ -201,12 +208,13 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
       const iso = formatDateToISO(d);
       const dayNum = d.getDate();
       const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const taskCount = events.reduce((acc, ev) => acc + (isEventOnDate(ev, iso) ? 1 : 0), 0);
       ribbon.push({
         date: d,
         iso,
         dayNum,
         dayName,
-        taskCount: taskCountsByDate[iso] || 0,
+        taskCount,
         isSelected: iso === selectedIso,
       });
     }
@@ -325,6 +333,8 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
               const titleText = event.title || 'Tugas Tanpa Judul';
               const isCompleted = event.status === 'completed';
               const progressPct = isCompleted ? '100%' : `${70 + (index * 7) % 25}%`;
+              const dueDate = event.dueDate || event.date;
+              const isMultiDay = dueDate > event.date;
 
               return (
                 <div
@@ -338,6 +348,13 @@ export const DailyScheduleView: React.FC<DailyScheduleViewProps> = ({
                       {titleText.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1 pt-1 sm:pt-0">
+                      {isMultiDay && (
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-[10px] font-mono uppercase bg-white/25 px-2.5 py-0.5 rounded-full font-bold text-white">
+                            {event.date} → {dueDate}
+                          </span>
+                        </div>
+                      )}
                       <h4 className="text-sm sm:text-base font-bold text-white break-words whitespace-normal leading-snug tracking-tight">
                         {titleText}
                       </h4>

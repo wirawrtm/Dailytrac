@@ -2,7 +2,9 @@ import {
   collection,
   doc,
   getDoc,
+  getDocFromServer,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   query,
   serverTimestamp,
@@ -258,13 +260,27 @@ function buildDepartmentPayload(
 
 let workspaceSeedAttempted = false;
 let departmentsSeedAttempted = false;
+let ensureWorkspaceInFlight: Promise<void> | null = null;
 
-export async function ensurePermanentWorkspace(): Promise<void> {
+function isPermissionDeniedError(error: unknown): boolean {
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { code?: unknown }).code || '')
+      : '';
+  const msg =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : String(error || '').toLowerCase();
+  return code === 'permission-denied' || msg.includes('missing or insufficient permissions');
+}
+
+async function runEnsurePermanentWorkspace(): Promise<void> {
   const wsPath = `workspaces/${PERMANENT_WORKSPACE_ID}`;
+  const deptsPath = `workspaces/${PERMANENT_WORKSPACE_ID}/departments`;
   const wsRef = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID);
 
   try {
-    const snap = await getDoc(wsRef);
+    const snap = await getDocFromServer(wsRef);
     if (!snap.exists()) {
       const workspacePayload = {
         id: PERMANENT_WORKSPACE_ID,
@@ -275,12 +291,32 @@ export async function ensurePermanentWorkspace(): Promise<void> {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      await setDoc(wsRef, workspacePayload);
+      try {
+        await setDoc(wsRef, workspacePayload);
+      } catch (createErr) {
+        if (isPermissionDeniedError(createErr)) {
+          // Another tab or concurrent call may have just created workspaces/primary
+          const verifySnap = await getDocFromServer(wsRef).catch(() => null);
+          if (!verifySnap?.exists()) {
+            throw createErr;
+          }
+        } else {
+          throw createErr;
+        }
+      }
     }
+  } catch (error) {
+    if (isTransientOfflineError(error)) {
+      console.warn('Firestore sementara offline saat memuat workspace, menunggu sinkronisasi otomatis...', error);
+      return;
+    }
+    handleFirestoreError(error, OperationType.WRITE, wsPath);
+  }
 
+  try {
     const deptsCol = collection(db, 'workspaces', PERMANENT_WORKSPACE_ID, 'departments');
     const deptQuery = query(deptsCol, where('workspaceId', '==', PERMANENT_WORKSPACE_ID));
-    const deptSnap = await getDocs(deptQuery);
+    const deptSnap = await getDocsFromServer(deptQuery);
 
     if (deptSnap.empty && DEFAULT_DEPARTMENTS.length > 0) {
       const batch = writeBatch(db);
@@ -292,15 +328,36 @@ export async function ensurePermanentWorkspace(): Promise<void> {
         const ref = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID, 'departments', deptId);
         batch.set(ref, buildDepartmentPayload({ ...dept, id: deptId }, true));
       }
-      await batch.commit();
+      try {
+        await batch.commit();
+      } catch (seedErr) {
+        if (isPermissionDeniedError(seedErr)) {
+          // Another tab or concurrent call may have just seeded the default departments
+          const verifyDepts = await getDocsFromServer(deptQuery).catch(() => null);
+          if (!verifyDepts || verifyDepts.empty) {
+            throw seedErr;
+          }
+        } else {
+          throw seedErr;
+        }
+      }
     }
   } catch (error) {
     if (isTransientOfflineError(error)) {
-      console.warn('Firestore sementara offline saat memuat workspace, menunggu sinkronisasi otomatis...', error);
+      console.warn('Firestore sementara offline saat memuat departemen, menunggu sinkronisasi otomatis...', error);
       return;
     }
-    handleFirestoreError(error, OperationType.WRITE, wsPath);
+    handleFirestoreError(error, OperationType.WRITE, deptsPath);
   }
+}
+
+export async function ensurePermanentWorkspace(): Promise<void> {
+  if (!ensureWorkspaceInFlight) {
+    ensureWorkspaceInFlight = runEnsurePermanentWorkspace().finally(() => {
+      ensureWorkspaceInFlight = null;
+    });
+  }
+  return ensureWorkspaceInFlight;
 }
 
 export function subscribeWorkspaceProfile(
@@ -473,7 +530,7 @@ export async function updateWorkspaceProfileInFirestore(
   };
 
   try {
-    const snap = await getDoc(wsRef);
+    const snap = await getDocFromServer(wsRef).catch(() => getDoc(wsRef));
     if (!snap.exists()) {
       await setDoc(wsRef, {
         ...merged,
@@ -577,7 +634,7 @@ export async function saveDepartmentToFirestore(
   const deptRef = doc(db, 'workspaces', PERMANENT_WORKSPACE_ID, 'departments', safeId);
 
   try {
-    const existingSnap = await getDoc(deptRef);
+    const existingSnap = await getDocFromServer(deptRef).catch(() => getDoc(deptRef));
     if (existingSnap.exists()) {
       const updatePayload = buildDepartmentPayload(normalizedDept, false);
       delete updatePayload.id;
